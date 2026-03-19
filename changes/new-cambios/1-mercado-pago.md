@@ -52,7 +52,7 @@ Sin embargo, existen fragmentos de código muerto (configuración, scripts SQL, 
 
 | Archivo | Tipo de código muerto | Acción |
 |---------|---------------------|--------|
-| [`PastisserieAPI.API/appsettings.Development.json`](PastisserieAPI.API/appsettings.Development.json) | Sección "MercadoPago" | **ELIMINAR** |
+| [`PastisserieAPI.API/appsettings.Development.json`](PastisserieAPI.API/appsettings.Development.json) | Archivo completo de desarrollo | **ELIMINAR** (consolidar en appsettings.json) |
 
 **Contenido a eliminar:**
 ```json
@@ -167,7 +167,7 @@ cd pastisserie-front && npm run build
 
 | Tarea | Estado | Responsable |
 |-------|--------|-------------|
-| Eliminar sección MercadoPago de appsettings.Development.json | ✅ Completado | Kilo Code |
+| Eliminar appsettings.Development.json (consolidar configuración) | ✅ Completado | Kilo Code |
 | Eliminar AddMercadoPagoFields.sql | ✅ Completado | Kilo Code |
 | Limpiar CreateMetodoPagoUsuarioTable.sql | ✅ Completado | Kilo Code |
 | Archivar documentación obsoleta | ⏳ Pendiente | - |
@@ -180,7 +180,7 @@ cd pastisserie-front && npm run build
 
 ### Cambios Realizados (2026-03-19)
 
-1. **appsettings.Development.json** - Sección "MercadoPago" eliminada
+1. **appsettings.Development.json** - Archivo completo eliminado (consolidado en appsettings.json)
 2. **AddMercadoPagoFields.sql** - Archivo eliminado
 3. **CreateMetodoPagoUsuarioTable.sql** - Referencias a MercadoPago eliminadas
 

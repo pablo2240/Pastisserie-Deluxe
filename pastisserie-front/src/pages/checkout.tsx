@@ -3,26 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FiCheckCircle, FiMapPin, FiPhone, FiTruck, FiChevronRight, FiChevronLeft, FiEdit2, FiPackage, FiDollarSign, FiCreditCard, FiLoader } from 'react-icons/fi';
+import { FiCheckCircle, FiMapPin, FiPhone, FiTruck, FiChevronRight, FiChevronLeft, FiEdit2, FiPackage, FiDollarSign, FiCreditCard, FiLoader, FiShield } from 'react-icons/fi';
 import { formatCurrency } from '../utils/format';
 import { useTiendaStatus } from '../hooks/useTiendaStatus';
 import { FiClock } from 'react-icons/fi';
 import { orderService } from '../services/orderService';
 import { ComunasDisponibles } from '../types';
 import type { ComunaKey } from '../types';
-
-// Declare ePayco global from checkout.js
-declare global {
-    interface Window {
-        ePayco?: {
-            checkout: {
-                configure: (config: { key: string; test: boolean }) => {
-                    open: (data: Record<string, unknown>) => void;
-                };
-            };
-        };
-    }
-}
 
 const Checkout = () => {
     const { carrito, totalItems, clearCart, compraMinima } = useCart();
@@ -115,7 +102,7 @@ const Checkout = () => {
                 direccion: formData.direccion,
                 comuna: formData.comuna,
                 telefono: formData.telefono,
-                metodoPago: 'ePayco',
+                metodoPago: 'Simulado',
                 notas: formData.notas
             });
 
@@ -137,83 +124,34 @@ const Checkout = () => {
         }
     };
 
-    // Step 3: Open ePayco Standard Checkout
-    const handleOpenEpaycoCheckout = useCallback(async () => {
+    // Step 3: Simular pago (para pruebas/desarrollo)
+    const handleSimularPago = useCallback(async () => {
         if (!pedidoId || isLoadingPayment) return;
 
-        // Check ePayco script loaded
-        if (!window.ePayco) {
-            toast.error('El sistema de pagos no se ha cargado. Recarga la pagina e intenta de nuevo.');
-            return;
-        }
-
         setIsLoadingPayment(true);
-        const loadingToast = toast.loading('Preparando pago...');
+        const loadingToast = toast.loading('Procesando pago simulado...');
 
         try {
-            // Fetch checkout data from backend
-            const result = await orderService.getEpaycoCheckoutData(pedidoId);
+            // Simular pago en el backend
+            const result = await orderService.simularPago(pedidoId);
 
-            if (!result.success || !result.data) {
-                toast.error(result.message || 'Error al preparar el pago', { id: loadingToast });
-                return;
+            if (result.success && result.data) {
+                toast.success('Pago aprobado correctamente', { id: loadingToast });
+                // Limpiar carrito
+                await clearCart();
+                // Ir a página de éxito
+                navigate(`/resultado-pago?pedido_id=${pedidoId}&estado=aprobado`);
+            } else {
+                toast.error(result.message || 'Error al procesar el pago simulado', { id: loadingToast });
             }
-
-            const data = result.data;
-
-            // Configure and open ePayco Standard Checkout
-            const handler = window.ePayco!.checkout.configure({
-                key: data.publicKey,
-                test: data.test
-            });
-
-            toast.dismiss(loadingToast);
-
-            handler.open({
-                // Required
-                name: data.name,
-                description: data.description,
-                invoice: data.invoice,
-                currency: data.currency,
-                amount: data.amount,
-                tax_base: data.taxBase,
-                tax: data.tax,
-                country: data.country,
-                lang: 'es',
-
-                // Open in external window so "Salir" redirects back to our app
-                external: 'true',
-                autoclick: 'false',
-
-                // Buyer info
-                name_billing: data.buyerFullName,
-                email_billing: data.buyerEmail,
-
-                // URLs - ePayco appends ?ref_payco=XXX to url_response automatically
-                response: data.urlResponse,
-                confirmation: data.urlConfirmation,
-
-                // Extra fields to identify the order
-                extra1: data.extra1,
-                extra2: data.extra2,
-
-                // Integrity signature and merchant ID for ePayco validation
-                p_confirm_method: 'POST',
-                p_cust_id_cliente: data.pCustIdCliente,
-                integrity: data.signature,
-            });
-
-            // Clear cart after opening payment (order already created)
-            await clearCart();
-
         } catch (error: unknown) {
-            console.error('Error opening ePayco checkout:', error);
+            console.error('Error al simular pago:', error);
             const err = error as { response?: { data?: { message?: string } } };
-            toast.error(err.response?.data?.message || 'Error al abrir la pasarela de pago', { id: loadingToast });
+            toast.error(err.response?.data?.message || 'Error al procesar el pago', { id: loadingToast });
         } finally {
             setIsLoadingPayment(false);
         }
-    }, [pedidoId, isLoadingPayment, clearCart]);
+    }, [pedidoId, isLoadingPayment, clearCart, navigate]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -314,10 +252,9 @@ const Checkout = () => {
                     <div className="flex items-center justify-center max-w-2xl mx-auto">
                         {/* Step 1 Indicator */}
                         <div className={`flex flex-col items-center z-10 ${stepIndex === 0 ? 'text-patisserie-red' : stepIndex > 0 ? 'text-green-500' : 'text-gray-400'}`}>
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mb-2 transition-all ${
-                                stepIndex === 0 ? 'bg-patisserie-red text-white shadow-lg' :
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mb-2 transition-all ${stepIndex === 0 ? 'bg-patisserie-red text-white shadow-lg' :
                                 stepIndex > 0 ? 'bg-green-500 text-white' : 'bg-gray-200'
-                            }`}>
+                                }`}>
                                 {stepIndex > 0 ? <FiCheckCircle /> : '1'}
                             </div>
                             <span className="font-bold text-sm">Envio</span>
@@ -328,10 +265,9 @@ const Checkout = () => {
 
                         {/* Step 2 Indicator */}
                         <div className={`flex flex-col items-center z-10 ${stepIndex === 1 ? 'text-patisserie-red' : stepIndex > 1 ? 'text-green-500' : 'text-gray-400'}`}>
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mb-2 transition-all ${
-                                stepIndex === 1 ? 'bg-patisserie-red text-white shadow-lg' :
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mb-2 transition-all ${stepIndex === 1 ? 'bg-patisserie-red text-white shadow-lg' :
                                 stepIndex > 1 ? 'bg-green-500 text-white' : 'bg-gray-200'
-                            }`}>
+                                }`}>
                                 {stepIndex > 1 ? <FiCheckCircle /> : '2'}
                             </div>
                             <span className="font-bold text-sm">Resumen</span>
@@ -342,9 +278,8 @@ const Checkout = () => {
 
                         {/* Step 3 Indicator */}
                         <div className={`flex flex-col items-center z-10 ${stepIndex === 2 ? 'text-patisserie-red' : 'text-gray-400'}`}>
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mb-2 transition-all ${
-                                stepIndex === 2 ? 'bg-patisserie-red text-white shadow-lg' : 'bg-gray-200'
-                            }`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mb-2 transition-all ${stepIndex === 2 ? 'bg-patisserie-red text-white shadow-lg' : 'bg-gray-200'
+                                }`}>
                                 3
                             </div>
                             <span className="font-bold text-sm">Pago</span>
@@ -563,8 +498,8 @@ const Checkout = () => {
                                         <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
                                             <FiCreditCard className="w-8 h-8 text-blue-600" />
                                         </div>
-                                        <h3 className="text-lg font-bold text-gray-800">Pagar con ePayco</h3>
-                                        <p className="text-sm text-gray-500 mt-1">Pago seguro con tarjeta, PSE, Nequi y mas</p>
+                                        <h3 className="text-lg font-bold text-gray-800">Simular Pago</h3>
+                                        <p className="text-sm text-gray-500 mt-1">Modo de prueba - Pago simulado instantaneo</p>
                                     </div>
 
                                     {/* Order Summary */}
@@ -588,7 +523,7 @@ const Checkout = () => {
                                     {/* Payment Button */}
                                     <div className="space-y-3">
                                         <button
-                                            onClick={handleOpenEpaycoCheckout}
+                                            onClick={handleSimularPago}
                                             disabled={isLoadingPayment || !pedidoId}
                                             className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded-xl transition-colors flex items-center justify-center"
                                         >
@@ -599,8 +534,8 @@ const Checkout = () => {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <FiCreditCard className="w-5 h-5 mr-2" />
-                                                    Pagar con ePayco
+                                                    <FiShield className="w-5 h-5 mr-2" />
+                                                    Simular Pago
                                                 </>
                                             )}
                                         </button>
@@ -617,7 +552,7 @@ const Checkout = () => {
                                     {/* Security note */}
                                     <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
                                         <FiCheckCircle className="text-green-500" />
-                                        <span>Pago procesado de forma segura por ePayco</span>
+                                        <span>Modo de prueba - Sin cargo real</span>
                                     </div>
                                 </div>
 

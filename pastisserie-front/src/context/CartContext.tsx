@@ -159,8 +159,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
     // Restricción de unidades por producto
     if (limitarUnidadesPorProducto) {
-      // Buscar el ítem en carrito
-      const actualItem = carrito?.items?.find(item => item.id === itemId);
       if (cantidad > maxUnidadesPorProducto) {
         toast.error(`Solo puedes agregar máximo ${maxUnidadesPorProducto} unidades de este producto por pedido.`);
         return;
@@ -212,7 +210,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-    return (
+  return (
     <CartContext.Provider value={{
       carrito,
       totalItems,

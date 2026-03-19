@@ -12,6 +12,7 @@ import Login from './pages/login';
 import Register from './pages/register';
 import Carrito from './pages/carrito';
 import ResultadoPago from './pages/ResultadoPago';
+import Pago from './pages/Pago';
 
 // --- Páginas Protegidas (Cliente) ---
 // ⚠️ IMPORTANTE: Asegúrate de que el nombre del archivo coincida (Checkout.tsx)
@@ -69,6 +70,7 @@ function App() {
 
             {/* Rutas Protegidas (Requieren Login) */}
             <Route element={<ProtectedRoute />}>
+              <Route path="pago" element={<Pago />} />
               <Route path="checkout" element={<Checkout />} />
               <Route path="perfil" element={<Perfil />} />
               <Route path="reclamaciones" element={<Reclamaciones />} />

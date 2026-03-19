@@ -145,7 +145,7 @@ const Catalogo = () => {
                 </div>
 
                 {/* GRID DE PRODUCTOS */}
-                <div className="transition-all duration-500 blur-0 scale-100">
+                <div className="transition-opacity duration-300">
                     {loading ? (
                         <ProductListSkeleton count={8} />
                     ) : productos.length === 0 ? (

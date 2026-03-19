@@ -36,154 +36,154 @@ const Configuracion: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
 
-const [storeData, setStoreData] = useState<StoreData>({
-    nombreTienda: '',
-    direccion: '',
-    telefono: '',
-    emailContacto: '',
-    compraMinima: 15000,
-    moneda: 'COP',
-    mensajeBienvenida: '',
-    sistemaActivoManual: true,
-    usarControlHorario: true,
-    horaApertura: '08:00',
-    horaCierre: '18:00',
-    diasLaborales: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'],
-    instagramUrl: '',
-    facebookUrl: '',
-    whatsappUrl: '',
-    horariosPorDia: [
-        { diaSemana: 0, abierto: false, horaApertura: '08:00', horaCierre: '18:00' },
-        { diaSemana: 1, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
-        { diaSemana: 2, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
-        { diaSemana: 3, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
-        { diaSemana: 4, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
-        { diaSemana: 5, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
-        { diaSemana: 6, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
-    ],
-    maxUnidadesPorProducto: 10,
-    limitarUnidadesPorProducto: false,
-});
+    const [storeData, setStoreData] = useState<StoreData>({
+        nombreTienda: '',
+        direccion: '',
+        telefono: '',
+        emailContacto: '',
+        compraMinima: 15000,
+        moneda: 'COP',
+        mensajeBienvenida: '',
+        sistemaActivoManual: true,
+        usarControlHorario: true,
+        horaApertura: '08:00',
+        horaCierre: '18:00',
+        diasLaborales: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'],
+        instagramUrl: '',
+        facebookUrl: '',
+        whatsappUrl: '',
+        horariosPorDia: [
+            { diaSemana: 0, abierto: false, horaApertura: '08:00', horaCierre: '18:00' },
+            { diaSemana: 1, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
+            { diaSemana: 2, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
+            { diaSemana: 3, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
+            { diaSemana: 4, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
+            { diaSemana: 5, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
+            { diaSemana: 6, abierto: true, horaApertura: '08:00', horaCierre: '18:00' },
+        ],
+        maxUnidadesPorProducto: 10,
+        limitarUnidadesPorProducto: false,
+    });
 
     useEffect(() => {
         fetchStoreConfig();
     }, []);
 
-const fetchStoreConfig = async () => {
-    try {
-        setFetching(true);
-        const response = await api.get('/configuracion');
-        if (response.data?.data) {
-            const config = response.data.data;
-            const formatTime = (t: string) => t && t.length > 5 ? t.substring(0, 5) : (t || '08:00');
+    const fetchStoreConfig = async () => {
+        try {
+            setFetching(true);
+            const response = await api.get('/configuracion');
+            if (response.data?.data) {
+                const config = response.data.data;
+                const formatTime = (t: string) => t && t.length > 5 ? t.substring(0, 5) : (t || '08:00');
 
-            let fetchedHorarios = config.horariosPorDia || [];
-            // Initialize default array if backend returned empty
-            if (fetchedHorarios.length === 0) {
-                fetchedHorarios = [0, 1, 2, 3, 4, 5, 6].map(d => ({
-                    diaSemana: d,
-                    abierto: config.diasLaborales?.includes(d.toString()) || false,
+                let fetchedHorarios = config.horariosPorDia || [];
+                // Initialize default array if backend returned empty
+                if (fetchedHorarios.length === 0) {
+                    fetchedHorarios = [0, 1, 2, 3, 4, 5, 6].map(d => ({
+                        diaSemana: d,
+                        abierto: config.diasLaborales?.includes(d.toString()) || false,
+                        horaApertura: formatTime(config.horaApertura),
+                        horaCierre: formatTime(config.horaCierre)
+                    }));
+                } else {
+                    fetchedHorarios = fetchedHorarios.map((h: any) => ({
+                        ...h,
+                        horaApertura: formatTime(h.horaApertura),
+                        horaCierre: formatTime(h.horaCierre)
+                    }));
+                }
+                fetchedHorarios.sort((a: any, b: any) => a.diaSemana - b.diaSemana);
+
+                setStoreData({
+                    ...config,
+                    // backward compat: fill in new fields from config, fallback defaults
+                    compraMinima: config.compraMinima !== undefined ? config.compraMinima : 15000,
+                    maxUnidadesPorProducto: config.maxUnidadesPorProducto !== undefined ? config.maxUnidadesPorProducto : 10,
+                    limitarUnidadesPorProducto: config.limitarUnidadesPorProducto !== undefined ? config.limitarUnidadesPorProducto : false,
+                    diasLaborales: typeof config.diasLaborales === 'string'
+                        ? config.diasLaborales.split(',').filter((d: string) => d)
+                        : ['1', '2', '3', '4', '5'],
                     horaApertura: formatTime(config.horaApertura),
-                    horaCierre: formatTime(config.horaCierre)
-                }));
-            } else {
-                fetchedHorarios = fetchedHorarios.map((h: any) => ({
-                    ...h,
-                    horaApertura: formatTime(h.horaApertura),
-                    horaCierre: formatTime(h.horaCierre)
-                }));
+                    horaCierre: formatTime(config.horaCierre),
+                    instagramUrl: config.instagramUrl || '',
+                    facebookUrl: config.facebookUrl || '',
+                    whatsappUrl: config.whatsappUrl || '',
+                    horariosPorDia: fetchedHorarios
+                });
             }
-            fetchedHorarios.sort((a: any, b: any) => a.diaSemana - b.diaSemana);
-
-            setStoreData({
-                ...config,
-                // backward compat: fill in new fields from config, fallback defaults
-                compraMinima: config.compraMinima !== undefined ? config.compraMinima : 15000,
-                maxUnidadesPorProducto: config.maxUnidadesPorProducto !== undefined ? config.maxUnidadesPorProducto : 10,
-                limitarUnidadesPorProducto: config.limitarUnidadesPorProducto !== undefined ? config.limitarUnidadesPorProducto : false,
-                diasLaborales: typeof config.diasLaborales === 'string'
-                    ? config.diasLaborales.split(',').filter((d: string) => d)
-                    : ['1', '2', '3', '4', '5'],
-                horaApertura: formatTime(config.horaApertura),
-                horaCierre: formatTime(config.horaCierre),
-                instagramUrl: config.instagramUrl || '',
-                facebookUrl: config.facebookUrl || '',
-                whatsappUrl: config.whatsappUrl || '',
-                horariosPorDia: fetchedHorarios
-            });
+        } catch (error) {
+            console.error('Error al cargar configuración', error);
+            toast.error('Error al sincronizar configuración base');
+        } finally {
+            setFetching(false);
         }
-    } catch (error) {
-        console.error('Error al cargar configuración', error);
-        toast.error('Error al sincronizar configuración base');
-    } finally {
-        setFetching(false);
-    }
-};
-const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    let finalValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    };
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target;
+        let finalValue: string | number | boolean = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
 
-    // Validation and type casting for specific fields
-    if (name === 'compraMinima') {
-        finalValue = Math.max(1000, parseInt(value) || 15000); // reasonable min
-    } else if (name === 'maxUnidadesPorProducto') {
-        finalValue = Math.max(1, Math.min(100, parseInt(value) || 10)); // min 1, max 100
-    }
+        // Validation and type casting for specific fields
+        if (name === 'compraMinima') {
+            finalValue = Math.max(1000, parseInt(value) || 15000); // reasonable min
+        } else if (name === 'maxUnidadesPorProducto') {
+            finalValue = Math.max(1, Math.min(100, parseInt(value) || 10)); // min 1, max 100
+        }
 
-    setStoreData(prev => ({
-        ...prev,
-        [name]: finalValue
-    }));
-};
+        setStoreData(prev => ({
+            ...prev,
+            [name]: finalValue
+        }));
+    };
 
-const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+    const handleSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
 
-    const saveToast = toast.loading('Sincronizando cambios con la nube...');
+        const saveToast = toast.loading('Sincronizando cambios con la nube...');
 
-    try {
-        setLoading(true);
+        try {
+            setLoading(true);
 
-        // Payload optimization: Ensure TimeSpan format (HH:mm:ss) and proper numbers
-        const payload = {
-            ...storeData,
-            compraMinima: Number(storeData.compraMinima),
-            maxUnidadesPorProducto: Number(storeData.maxUnidadesPorProducto),
-            limitarUnidadesPorProducto: !!storeData.limitarUnidadesPorProducto,
-            horaApertura: storeData.horaApertura.length === 5 ? `${storeData.horaApertura}:00` : storeData.horaApertura,
-            horaCierre: storeData.horaCierre.length === 5 ? `${storeData.horaCierre}:00` : storeData.horaCierre,
-            diasLaborales: storeData.horariosPorDia.filter(h => h.abierto).map(h => h.diaSemana.toString()).join(','),
-            horariosPorDia: storeData.horariosPorDia.map(h => ({
-                ...h,
-                horaApertura: h.horaApertura.length === 5 ? `${h.horaApertura}:00` : h.horaApertura,
-                horaCierre: h.horaCierre.length === 5 ? `${h.horaCierre}:00` : h.horaCierre,
-            }))
-        };
+            // Payload optimization: Ensure TimeSpan format (HH:mm:ss) and proper numbers
+            const payload = {
+                ...storeData,
+                compraMinima: Number(storeData.compraMinima),
+                maxUnidadesPorProducto: Number(storeData.maxUnidadesPorProducto),
+                limitarUnidadesPorProducto: !!storeData.limitarUnidadesPorProducto,
+                horaApertura: storeData.horaApertura.length === 5 ? `${storeData.horaApertura}:00` : storeData.horaApertura,
+                horaCierre: storeData.horaCierre.length === 5 ? `${storeData.horaCierre}:00` : storeData.horaCierre,
+                diasLaborales: storeData.horariosPorDia.filter(h => h.abierto).map(h => h.diaSemana.toString()).join(','),
+                horariosPorDia: storeData.horariosPorDia.map(h => ({
+                    ...h,
+                    horaApertura: h.horaApertura.length === 5 ? `${h.horaApertura}:00` : h.horaApertura,
+                    horaCierre: h.horaCierre.length === 5 ? `${h.horaCierre}:00` : h.horaCierre,
+                }))
+            };
 
-        await api.put('/configuracion', payload);
-        toast.success('Configuración global actualizada con éxito', { id: saveToast });
-        
-        // Advertencia sobre cambios en logística base que afectan a clientes
-        toast('⚠️ Los cambios en logística (compra mínima, límites) aplican a todos los pedidos nuevos', {
-            icon: '🔔',
-            duration: 5000,
-            style: {
-                background: '#FEF3C7',
-                color: '#92400E',
-                fontWeight: 'bold',
-                border: '2px solid #F59E0B'
-            }
-        });
-        
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (error: any) {
-        const errorMsg = error.response?.data?.message || 'Error crítico al intentar guardar';
-        toast.error(errorMsg, { id: saveToast });
-        console.error(error);
-    } finally {
-        setLoading(false);
-    }
-};
+            await api.put('/configuracion', payload);
+            toast.success('Configuración global actualizada con éxito', { id: saveToast });
+
+            // Advertencia sobre cambios en logística base que afectan a clientes
+            toast('⚠️ Los cambios en logística (compra mínima, límites) aplican a todos los pedidos nuevos', {
+                icon: '🔔',
+                duration: 5000,
+                style: {
+                    background: '#FEF3C7',
+                    color: '#92400E',
+                    fontWeight: 'bold',
+                    border: '2px solid #F59E0B'
+                }
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.message || 'Error crítico al intentar guardar';
+            toast.error(errorMsg, { id: saveToast });
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     if (fetching) {
         return (
@@ -481,52 +481,52 @@ const handleSubmit = async (e?: React.FormEvent) => {
                                 <p className="text-gray-600 text-[11px] font-black uppercase tracking-widest mt-1 opacity-80">Costos de operación y despacho</p>
                             </div>
                         </div>
-<div className="space-y-10">
-    <div className="space-y-4">
-        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700 ml-4 italic opacity-70">Compra mínima ({storeData.moneda}) <span title="Monto mínimo de compra requerido para poder realizar el checkout." className="ml-2 text-gray-400 cursor-help">ℹ️</span></label>
-        <div className="relative group">
-            <div className="absolute left-6 top-1/2 -translate-y-1/2 text-amber-600 font-outfit font-black text-xl">$</div>
-            <input
-                type="number"
-                name="compraMinima"
-                value={storeData.compraMinima}
-                min={1000}
-                max={500000}
-                onChange={handleChange}
-                className="w-full pl-12 pr-6 py-4 bg-amber-50/20 border-2 border-amber-100 rounded-[1.5rem] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/5 transition-all font-outfit font-black text-gray-900 text-2xl shadow-inner"
-            />
-        </div>
-        <small className="text-[11px] text-gray-500 ml-2">Este campo define el monto mínimo (en {storeData.moneda}) para permitir una compra. Si el pedido no alcanza este valor, el sistema bloqueará el pago.</small>
-    </div>
+                        <div className="space-y-10">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700 ml-4 italic opacity-70">Compra mínima ({storeData.moneda}) <span title="Monto mínimo de compra requerido para poder realizar el checkout." className="ml-2 text-gray-400 cursor-help">ℹ️</span></label>
+                                <div className="relative group">
+                                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-amber-600 font-outfit font-black text-xl">$</div>
+                                    <input
+                                        type="number"
+                                        name="compraMinima"
+                                        value={storeData.compraMinima}
+                                        min={1000}
+                                        max={500000}
+                                        onChange={handleChange}
+                                        className="w-full pl-12 pr-6 py-4 bg-amber-50/20 border-2 border-amber-100 rounded-[1.5rem] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/5 transition-all font-outfit font-black text-gray-900 text-2xl shadow-inner"
+                                    />
+                                </div>
+                                <small className="text-[11px] text-gray-500 ml-2">Este campo define el monto mínimo (en {storeData.moneda}) para permitir una compra. Si el pedido no alcanza este valor, el sistema bloqueará el pago.</small>
+                            </div>
 
-    <div className="space-y-4 mt-10">
-        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700 ml-4 italic opacity-70">Máximo de unidades por producto <span title="Limita la cantidad máxima que se puede comprar de un mismo producto por pedido." className="ml-2 text-gray-400 cursor-help">ℹ️</span></label>
-        <div className="flex items-center gap-4">
-            <input
-                type="number"
-                name="maxUnidadesPorProducto"
-                value={storeData.maxUnidadesPorProducto}
-                min={1}
-                max={100}
-                disabled={!storeData.limitarUnidadesPorProducto}
-                onChange={handleChange}
-                className={`w-32 pl-6 pr-4 py-3 bg-amber-50/20 border-2 border-amber-100 rounded-[1.5rem] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/5 transition-all font-outfit font-black text-gray-900 text-xl shadow-inner ${!storeData.limitarUnidadesPorProducto ? 'opacity-60' : ''}`}
-            />
-            <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                    type="checkbox"
-                    name="limitarUnidadesPorProducto"
-                    checked={storeData.limitarUnidadesPorProducto}
-                    onChange={handleChange}
-                    className="sr-only peer"
-                />
-                <div className="w-16 h-8 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-400 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-amber-500 shadow-inner"></div>
-            </label>
-            <span className="text-[10px] text-gray-600 font-black ml-2">{storeData.limitarUnidadesPorProducto ? 'Límite activo' : 'Sin límite'}</span>
-        </div>
-        <small className="text-[11px] text-gray-500 ml-2">Activa el control para limitar la cantidad máxima de cada producto que un cliente puede agregar en un solo pedido.</small>
-    </div>
-</div>
+                            <div className="space-y-4 mt-10">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700 ml-4 italic opacity-70">Máximo de unidades por producto <span title="Limita la cantidad máxima que se puede comprar de un mismo producto por pedido." className="ml-2 text-gray-400 cursor-help">ℹ️</span></label>
+                                <div className="flex items-center gap-4">
+                                    <input
+                                        type="number"
+                                        name="maxUnidadesPorProducto"
+                                        value={storeData.maxUnidadesPorProducto}
+                                        min={1}
+                                        max={100}
+                                        disabled={!storeData.limitarUnidadesPorProducto}
+                                        onChange={handleChange}
+                                        className={`w-32 pl-6 pr-4 py-3 bg-amber-50/20 border-2 border-amber-100 rounded-[1.5rem] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/5 transition-all font-outfit font-black text-gray-900 text-xl shadow-inner ${!storeData.limitarUnidadesPorProducto ? 'opacity-60' : ''}`}
+                                    />
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            name="limitarUnidadesPorProducto"
+                                            checked={storeData.limitarUnidadesPorProducto}
+                                            onChange={handleChange}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-16 h-8 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-400 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-amber-500 shadow-inner"></div>
+                                    </label>
+                                    <span className="text-[10px] text-gray-600 font-black ml-2">{storeData.limitarUnidadesPorProducto ? 'Límite activo' : 'Sin límite'}</span>
+                                </div>
+                                <small className="text-[11px] text-gray-500 ml-2">Activa el control para limitar la cantidad máxima de cada producto que un cliente puede agregar en un solo pedido.</small>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="bg-white rounded-[3.5rem] p-12 shadow-[0_20px_60px_rgba(0,0,0,0.05)] border border-gray-200 group transition-all duration-700 hover:shadow-[0_40px_80px_rgba(0,0,0,0.08)]">

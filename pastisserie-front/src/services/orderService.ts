@@ -20,25 +20,15 @@ export interface Pedido {
   items: PedidoItem[];
 }
 
-export interface EpaycoCheckoutData {
-  publicKey: string;
-  pCustIdCliente: string;
-  name: string;
-  description: string;
-  invoice: string;
-  currency: string;
-  amount: string;
-  taxBase: string;
-  tax: string;
-  buyerEmail: string;
-  buyerFullName: string;
-  country: string;
-  urlResponse: string;
-  urlConfirmation: string;
-  extra1: string;
-  extra2: string;
-  signature: string;
-  test: boolean;
+export interface SimularPagoResponse {
+  success: boolean;
+  data?: {
+    pedidoId: number;
+    estado: string;
+    aprobado: boolean;
+    mensaje: string;
+  };
+  message?: string;
 }
 
 export const orderService = {
@@ -64,44 +54,31 @@ export const orderService = {
     return response.data;
   },
 
-  // 2. Get ePayco checkout data for a pedido
-  getEpaycoCheckoutData: async (pedidoId: number): Promise<{ success: boolean; data: EpaycoCheckoutData; message: string }> => {
-    const response = await api.post(`/pagos/epayco/checkout-data/${pedidoId}`);
+  // 2. Simular pago (para pruebas/desarrollo)
+  simularPago: async (pedidoId: number): Promise<SimularPagoResponse> => {
+    const response = await api.post(`/pagos/simular-pago/${pedidoId}`);
     return response.data;
   },
 
-  // 3. Verify pedido status
+  // 3. Verificar pedido status
   verificarPedido: async (pedidoId: number) => {
     const response = await api.get(`/pagos/verificar-pedido/${pedidoId}`);
     return response.data;
   },
 
-  // 4. Validate ePayco transaction by ref_payco (authenticated)
-  validarTransaccionEpayco: async (refPayco: string) => {
-    const response = await api.get(`/pagos/epayco/validar/${refPayco}`);
-    return response.data;
-  },
-
-  // 4b. Confirm ePayco transaction by ref_payco (anonymous - no JWT required)
-  // This is the critical endpoint for post-payment confirmation when user may not have a session
-  confirmarTransaccionEpayco: async (refPayco: string) => {
-    const response = await api.get(`/pagos/epayco/confirmar/${refPayco}`);
-    return response.data;
-  },
-
-  // 5. Obtener mis pedidos (Cliente)
+  // 4. Obtener mis pedidos (Cliente)
   getMyOrders: async () => {
     const response = await api.get('/pedidos/mis-pedidos');
     return response.data.data || response.data;
   },
 
-  // 6. Obtener TODOS los pedidos (Admin)
+  // 5. Obtener TODOS los pedidos (Admin)
   getAllOrders: async () => {
     const response = await api.get('/pedidos');
     return response.data.data || response.data;
   },
 
-  // 7. Cambiar estado (Admin)
+  // 6. Cambiar estado (Admin)
   updateStatus: async (pedidoId: number, nuevoEstado: string) => {
     const response = await api.put(`/pedidos/${pedidoId}/estado`, {
       estado: nuevoEstado
@@ -109,7 +86,7 @@ export const orderService = {
     return response.data;
   },
 
-  // 8. Eliminar pedido (Admin o Usuario propietario)
+  // 7. Eliminar pedido (Admin o Usuario propietario)
   deleteOrder: async (pedidoId: number) => {
     const response = await api.delete(`/pedidos/${pedidoId}`);
     return response.data;

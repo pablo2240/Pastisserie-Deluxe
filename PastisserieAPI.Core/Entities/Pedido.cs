@@ -60,19 +60,6 @@ namespace PastisserieAPI.Core.Entities
 
         public DateTime? FechaNoEntrega { get; set; }
 
-        // ePayco payment tracking fields
-        [MaxLength(100)]
-        public string? EpaycoRefPayco { get; set; }
-
-        [MaxLength(100)]
-        public string? EpaycoTransactionId { get; set; }
-
-        [MaxLength(50)]
-        public string? EpaycoEstadoTransaccion { get; set; }
-
-        [MaxLength(50)]
-        public string? EpaycoMetodoPago { get; set; }
-
         // Relaciones
         [ForeignKey("UsuarioId")]
         public virtual User Usuario { get; set; } = null!;

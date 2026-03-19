@@ -35,7 +35,6 @@ namespace PastisserieAPI.API.Extensions
             services.AddScoped<IReclamacionService, ReclamacionService>();
             services.AddScoped<IEnvioService, EnvioService>();
             services.AddScoped<ITiendaService, TiendaService>();
-            services.AddHttpClient<IEpaycoService, EpaycoService>();
 
             // JWT Helper
             var jwtSettings = configuration.GetSection("JwtSettings");

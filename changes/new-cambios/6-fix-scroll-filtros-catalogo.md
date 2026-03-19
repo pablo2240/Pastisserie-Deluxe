@@ -18,5 +18,40 @@ Esto elimina las transiciones de `blur` y `scale` que causaban el reposicionamie
 - La funcionalidad de los filtros se mantiene intacta
 - El comportamiento visual sigue siendo atractivo sin causar saltos de scroll
 
+## Solución Adicional: Scroll hacia arriba al seleccionar filtro
+
+Se implementó scroll automático hacia arriba cuando el usuario selecciona un filtro de categoría, mejorando la experiencia de usuario.
+
+### Cambios en [`pastisserie-front/src/pages/catalogo.tsx`](pastisserie-front/src/pages/catalogo.tsx):
+
+1. **Agregado `useRef` al import de React** (línea 1):
+   ```typescript
+   import { useEffect, useState, useRef } from 'react';
+   ```
+
+2. **Creada referencia al contenedor de productos** (línea 19):
+   ```typescript
+   const productosRef = useRef<HTMLDivElement>(null);
+   ```
+
+3. **Agregada referencia al div de productos** (línea 149):
+   ```typescript
+   <div ref={productosRef} className="transition-opacity duration-300">
+   ```
+
+4. **Modificado el handler de clic de los filtros** (línea 104):
+   ```typescript
+   onClick={() => { 
+       setCategoriaFiltro(cat); 
+       productosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+   }}
+   ```
+
+### Características:
+- Scroll suave (`behavior: 'smooth'`)
+- Sin salto brusco
+- Funciona con cualquier cantidad de productos
+- Compatible con todos los filtros de categoría
+
 ## Fecha
 2026-03-19

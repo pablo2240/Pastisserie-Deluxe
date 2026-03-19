@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { FiFilter, FiSearch } from 'react-icons/fi';
 import api from '../api/axios';
 import ProductCard from '../components/ProductCard';
@@ -16,6 +16,7 @@ const Catalogo = () => {
     const [busqueda, setBusqueda] = useState('');
     const [ordenarPor, setOrdenarPor] = useState('nombre'); // 'nombre', 'precio-asc', 'precio-desc'
     const [precioRango] = useState<[number, number]>([0, 10000000]);
+    const productosRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetchProductos();
@@ -101,7 +102,7 @@ const Catalogo = () => {
                             categorias.map(cat => (
                                 <button
                                     key={cat}
-                                    onClick={() => setCategoriaFiltro(cat)}
+                                    onClick={() => { setCategoriaFiltro(cat); productosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
                                     className={`px-6 py-2.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-[0.2em] border-2 ${categoriaFiltro === cat
                                         ? 'bg-patisserie-red border-patisserie-red text-white shadow-[0_10px_20px_rgba(125,33,33,0.2)]'
                                         : 'bg-white border-transparent text-gray-400 hover:text-patisserie-red hover:bg-red-50'
@@ -145,7 +146,7 @@ const Catalogo = () => {
                 </div>
 
                 {/* GRID DE PRODUCTOS */}
-                <div className="transition-opacity duration-300">
+                <div ref={productosRef} className="transition-opacity duration-300">
                     {loading ? (
                         <ProductListSkeleton count={8} />
                     ) : productos.length === 0 ? (

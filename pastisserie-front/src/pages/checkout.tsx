@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FiCheckCircle, FiMapPin, FiPhone, FiTruck, FiChevronRight, FiChevronLeft, FiEdit2, FiPackage, FiDollarSign, FiCreditCard, FiLoader, FiShield } from 'react-icons/fi';
+import { FiCheckCircle, FiMapPin, FiPhone, FiTruck, FiChevronRight, FiChevronLeft, FiEdit2, FiPackage, FiDollarSign, FiCreditCard, FiLoader } from 'react-icons/fi';
 import { formatCurrency } from '../utils/format';
 import { useTiendaStatus } from '../hooks/useTiendaStatus';
 import { FiClock } from 'react-icons/fi';
@@ -30,6 +30,79 @@ const Checkout = () => {
         notas: ''
     });
     const [shake, setShake] = useState(false);
+
+    // Card form state
+    const [cardData, setCardData] = useState({
+        cardNumber: '',
+        cardName: '',
+        expiryDate: '',
+        cvv: ''
+    });
+    const [cardErrors, setCardErrors] = useState<{ [key: string]: string }>({});
+    const [paymentSuccess, setPaymentSuccess] = useState(false);
+
+    // Format card number with spaces
+    const formatCardNumber = (value: string) => {
+        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        const matches = v.match(/\d{4,16}/g);
+        const match = matches && matches[0] || '';
+        const parts = [];
+        for (let i = 0, len = match.length; i < len; i += 4) {
+            parts.push(match.substring(i, i + 4));
+        }
+        return parts.length ? parts.join(' ') : v;
+    };
+
+    // Format expiry date as MM/YY
+    const formatExpiryDate = (value: string) => {
+        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        if (v.length >= 2) {
+            return v.substring(0, 2) + '/' + v.substring(2, 4);
+        }
+        return v;
+    };
+
+    const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        let formattedValue = value;
+
+        if (name === 'cardNumber') {
+            formattedValue = formatCardNumber(value);
+        } else if (name === 'expiryDate') {
+            formattedValue = formatExpiryDate(value);
+        } else if (name === 'cvv') {
+            formattedValue = value.replace(/[^0-9]/g, '').substring(0, 4);
+        } else if (name === 'cardName') {
+            formattedValue = value.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
+        }
+
+        setCardData({ ...cardData, [name]: formattedValue });
+        // Clear error when user starts typing
+        if (cardErrors[name]) {
+            setCardErrors({ ...cardErrors, [name]: '' });
+        }
+    };
+
+    const validateCard = () => {
+        const errors: { [key: string]: string } = {};
+        const cardNumber = cardData.cardNumber.replace(/\s/g, '');
+
+        if (!cardNumber || cardNumber.length < 13) {
+            errors.cardNumber = 'Ingresa un numero de tarjeta valido';
+        }
+        if (!cardData.cardName || cardData.cardName.length < 3) {
+            errors.cardName = 'Ingresa el nombre como aparece en la tarjeta';
+        }
+        if (!cardData.expiryDate || cardData.expiryDate.length < 5) {
+            errors.expiryDate = 'Ingresa la fecha de expiracion';
+        }
+        if (!cardData.cvv || cardData.cvv.length < 3) {
+            errors.cvv = 'Ingresa el CVV';
+        }
+
+        setCardErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     const total = carrito?.total || 0;
 
@@ -70,7 +143,7 @@ const Checkout = () => {
         window.scrollTo(0, 0);
     };
 
-    // Step 2: Confirm Summary & Create Order, then proceed to Payment
+    // Step 2: Confirm Summary & Create Order, then redirect to payment page
     const handleConfirmOrder = async () => {
         if (isSubmitting) return;
         // Validar compra mínima
@@ -109,8 +182,17 @@ const Checkout = () => {
             if (orderResult.success && orderResult.data?.id) {
                 setPedidoId(orderResult.data.id);
                 toast.success('Pedido creado', { id: loadingToast });
-                setStep('payment');
-                window.scrollTo(0, 0);
+
+                // Redirect to payment page with order data
+                navigate('/pago', {
+                    state: {
+                        pedidoId: orderResult.data.id,
+                        total: totalConEnvio,
+                        items: carrito?.items || [],
+                        direccion: formData.direccion,
+                        comuna: comunaLabel
+                    }
+                });
             } else {
                 toast.error(orderResult.message || 'Error al crear el pedido', { id: loadingToast });
             }
@@ -124,12 +206,19 @@ const Checkout = () => {
         }
     };
 
-    // Step 3: Simular pago (para pruebas/desarrollo)
-    const handleSimularPago = useCallback(async () => {
+    // Step 3: Procesar pago con formulario de tarjeta
+    const handleProcesarPago = useCallback(async (e: React.FormEvent) => {
+        e.preventDefault();
+
         if (!pedidoId || isLoadingPayment) return;
 
+        // Validate card form
+        if (!validateCard()) {
+            return;
+        }
+
         setIsLoadingPayment(true);
-        const loadingToast = toast.loading('Procesando pago simulado...');
+        const loadingToast = toast.loading('Procesando pago...');
 
         try {
             // Simular pago en el backend
@@ -139,19 +228,19 @@ const Checkout = () => {
                 toast.success('Pago aprobado correctamente', { id: loadingToast });
                 // Limpiar carrito
                 await clearCart();
-                // Ir a página de éxito
-                navigate(`/resultado-pago?pedido_id=${pedidoId}&estado=aprobado`);
+                // Mostrar éxito
+                setPaymentSuccess(true);
             } else {
-                toast.error(result.message || 'Error al procesar el pago simulado', { id: loadingToast });
+                toast.error(result.message || 'Error al procesar el pago', { id: loadingToast });
             }
         } catch (error: unknown) {
-            console.error('Error al simular pago:', error);
+            console.error('Error al procesar pago:', error);
             const err = error as { response?: { data?: { message?: string } } };
             toast.error(err.response?.data?.message || 'Error al procesar el pago', { id: loadingToast });
         } finally {
             setIsLoadingPayment(false);
         }
-    }, [pedidoId, isLoadingPayment, clearCart, navigate]);
+    }, [pedidoId, isLoadingPayment, clearCart]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -477,7 +566,7 @@ const Checkout = () => {
                             </div>
                         )}
 
-                        {/* STEP 3: PAYMENT - ePayco */}
+                        {/* STEP 3: PAYMENT - Redirect to payment page */}
                         {step === 'payment' && (
                             <div className="space-y-6 animate-slide-in-right">
 
@@ -492,71 +581,92 @@ const Checkout = () => {
                                     </div>
                                 </div>
 
-                                {/* ePayco Payment Card */}
+                                {/* Payment Redirect Card */}
                                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                                    <div className="text-center mb-6">
-                                        <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                                            <FiCreditCard className="w-8 h-8 text-blue-600" />
+                                    {paymentSuccess ? (
+                                        /* Success State */
+                                        <div className="text-center py-8">
+                                            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
+                                                <FiCheckCircle className="w-10 h-10 text-green-600" />
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-gray-800 mb-2">Pago Aprobado</h3>
+                                            <p className="text-gray-600 mb-6">Tu pedido #{pedidoId} ha sido confirmado exitosamente.</p>
+                                            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                                                <p className="text-green-800 font-medium">Recibiras una confirmacion por correo electronico</p>
+                                            </div>
+                                            <button
+                                                onClick={() => navigate('/perfil')}
+                                                className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl transition-colors"
+                                            >
+                                                Ver mis pedidos
+                                            </button>
                                         </div>
-                                        <h3 className="text-lg font-bold text-gray-800">Simular Pago</h3>
-                                        <p className="text-sm text-gray-500 mt-1">Modo de prueba - Pago simulado instantaneo</p>
-                                    </div>
+                                    ) : (
+                                        <>
+                                            <div className="text-center mb-6">
+                                                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                                                    <FiCreditCard className="w-8 h-8 text-blue-600" />
+                                                </div>
+                                                <h3 className="text-lg font-bold text-gray-800">Confirmar Pago</h3>
+                                                <p className="text-sm text-gray-500 mt-1">Seras redirigido a la pagina de pago segura</p>
+                                            </div>
 
-                                    {/* Order Summary */}
-                                    <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                                        <div className="flex justify-between items-center text-sm mb-2">
-                                            <span className="text-gray-500">Pedido:</span>
-                                            <span className="font-medium text-gray-800">#{pedidoId}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-sm mb-2">
-                                            <span className="text-gray-500">Productos:</span>
-                                            <span className="font-medium text-gray-800">{carrito?.items.length || 0} item(s)</span>
-                                        </div>
-                                        <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                                            <span className="font-semibold text-gray-800">Total a pagar:</span>
-                                            <span className="text-xl font-bold text-blue-600">
-                                                {formatCurrency(totalConEnvio)}
-                                            </span>
-                                        </div>
-                                    </div>
+                                            {/* Order Summary */}
+                                            <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                                                <div className="flex justify-between items-center text-sm mb-2">
+                                                    <span className="text-gray-500">Pedido:</span>
+                                                    <span className="font-medium text-gray-800">#{pedidoId}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-sm mb-2">
+                                                    <span className="text-gray-500">Productos:</span>
+                                                    <span className="font-medium text-gray-800">{carrito?.items.length || 0} item(s)</span>
+                                                </div>
+                                                <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                                                    <span className="font-semibold text-gray-800">Total a pagar:</span>
+                                                    <span className="text-xl font-bold text-blue-600">
+                                                        {formatCurrency(totalConEnvio)}
+                                                    </span>
+                                                </div>
+                                            </div>
 
-                                    {/* Payment Button */}
-                                    <div className="space-y-3">
-                                        <button
-                                            onClick={handleSimularPago}
-                                            disabled={isLoadingPayment || !pedidoId}
-                                            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded-xl transition-colors flex items-center justify-center"
-                                        >
-                                            {isLoadingPayment ? (
-                                                <>
-                                                    <FiLoader className="w-5 h-5 mr-2 animate-spin" />
-                                                    Abriendo pasarela...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <FiShield className="w-5 h-5 mr-2" />
-                                                    Simular Pago
-                                                </>
-                                            )}
-                                        </button>
+                                            {/* Continue to Payment Button */}
+                                            <button
+                                                onClick={() => {
+                                                    navigate('/pago', {
+                                                        state: {
+                                                            pedidoId: pedidoId,
+                                                            total: totalConEnvio,
+                                                            items: carrito?.items || [],
+                                                            direccion: formData.direccion,
+                                                            comuna: comunaLabel
+                                                        }
+                                                    });
+                                                }}
+                                                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center"
+                                            >
+                                                <FiCreditCard className="w-5 h-5 mr-2" />
+                                                Continuar con el Pago
+                                            </button>
 
-                                        <button
-                                            onClick={() => setStep('summary')}
-                                            disabled={isLoadingPayment}
-                                            className="w-full py-3 px-4 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 font-semibold rounded-xl transition-colors"
-                                        >
-                                            Cancelar
-                                        </button>
-                                    </div>
+                                            {/* Cancel Button */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setStep('summary')}
+                                                className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-xl transition-colors mt-3"
+                                            >
+                                                Volver al resumen
+                                            </button>
 
-                                    {/* Security note */}
-                                    <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
-                                        <FiCheckCircle className="text-green-500" />
-                                        <span>Modo de prueba - Sin cargo real</span>
-                                    </div>
+                                            {/* Security note */}
+                                            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
+                                                <FiCheckCircle className="text-green-500" />
+                                                <span>Pago seguro - Tus datos estan protegidos</span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
 
-                                {!user && (
+                                {!user && !paymentSuccess && (
                                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
                                         <p className="text-gray-600">Debes iniciar sesion para continuar con el pago.</p>
                                         <button
@@ -568,14 +678,16 @@ const Checkout = () => {
                                     </div>
                                 )}
 
-                                <div className="text-center">
-                                    <button
-                                        onClick={() => setStep('summary')}
-                                        className="text-gray-400 hover:text-gray-600 text-sm font-medium flex items-center justify-center gap-1 mx-auto"
-                                    >
-                                        <FiChevronLeft /> Volver al resumen
-                                    </button>
-                                </div>
+                                {!paymentSuccess && (
+                                    <div className="text-center">
+                                        <button
+                                            onClick={() => setStep('summary')}
+                                            className="text-gray-400 hover:text-gray-600 text-sm font-medium flex items-center justify-center gap-1 mx-auto"
+                                        >
+                                            <FiChevronLeft /> Volver al resumen
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

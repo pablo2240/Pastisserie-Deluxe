@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiUser, FiPhone, FiMapPin, FiSave, FiPackage, FiClock, FiCheckCircle, FiX, FiAlertCircle, FiTrash2 } from 'react-icons/fi';
+import { FiUser, FiPhone, FiMapPin, FiSave, FiPackage, FiClock, FiCheckCircle, FiX, FiAlertCircle, FiTrash2, FiEye } from 'react-icons/fi';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { formatCurrency, formatMedellinDate, formatMedellinDateTime } from '../utils/format';
@@ -277,8 +277,9 @@ const Perfil = () => {
                         </button>
                         <button
                           onClick={() => setSelectedPedido(pedido)}
-                          className="bg-patisserie-red/10 text-patisserie-red px-4 py-1.5 rounded-lg text-xs font-black hover:bg-patisserie-red hover:text-white transition-all uppercase tracking-widest"
+                          className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition-all uppercase tracking-widest flex items-center gap-1.5"
                         >
+                          <FiEye size={14} />
                           Ver detalles
                         </button>
                       </div>
@@ -332,10 +333,32 @@ const Perfil = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Envío y Pago */}
+                  {/* Datos del Cliente */}
                   <div className="space-y-4">
                     <h3 className="font-bold text-gray-800 flex items-center gap-2 border-b pb-2">
-                      Información de Entrega
+                      <FiUser className="text-patisserie-red" /> Datos del Cliente
+                    </h3>
+                    <div className="bg-gray-50 p-5 rounded-2xl space-y-3 text-sm border border-gray-100">
+                      <div className="flex justify-between items-start">
+                        <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Nombre:</span>
+                        <span className="font-medium text-right ml-4">
+                          {selectedPedido.usuario?.nombre || selectedPedido.nombreUsuario || user?.nombre || 'No disponible'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-start">
+                        <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Email:</span>
+                        <span className="font-medium text-right ml-4 text-xs">
+                          {selectedPedido.usuario?.email || user?.email || 'No disponible'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold text-gray-400 uppercase text-[9px]">Teléfono:</span>
+                        <span className="font-medium text-right">{(selectedPedido.direccionEnvio as any)?.telefono || user?.telefono || 'N/A'}</span>
+                      </div>
+                    </div>
+
+                    <h3 className="font-bold text-gray-800 flex items-center gap-2 border-b pb-2 mt-4">
+                      <FiMapPin className="text-patisserie-red" /> Información de Entrega
                     </h3>
                     <div className="bg-gray-50 p-5 rounded-2xl space-y-3 text-sm border border-gray-100">
                       <div className="flex justify-between items-start">
@@ -347,12 +370,12 @@ const Perfil = () => {
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="font-bold text-gray-400 uppercase text-[9px]">Teléfono:</span>
-                        <span className="font-medium text-right">{(selectedPedido.direccionEnvio as any)?.telefono || user?.telefono || 'N/A'}</span>
-                      </div>
-                      <div className="flex justify-between">
                         <span className="font-bold text-gray-400 uppercase text-[9px]">Método de Pago:</span>
                         <span className="font-medium text-right text-patisserie-red">{selectedPedido.metodoPago || 'No especificado'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold text-gray-400 uppercase text-[9px]">Fecha Pedido:</span>
+                        <span className="font-medium text-right">{formatMedellinDateTime(selectedPedido.fechaPedido)}</span>
                       </div>
                     </div>
                   </div>

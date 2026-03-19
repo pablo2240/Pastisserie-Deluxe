@@ -22,7 +22,6 @@ BEGIN
     -- Insertar tipos de pago por defecto
     INSERT INTO TipoMetodoPago (Nombre, Descripcion, Activo)
     VALUES 
-        ('MercadoPago', 'Pagos a traves de MercadoPago', 1),
         ('Efectivo', 'Pago en efectivo al momento de entrega', 1);
     PRINT 'Tipos de metodo de pago insertados';
 END
@@ -31,11 +30,10 @@ BEGIN
     PRINT 'La tabla TipoMetodoPago ya existe';
     
     -- Verificar si ya existen los tipos de metodo de pago
-    IF NOT EXISTS (SELECT * FROM TipoMetodoPago WHERE Nombre LIKE '%MercadoPago%')
+    IF NOT EXISTS (SELECT * FROM TipoMetodoPago WHERE Nombre = 'Efectivo')
     BEGIN
         INSERT INTO TipoMetodoPago (Nombre, Descripcion, Activo)
         VALUES 
-            ('MercadoPago', 'Pagos a traves de MercadoPago', 1),
             ('Efectivo', 'Pago en efectivo al momento de entrega', 1);
         PRINT 'Tipos de metodo de pago insertados';
     END
@@ -57,7 +55,7 @@ BEGIN
         TipoMetodoPagoId INT NOT NULL,
         TokenPago NVARCHAR(500) NULL,
         
-        -- Campos especificos de MercadoPago
+        -- Campos del metodo de pago
         PaymentMethodId NVARCHAR(50) NULL,  -- visa, master, etc.
         UltimosDigitos NVARCHAR(10) NULL,
         FechaExpiracion DATETIME2 NULL,

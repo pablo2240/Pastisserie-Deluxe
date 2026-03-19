@@ -33,33 +33,25 @@ api.interceptors.response.use(
             '/pagos/epayco/confirmar'
         ];
 
-        const isPublicEndpoint = publicEndpoints.some(endpoint =>
+        // Verificar si es un endpoint público
+        publicEndpoints.some(endpoint =>
             error.config?.url?.includes(endpoint)
         );
 
         if (error.response && error.response.status === 401) {
             const hadToken = !!localStorage.getItem('token');
-            const currentPath = window.location.pathname;
 
-            // No redirigir si es un endpoint público o si estamos en checkout/proceso de pago
-            const isCheckoutPage = currentPath.includes('/checkout') || currentPath.includes('/carrito') || currentPath.includes('/pago/');
-
-            if (hadToken && !isPublicEndpoint && !isCheckoutPage) {
-                console.warn('Sesión expirada. Redirigiendo al login...');
+            // Limpiar localStorage solo si el usuario tenía un token
+            if (hadToken) {
+                console.warn('Sesión expirada. Limpiando credenciales...');
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                window.location.href = '/login';
-            } else if (!hadToken && !isPublicEndpoint) {
-                // Guardar la URL actual para retornar después del login
-                sessionStorage.setItem('returnUrl', window.location.href);
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-
-                // Solo redirigir al login si no estamos en una página de autenticación
-                if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
-                    window.location.href = '/login';
-                }
             }
+
+            // Emitir evento custom para que las páginas puedan manejar el 401
+            window.dispatchEvent(new CustomEvent('auth:unauthorized', {
+                detail: { hadToken }
+            }));
         }
 
         // Manejar errores 403 (Forbidden)

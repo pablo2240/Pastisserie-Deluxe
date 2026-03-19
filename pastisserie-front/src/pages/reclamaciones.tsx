@@ -4,15 +4,30 @@ import {
     FiAlertCircle, FiCheckCircle, FiClock, FiMessageSquare, FiArrowLeft, FiSend, FiPackage
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
+import AuthRequiredMessage from '../components/common/AuthRequiredMessage';
 
 // Servicios
 import { reclamacionesService, type Reclamacion } from '../services/reclamacionesService';
 
 const Reclamaciones = () => {
+    const { user } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     const queryParams = new URLSearchParams(location.search);
     const pedidoIdFromUrl = queryParams.get('pedidoId');
+
+    // Verificar autenticación
+    if (!user) {
+        return (
+            <div className="animate-fade-in max-w-6xl mx-auto px-4 py-12">
+                <AuthRequiredMessage
+                    title="¡Ups! Acceso Restringido"
+                    message="Para crear o ver reclamaciones, necesitas tener una cuenta activa."
+                />
+            </div>
+        );
+    }
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);

@@ -6,6 +6,7 @@ import { FiUser, FiPhone, FiMapPin, FiSave, FiPackage, FiClock, FiCheckCircle, F
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { formatCurrency, formatMedellinDate, formatMedellinDateTime } from '../utils/format';
+import AuthRequiredMessage from '../components/common/AuthRequiredMessage';
 
 import { type Pedido } from '../types';
 
@@ -119,8 +120,13 @@ const Perfil = () => {
   };
 
   if (!user) return (
-    <div className="min-h-screen pt-32 flex justify-center">
-      <p>Inicia sesión para ver tu perfil</p>
+    <div className="min-h-screen pt-24 pb-12 bg-patisserie-cream/30">
+      <div className="max-w-4xl mx-auto px-4">
+        <AuthRequiredMessage
+          title="¡Ups! Acceso Restringido"
+          message="Para ver tu perfil y historial de pedidos, necesitas tener una cuenta."
+        />
+      </div>
     </div>
   );
 

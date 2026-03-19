@@ -68,13 +68,11 @@ function App() {
             <Route path="carrito" element={<Carrito />} />
             <Route path="pago/resultado" element={<ResultadoPago />} />
 
-            {/* Rutas Protegidas (Requieren Login) */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="pago" element={<Pago />} />
-              <Route path="checkout" element={<Checkout />} />
-              <Route path="perfil" element={<Perfil />} />
-              <Route path="reclamaciones" element={<Reclamaciones />} />
-            </Route>
+            {/* Rutas de Cliente - Accesibles para todos pero con contenido restringido para invitados */}
+            <Route path="pago" element={<Pago />} />
+            <Route path="checkout" element={<Checkout />} />
+            <Route path="perfil" element={<Perfil />} />
+            <Route path="reclamaciones" element={<Reclamaciones />} />
           </Route>
 
           {/* =========================================

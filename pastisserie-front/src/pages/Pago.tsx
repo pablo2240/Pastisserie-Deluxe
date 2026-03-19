@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { orderService } from '../services/orderService';
 import { formatCurrency } from '../utils/format';
 import toast from 'react-hot-toast';
 import { FiCreditCard, FiCheckCircle, FiLock, FiLoader, FiArrowLeft } from 'react-icons/fi';
+import AuthRequiredMessage from '../components/common/AuthRequiredMessage';
 
 // Tipos para los datos recibidos por location
 interface PedidoData {
@@ -25,9 +27,22 @@ const Pago = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { clearCart } = useCart();
+    const { user } = useAuth();
 
     // Obtener datos del pedido desde location state
     const pedidoData = location.state as PedidoData | null;
+
+    // Verificar autenticación
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-gray-50 pt-28 pb-12 px-4 animate-fade-in">
+                <AuthRequiredMessage
+                    title="¡Inicia sesión para completar tu compra"
+                    message="Para proceder al pago, necesitas tener una cuenta y estar autenticado."
+                />
+            </div>
+        );
+    }
     const pedidoId = pedidoData?.pedidoId;
     const total = pedidoData?.total || 0;
     const items = pedidoData?.items || [];
@@ -329,8 +344,8 @@ const Pago = () => {
                                     onChange={handleCardChange}
                                     disabled={isLoading}
                                     className={`w-full pl-10 p-3 border rounded-xl outline-none transition-all ${cardErrors.cardNumber
-                                            ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
-                                            : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                                        ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
+                                        : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
                                         } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                                 />
                             </div>
@@ -353,8 +368,8 @@ const Pago = () => {
                                 onChange={handleCardChange}
                                 disabled={isLoading}
                                 className={`w-full p-3 border rounded-xl outline-none transition-all ${cardErrors.cardName
-                                        ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
-                                        : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                                    ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
+                                    : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
                                     } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                             />
                             {cardErrors.cardName && (
@@ -377,8 +392,8 @@ const Pago = () => {
                                     onChange={handleCardChange}
                                     disabled={isLoading}
                                     className={`w-full p-3 border rounded-xl outline-none transition-all ${cardErrors.expiryDate
-                                            ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
-                                            : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                                        ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
+                                        : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
                                         } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                                 />
                                 {cardErrors.expiryDate && (
@@ -400,8 +415,8 @@ const Pago = () => {
                                         onChange={handleCardChange}
                                         disabled={isLoading}
                                         className={`w-full pl-10 p-3 border rounded-xl outline-none transition-all ${cardErrors.cvv
-                                                ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
-                                                : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                                            ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
+                                            : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
                                             } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                                     />
                                 </div>

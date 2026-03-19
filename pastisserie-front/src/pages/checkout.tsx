@@ -1,24 +1,27 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FiCheckCircle, FiMapPin, FiPhone, FiTruck, FiChevronRight, FiChevronLeft, FiEdit2, FiPackage, FiDollarSign, FiCreditCard, FiLoader } from 'react-icons/fi';
+import { FiCheckCircle, FiMapPin, FiPhone, FiTruck, FiChevronRight, FiChevronLeft, FiEdit2, FiPackage, FiDollarSign, FiCreditCard } from 'react-icons/fi';
 import { formatCurrency } from '../utils/format';
 import { useTiendaStatus } from '../hooks/useTiendaStatus';
 import { FiClock } from 'react-icons/fi';
 import { orderService } from '../services/orderService';
 import { ComunasDisponibles } from '../types';
 import type { ComunaKey } from '../types';
+import AuthRequiredMessage from '../components/common/AuthRequiredMessage';
 
 const Checkout = () => {
-    const { carrito, totalItems, clearCart, compraMinima } = useCart();
+    const { carrito, totalItems, compraMinima } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [step, setStep] = useState<'shipping' | 'summary' | 'payment' | 'success'>('shipping');
     const [pedidoId, setPedidoId] = useState<number | null>(null);
     const { status } = useTiendaStatus();
-    const [isLoadingPayment, setIsLoadingPayment] = useState(false);
+    // paymentSuccess indica si el pago fue exitoso
+    const [paymentSuccess, _setPaymentSuccess] = useState(false);
+
 
     const isClosed = status && !status.estaAbierto;
 
@@ -31,78 +34,7 @@ const Checkout = () => {
     });
     const [shake, setShake] = useState(false);
 
-    // Card form state
-    const [cardData, setCardData] = useState({
-        cardNumber: '',
-        cardName: '',
-        expiryDate: '',
-        cvv: ''
-    });
-    const [cardErrors, setCardErrors] = useState<{ [key: string]: string }>({});
-    const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-    // Format card number with spaces
-    const formatCardNumber = (value: string) => {
-        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        const matches = v.match(/\d{4,16}/g);
-        const match = matches && matches[0] || '';
-        const parts = [];
-        for (let i = 0, len = match.length; i < len; i += 4) {
-            parts.push(match.substring(i, i + 4));
-        }
-        return parts.length ? parts.join(' ') : v;
-    };
-
-    // Format expiry date as MM/YY
-    const formatExpiryDate = (value: string) => {
-        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        if (v.length >= 2) {
-            return v.substring(0, 2) + '/' + v.substring(2, 4);
-        }
-        return v;
-    };
-
-    const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        let formattedValue = value;
-
-        if (name === 'cardNumber') {
-            formattedValue = formatCardNumber(value);
-        } else if (name === 'expiryDate') {
-            formattedValue = formatExpiryDate(value);
-        } else if (name === 'cvv') {
-            formattedValue = value.replace(/[^0-9]/g, '').substring(0, 4);
-        } else if (name === 'cardName') {
-            formattedValue = value.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
-        }
-
-        setCardData({ ...cardData, [name]: formattedValue });
-        // Clear error when user starts typing
-        if (cardErrors[name]) {
-            setCardErrors({ ...cardErrors, [name]: '' });
-        }
-    };
-
-    const validateCard = () => {
-        const errors: { [key: string]: string } = {};
-        const cardNumber = cardData.cardNumber.replace(/\s/g, '');
-
-        if (!cardNumber || cardNumber.length < 13) {
-            errors.cardNumber = 'Ingresa un numero de tarjeta valido';
-        }
-        if (!cardData.cardName || cardData.cardName.length < 3) {
-            errors.cardName = 'Ingresa el nombre como aparece en la tarjeta';
-        }
-        if (!cardData.expiryDate || cardData.expiryDate.length < 5) {
-            errors.expiryDate = 'Ingresa la fecha de expiracion';
-        }
-        if (!cardData.cvv || cardData.cvv.length < 3) {
-            errors.cvv = 'Ingresa el CVV';
-        }
-
-        setCardErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
 
     const total = carrito?.total || 0;
 
@@ -206,45 +138,25 @@ const Checkout = () => {
         }
     };
 
-    // Step 3: Procesar pago con formulario de tarjeta
-    const handleProcesarPago = useCallback(async (e: React.FormEvent) => {
-        e.preventDefault();
 
-        if (!pedidoId || isLoadingPayment) return;
-
-        // Validate card form
-        if (!validateCard()) {
-            return;
-        }
-
-        setIsLoadingPayment(true);
-        const loadingToast = toast.loading('Procesando pago...');
-
-        try {
-            // Simular pago en el backend
-            const result = await orderService.simularPago(pedidoId);
-
-            if (result.success && result.data) {
-                toast.success('Pago aprobado correctamente', { id: loadingToast });
-                // Limpiar carrito
-                await clearCart();
-                // Mostrar éxito
-                setPaymentSuccess(true);
-            } else {
-                toast.error(result.message || 'Error al procesar el pago', { id: loadingToast });
-            }
-        } catch (error: unknown) {
-            console.error('Error al procesar pago:', error);
-            const err = error as { response?: { data?: { message?: string } } };
-            toast.error(err.response?.data?.message || 'Error al procesar el pago', { id: loadingToast });
-        } finally {
-            setIsLoadingPayment(false);
-        }
-    }, [pedidoId, isLoadingPayment, clearCart]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    // Verificar autenticación - el checkout requiere usuario logueado
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-gray-50 pt-28 pb-12 px-4 animate-fade-in">
+                <div className="container mx-auto max-w-5xl">
+                    <AuthRequiredMessage
+                        title="¡Inicia sesión para completar tu compra"
+                        message="Para finalizar tu pedido, necesitas tener una cuenta y estar autenticado."
+                    />
+                </div>
+            </div>
+        );
+    }
 
     if (totalItems === 0 && step !== 'success' && step !== 'payment') {
         return (

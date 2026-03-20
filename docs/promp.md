@@ -1,127 +1,88 @@
-PROTOCOL0 DE TRABAJO — IMPLEMENTACIÓN COMPLETA Y FUNCIONAL
+**PROTOCOLO DE TRABAJO — ENFOQUE FUNCIONAL Y EXPERIENCIA DE USUARIO**
 
-Este proyecto debe evolucionar mediante cambios pequeños, controlados y bien documentados. Cada solicitud de cambio debe corregir problemas reales y mejorar la calidad del sistema, respetando la estructura existente y los requisitos definidos en requisitos.md (especialmente la sección seis).
+El objetivo principal es lograr que el sistema funcione de forma usable y coherente para el usuario final, priorizando la experiencia sobre la perfección técnica. No importa si actualmente existen partes rotas, incompletas o mal implementadas; se trabajará sobre lo existente para llevarlo rápidamente a un estado funcional.
 
-El objetivo principal es que todo lo implementado sea funcional de extremo a extremo. No se aceptan soluciones parciales, simulaciones evidentes o implementaciones incompletas. Todo debe comportarse como un sistema real, tanto en backend como en frontend.
+Este proyecto tiene limitaciones de tiempo, por lo tanto, el enfoque será práctico: resolver lo necesario para que el flujo del usuario funcione correctamente de principio a fin.
 
-Forma de trabajo obligatoria
+---
 
-Cada vez que se solicite un cambio:
+### **Forma de trabajo**
 
-1. Análisis previo
+Cada vez que se proponga una idea o cambio (por ejemplo: “corrige esto” o “mejora esto”):
 
-Analizar el impacto del cambio en todo el sistema.
+---
 
-Identificar los archivos que se van a modificar.
+### **1. Análisis práctico del sistema**
 
-Evaluar cómo afecta la funcionalidad existente.
+* Analizar el estado actual relacionado con la idea.
+* Entender cómo funciona hoy (aunque esté mal).
+* Identificar qué partes afectan directamente la experiencia del usuario.
 
-Detectar posibles riesgos o efectos secundarios.
+---
 
-2. Implementación
+### **2. Enfoque en funcionalidad**
 
-Escribir el código necesario para cumplir el objetivo.
+* Priorizar que el flujo funcione de extremo a extremo.
+* No bloquearse por errores estructurales actuales.
+* No rehacer todo, sino ajustar lo necesario para que funcione.
 
-Conectar correctamente todos los componentes:
+---
 
-API
+### **3. Generación de preguntas clave**
 
-Services
+Antes de implementar, se deben generar preguntas claras que ayuden a definir correctamente la solución.
 
-Base de datos
+Estas preguntas deben:
 
-Frontend (si aplica)
+* Aclarar reglas del negocio
+* Definir comportamiento esperado
+* Evitar ambigüedades
 
-Asegurar que la funcionalidad sea completa, no simulada de forma evidente para el usuario.
+---
 
-3. Validación técnica
+### **4. Definición en formato de reglas de negocio**
 
-Antes de dar por finalizada cualquier tarea:
+Con base en el análisis y las respuestas, se debe estructurar la solución como reglas de negocio claras.
 
-Ejecutar:
+Ejemplo de formato:
 
-dotnet build → debe compilar sin errores.
+* El usuario invitado puede ver productos pero no comprar.
+* Si el usuario intenta comprar sin sesión, se muestra mensaje, no redirección.
+* El pago debe validar todos los campos antes de procesarse.
 
-npm run dev → frontend sin errores.
+---
 
-Validar adicionalmente:
+### **5. Validación de la idea antes de implementar**
 
-No duplicar configuraciones en MappingProfile.
+* Confirmar que las reglas tienen sentido.
+* Asegurar que el flujo es usable para el usuario.
+* Evitar soluciones complejas innecesarias.
 
-No romper endpoints existentes.
+---
 
-Crear migraciones si son necesarias.
+### **6. Enfoque clave**
 
-Si hay errores:
+* Primero que funcione.
+* Luego que sea correcto.
+* La experiencia del usuario manda sobre la perfección técnica.
 
-Corregirlos automáticamente.
+---
 
-No finalizar hasta que todo funcione correctamente.
+### **Objetivo final**
 
-4. Control de calidad (QA)
+* Que el usuario pueda usar el sistema sin fricciones.
+* Que los flujos principales (navegar, ver productos, comprar, pagar) funcionen.
+* Que cada cambio tenga sentido práctico dentro del sistema actual.
 
-Verificar que la implementación funciona correctamente.
+---
 
-Corregir cualquier error generado por los cambios.
+Aquí no se trata de hacerlo perfecto.
+Se trata de hacerlo funcionar bien para el usuario.
+---
 
-Si se detectan errores fuera del alcance de esta tarea:
-
-Reportarlos claramente sin intervenirlos.
-
-5. Confirmación obligatoria
-
-Al finalizar, debes indicar explícitamente:
-
-“Implementación completada y verificada sin errores”
-
-6. Documentación obligatoria
-
-Después de cada implementación, se debe sugerir la creación o actualización de un archivo en:
-
-changes/new-cambios/
-
-Formato:
-
-[número]-descripcion.md
-
-Contenido obligatorio:
-
-Qué se implementó
-
-Archivos modificados
-
-Problema que se resolvió
-
-Cómo probarlo
-
-Impacto en el sistema
-
-7. Flujo interno de trabajo
-
-Documentar la tarea según la estructura del proyecto.
-
-Planificar los archivos a modificar o crear (lista clara).
-
-Implementar cada cambio según el plan.
-
-Verificar y corregir errores.
-
-Validar funcionamiento completo.
-
-Actualizar documentación.
-
-Objetivo final
-
-Cada cambio debe:
-
-Ser claro, estructurado y bien documentado.
-
-Resolver problemas reales del sistema.
-
-Mantener coherencia con la arquitectura.
-
-Integrar correctamente backend y frontend.
-
-Ofrecer una experiencia realista al usuario.
-
-Aquí no se trata solo de que funcione, sino de que esté bien hecho.
+cuando estas en modo build verifique que no haya errores del codigo en la parte backend y frontend: 
+- verificar de que no haya errores en el back con dotnet build 
+- verifiacr de que no haya errores en el front con npm run build
+- y si es necesario has migracion y luego vuelve a verificar de que no haya errores en el back con dotnet build y en el front con npm run build 
+- si hay errores en el back con dotnet build, solucionalos y vuelve a verificar de que no haya errores en el back con dotnet build y en el front con npm run build
+- si hay errores en el front con npm run build, solucionalos y vuelve a verificar de que no haya errores en el back con dotnet build y en el front con npm run build

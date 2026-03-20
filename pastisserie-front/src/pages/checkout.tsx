@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FiCheckCircle, FiMapPin, FiPhone, FiTruck, FiChevronRight, FiChevronLeft, FiEdit2, FiPackage, FiDollarSign, FiCreditCard } from 'react-icons/fi';
+import { FiCheckCircle, FiMapPin, FiPhone, FiTruck, FiChevronRight, FiChevronLeft, FiEdit2, FiPackage, FiDollarSign, FiCreditCard, FiLock, FiLoader, FiArrowLeft } from 'react-icons/fi';
 import { formatCurrency } from '../utils/format';
 import { useTiendaStatus } from '../hooks/useTiendaStatus';
 import { FiClock } from 'react-icons/fi';
@@ -13,19 +13,15 @@ import type { ComunaKey } from '../types';
 import AuthRequiredMessage from '../components/common/AuthRequiredMessage';
 
 const Checkout = () => {
-    const { carrito, totalItems, compraMinima } = useCart();
+    const { carrito, totalItems, compraMinima, clearCart } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [step, setStep] = useState<'shipping' | 'summary' | 'payment' | 'success'>('shipping');
     const [pedidoId, setPedidoId] = useState<number | null>(null);
     const { status } = useTiendaStatus();
-    // paymentSuccess indica si el pago fue exitoso
-    const [paymentSuccess, _setPaymentSuccess] = useState(false);
-
 
     const isClosed = status && !status.estaAbierto;
 
-    // Data State
     const [formData, setFormData] = useState({
         direccion: '',
         comuna: '' as ComunaKey | '',
@@ -34,17 +30,13 @@ const Checkout = () => {
     });
     const [shake, setShake] = useState(false);
 
-
-
     const total = carrito?.total || 0;
 
-    // Costo de envio dinamico segun la comuna seleccionada
     const costoEnvio = formData.comuna && formData.comuna in ComunasDisponibles
         ? ComunasDisponibles[formData.comuna as ComunaKey].costoEnvio
         : 0;
     const totalConEnvio = total + costoEnvio;
 
-    // Label de la comuna seleccionada
     const comunaLabel = formData.comuna && formData.comuna in ComunasDisponibles
         ? ComunasDisponibles[formData.comuna as ComunaKey].label
         : '';
@@ -63,7 +55,6 @@ const Checkout = () => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Step 1: Validate Shipping & Proceed to Summary
     const handleShippingSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) {
@@ -75,10 +66,8 @@ const Checkout = () => {
         window.scrollTo(0, 0);
     };
 
-    // Step 2: Confirm Summary & Create Order, then redirect to payment page
     const handleConfirmOrder = async () => {
         if (isSubmitting) return;
-        // Validar compra mínima
         if (typeof compraMinima === 'number' && (total < compraMinima)) {
             toast.error(
                 `🚫 No puedes proceder al pago.\n\nLa compra mínima es de ${formatCurrency(compraMinima)}. Te faltan ${formatCurrency(compraMinima - total)}.\n\nPor favor, agrega más productos para completar tu pedido.`,
@@ -113,18 +102,9 @@ const Checkout = () => {
 
             if (orderResult.success && orderResult.data?.id) {
                 setPedidoId(orderResult.data.id);
-                toast.success('Pedido creado', { id: loadingToast });
-
-                // Redirect to payment page with order data
-                navigate('/pago', {
-                    state: {
-                        pedidoId: orderResult.data.id,
-                        total: totalConEnvio,
-                        items: carrito?.items || [],
-                        direccion: formData.direccion,
-                        comuna: comunaLabel
-                    }
-                });
+                setStep('payment');
+                toast.success('Pedido listo para pagar', { id: loadingToast });
+                window.scrollTo(0, 0);
             } else {
                 toast.error(orderResult.message || 'Error al crear el pedido', { id: loadingToast });
             }
@@ -138,13 +118,164 @@ const Checkout = () => {
         }
     };
 
-
-
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Verificar autenticación - el checkout requiere usuario logueado
+    const [cardData, setCardData] = useState({
+        cardNumber: '',
+        cardName: '',
+        expiryDate: '',
+        cvv: ''
+    });
+
+    const [cardErrors, setCardErrors] = useState<{ [key: string]: string }>({});
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [paymentError, setPaymentError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (step === 'payment' && pedidoId) {
+            orderService.registrarIntentoPago(pedidoId).catch(console.error);
+        }
+
+        return () => {
+            if (step === 'payment' && pedidoId && !isProcessingPayment) {
+                orderService.abandonarPago(pedidoId).catch(console.error);
+            }
+        };
+    }, [step, pedidoId, isProcessingPayment]);
+
+    const formatCardNumber = (value: string): string => {
+        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        const matches = v.match(/\d{1,16}/g);
+        const match = matches && matches[0] || '';
+        const parts = [];
+        for (let i = 0, len = match.length; i < len; i += 4) {
+            parts.push(match.substring(i, i + 4));
+        }
+        return parts.length ? parts.join(' ') : v;
+    };
+
+    const formatExpiryDate = (value: string): string => {
+        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        if (v.length >= 2) {
+            return v.substring(0, 2) + '/' + v.substring(2, 4);
+        }
+        return v;
+    };
+
+    const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        let formattedValue = value;
+
+        if (name === 'cardNumber') {
+            formattedValue = formatCardNumber(value);
+        } else if (name === 'expiryDate') {
+            formattedValue = formatExpiryDate(value);
+        } else if (name === 'cvv') {
+            formattedValue = value.replace(/[^0-9]/g, '').substring(0, 4);
+        } else if (name === 'cardName') {
+            formattedValue = value.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
+        }
+
+        setCardData({ ...cardData, [name]: formattedValue });
+
+        if (cardErrors[name]) {
+            setCardErrors({ ...cardErrors, [name]: '' });
+        }
+    };
+
+    const validateExpiryDate = (expiry: string): boolean => {
+        if (!expiry || expiry.length < 5) return false;
+
+        const [month, year] = expiry.split('/');
+        const monthNum = parseInt(month, 10);
+        const yearNum = parseInt('20' + year, 10);
+
+        if (monthNum < 1 || monthNum > 12) return false;
+
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+
+        if (yearNum < currentYear) return false;
+        if (yearNum === currentYear && monthNum < currentMonth) return false;
+
+        return true;
+    };
+
+    const validateCard = (): boolean => {
+        const errors: { [key: string]: string } = {};
+        const cardNumber = cardData.cardNumber.replace(/\s/g, '');
+
+        if (!cardNumber || cardNumber.length !== 16) {
+            errors.cardNumber = 'El número de tarjeta debe tener exactamente 16 dígitos';
+        }
+
+        if (!cardData.cardName || cardData.cardName.length < 3) {
+            errors.cardName = 'Ingresa el nombre del titular (mínimo 3 caracteres)';
+        }
+
+        if (!cardData.expiryDate || cardData.expiryDate.length < 5) {
+            errors.expiryDate = 'Ingresa la fecha de expiración (MM/AA)';
+        } else if (!validateExpiryDate(cardData.expiryDate)) {
+            errors.expiryDate = 'La fecha de expiración no es válida o la tarjeta está vencida';
+        }
+
+        if (!cardData.cvv || cardData.cvv.length !== 3) {
+            errors.cvv = 'El CVV debe tener exactamente 3 dígitos';
+        }
+
+        setCardErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const handleProcesarPago = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!pedidoId || isProcessingPayment) return;
+
+        if (!validateCard()) {
+            return;
+        }
+
+        setIsProcessingPayment(true);
+        setPaymentError(null);
+
+        try {
+            const result = await orderService.simularPago(pedidoId);
+
+            if (result.success && result.data?.aprobado) {
+                await clearCart();
+                setStep('success');
+                toast.success('Pago aprobado correctamente');
+            } else {
+                const errorMsg = result.message || result.data?.mensaje || 'Error al procesar el pago';
+                setPaymentError(errorMsg);
+                toast.error(errorMsg);
+            }
+        } catch (err: unknown) {
+            console.error('Error al procesar pago:', err);
+            const error = err as { response?: { data?: { message?: string } } };
+            const errorMsg = error.response?.data?.message || 'Hubo un error al procesar el pago';
+            setPaymentError(errorMsg);
+            toast.error(errorMsg);
+        } finally {
+            setIsProcessingPayment(false);
+        }
+    };
+
+    const handleVolverAlResumen = async () => {
+        if (pedidoId) {
+            try {
+                await orderService.abandonarPago(pedidoId);
+            } catch (e) {
+                console.error('Error al marcar abandono:', e);
+            }
+        }
+        setStep('summary');
+    };
+
     if (!user) {
         return (
             <div className="min-h-screen bg-gray-50 pt-28 pb-12 px-4 animate-fade-in">
@@ -209,7 +340,6 @@ const Checkout = () => {
         );
     }
 
-    // --- SUCCESS VIEW ---
     if (step === 'success') {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 animate-fade-in">
@@ -218,9 +348,17 @@ const Checkout = () => {
                         <FiCheckCircle size={50} />
                     </div>
                     <h1 className="text-3xl font-serif font-bold text-gray-800 mb-4">Compra Exitosa!</h1>
-                    <p className="text-gray-600 mb-8 text-lg">
-                        Gracias por tu compra. Hemos recibido tu pedido y pronto comenzaremos a prepararlo con los ingredientes mas frescos.
+                    <p className="text-gray-600 mb-2 text-lg">
+                        Gracias por tu compra. Hemos recibido tu pedido y pronto comenzaremos a prepararlo.
                     </p>
+                    <p className="text-gray-500 mb-6 text-sm">
+                        Numero de pedido: <span className="font-bold text-gray-800">#{pedidoId}</span>
+                    </p>
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                        <p className="text-green-800 font-medium">
+                            Recibiras una confirmacion por correo electronico con los detalles de tu pedido.
+                        </p>
+                    </div>
                     <div className="flex flex-col gap-3">
                         <button
                             onClick={() => navigate('/perfil')}
@@ -240,18 +378,14 @@ const Checkout = () => {
         );
     }
 
-    // Helper: determine step index for the step indicator
     const stepIndex = step === 'shipping' ? 0 : step === 'summary' ? 1 : 2;
 
     return (
         <div className="min-h-screen bg-gray-50 pt-28 pb-12 px-4 animate-fade-in">
             <div className="container mx-auto max-w-5xl">
-
-                {/* Header Steps */}
                 <div className="mb-10">
                     <h1 className="text-3xl font-serif font-bold text-gray-900 mb-6 text-center">Finalizar Compra</h1>
                     <div className="flex items-center justify-center max-w-2xl mx-auto">
-                        {/* Step 1 Indicator */}
                         <div className={`flex flex-col items-center z-10 ${stepIndex === 0 ? 'text-patisserie-red' : stepIndex > 0 ? 'text-green-500' : 'text-gray-400'}`}>
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mb-2 transition-all ${stepIndex === 0 ? 'bg-patisserie-red text-white shadow-lg' :
                                 stepIndex > 0 ? 'bg-green-500 text-white' : 'bg-gray-200'
@@ -261,10 +395,8 @@ const Checkout = () => {
                             <span className="font-bold text-sm">Envio</span>
                         </div>
 
-                        {/* Connector line 1-2 */}
                         <div className={`flex-1 h-1 mx-3 rounded-full transition-all duration-500 ${stepIndex >= 1 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
 
-                        {/* Step 2 Indicator */}
                         <div className={`flex flex-col items-center z-10 ${stepIndex === 1 ? 'text-patisserie-red' : stepIndex > 1 ? 'text-green-500' : 'text-gray-400'}`}>
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mb-2 transition-all ${stepIndex === 1 ? 'bg-patisserie-red text-white shadow-lg' :
                                 stepIndex > 1 ? 'bg-green-500 text-white' : 'bg-gray-200'
@@ -274,10 +406,8 @@ const Checkout = () => {
                             <span className="font-bold text-sm">Resumen</span>
                         </div>
 
-                        {/* Connector line 2-3 */}
                         <div className={`flex-1 h-1 mx-3 rounded-full transition-all duration-500 ${stepIndex >= 2 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
 
-                        {/* Step 3 Indicator */}
                         <div className={`flex flex-col items-center z-10 ${stepIndex === 2 ? 'text-patisserie-red' : 'text-gray-400'}`}>
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mb-2 transition-all ${stepIndex === 2 ? 'bg-patisserie-red text-white shadow-lg' : 'bg-gray-200'
                                 }`}>
@@ -289,11 +419,7 @@ const Checkout = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-                    {/* MAIN CONTENT AREA */}
                     <div className="lg:col-span-2">
-
-                        {/* STEP 1: SHIPPING FORM */}
                         {step === 'shipping' && (
                             <div className={`bg-white p-8 rounded-2xl shadow-sm border border-gray-100 animate-slide-in-left ${shake ? 'animate-shake' : ''}`}>
                                 <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-4">
@@ -377,11 +503,8 @@ const Checkout = () => {
                             </div>
                         )}
 
-                        {/* STEP 2: ORDER SUMMARY / REVIEW */}
                         {step === 'summary' && (
                             <div className="space-y-6 animate-slide-in-right">
-
-                                {/* Shipping Info Card */}
                                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                                     <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-4">
                                         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -416,7 +539,6 @@ const Checkout = () => {
                                     </div>
                                 </div>
 
-                                {/* Products Detail Card */}
                                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 mb-4 border-b border-gray-100 pb-4">
                                         <FiPackage className="text-patisserie-red" /> Productos
@@ -438,7 +560,6 @@ const Checkout = () => {
                                     </div>
                                 </div>
 
-                                {/* Totals Card */}
                                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 mb-4 border-b border-gray-100 pb-4">
                                         <FiDollarSign className="text-patisserie-red" /> Resumen de Costos
@@ -459,7 +580,6 @@ const Checkout = () => {
                                     </div>
                                 </div>
 
-                                {/* Action Buttons */}
                                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                                     <button
                                         onClick={() => setStep('shipping')}
@@ -478,11 +598,8 @@ const Checkout = () => {
                             </div>
                         )}
 
-                        {/* STEP 3: PAYMENT - Redirect to payment page */}
                         {step === 'payment' && (
                             <div className="space-y-6 animate-slide-in-right">
-
-                                {/* Summary of Shipping Data */}
                                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm">
                                     <div className="flex justify-between items-start">
                                         <div className="space-y-1">
@@ -493,118 +610,163 @@ const Checkout = () => {
                                     </div>
                                 </div>
 
-                                {/* Payment Redirect Card */}
                                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                                    {paymentSuccess ? (
-                                        /* Success State */
-                                        <div className="text-center py-8">
-                                            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-                                                <FiCheckCircle className="w-10 h-10 text-green-600" />
-                                            </div>
-                                            <h3 className="text-2xl font-bold text-gray-800 mb-2">Pago Aprobado</h3>
-                                            <p className="text-gray-600 mb-6">Tu pedido #{pedidoId} ha sido confirmado exitosamente.</p>
-                                            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
-                                                <p className="text-green-800 font-medium">Recibiras una confirmacion por correo electronico</p>
-                                            </div>
-                                            <button
-                                                onClick={() => navigate('/perfil')}
-                                                className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl transition-colors"
-                                            >
-                                                Ver mis pedidos
-                                            </button>
+                                    <div className="text-center mb-6">
+                                        <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                                            <FiCreditCard className="w-8 h-8 text-blue-600" />
                                         </div>
-                                    ) : (
-                                        <>
-                                            <div className="text-center mb-6">
-                                                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                                                    <FiCreditCard className="w-8 h-8 text-blue-600" />
-                                                </div>
-                                                <h3 className="text-lg font-bold text-gray-800">Confirmar Pago</h3>
-                                                <p className="text-sm text-gray-500 mt-1">Seras redirigido a la pagina de pago segura</p>
-                                            </div>
+                                        <h3 className="text-lg font-bold text-gray-800">Pagar con Tarjeta de Credito</h3>
+                                        <p className="text-sm text-gray-500 mt-1">Ingresa los datos de tu tarjeta de credito</p>
+                                    </div>
 
-                                            {/* Order Summary */}
-                                            <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                                                <div className="flex justify-between items-center text-sm mb-2">
-                                                    <span className="text-gray-500">Pedido:</span>
-                                                    <span className="font-medium text-gray-800">#{pedidoId}</span>
-                                                </div>
-                                                <div className="flex justify-between items-center text-sm mb-2">
-                                                    <span className="text-gray-500">Productos:</span>
-                                                    <span className="font-medium text-gray-800">{carrito?.items.length || 0} item(s)</span>
-                                                </div>
-                                                <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                                                    <span className="font-semibold text-gray-800">Total a pagar:</span>
-                                                    <span className="text-xl font-bold text-blue-600">
-                                                        {formatCurrency(totalConEnvio)}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Continue to Payment Button */}
-                                            <button
-                                                onClick={() => {
-                                                    navigate('/pago', {
-                                                        state: {
-                                                            pedidoId: pedidoId,
-                                                            total: totalConEnvio,
-                                                            items: carrito?.items || [],
-                                                            direccion: formData.direccion,
-                                                            comuna: comunaLabel
-                                                        }
-                                                    });
-                                                }}
-                                                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center"
-                                            >
-                                                <FiCreditCard className="w-5 h-5 mr-2" />
-                                                Continuar con el Pago
-                                            </button>
-
-                                            {/* Cancel Button */}
-                                            <button
-                                                type="button"
-                                                onClick={() => setStep('summary')}
-                                                className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-xl transition-colors mt-3"
-                                            >
-                                                Volver al resumen
-                                            </button>
-
-                                            {/* Security note */}
-                                            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
-                                                <FiCheckCircle className="text-green-500" />
-                                                <span>Pago seguro - Tus datos estan protegidos</span>
-                                            </div>
-                                        </>
+                                    {paymentError && (
+                                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                                            <p className="text-red-600 text-sm font-medium">{paymentError}</p>
+                                        </div>
                                     )}
+
+                                    <form onSubmit={handleProcesarPago} className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-2">
+                                                Numero de Tarjeta
+                                            </label>
+                                            <div className="relative">
+                                                <FiCreditCard className="absolute left-3 top-3.5 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    name="cardNumber"
+                                                    placeholder="1234 5678 9012 3456"
+                                                    maxLength={19}
+                                                    value={cardData.cardNumber}
+                                                    onChange={handleCardChange}
+                                                    disabled={isProcessingPayment}
+                                                    className={`w-full pl-10 p-3 border rounded-xl outline-none transition-all ${cardErrors.cardNumber
+                                                        ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
+                                                        : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                                                        } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                                                />
+                                            </div>
+                                            {cardErrors.cardNumber && (
+                                                <p className="text-red-500 text-xs mt-1">{cardErrors.cardNumber}</p>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-2">
+                                                Nombre del Titular
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="cardName"
+                                                placeholder="JUAN PEREZ"
+                                                maxLength={30}
+                                                value={cardData.cardName}
+                                                onChange={handleCardChange}
+                                                disabled={isProcessingPayment}
+                                                className={`w-full p-3 border rounded-xl outline-none transition-all ${cardErrors.cardName
+                                                    ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
+                                                    : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                                                    } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                                            />
+                                            {cardErrors.cardName && (
+                                                <p className="text-red-500 text-xs mt-1">{cardErrors.cardName}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">
+                                                    Fecha de Expiracion
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="expiryDate"
+                                                    placeholder="MM/AA"
+                                                    maxLength={5}
+                                                    value={cardData.expiryDate}
+                                                    onChange={handleCardChange}
+                                                    disabled={isProcessingPayment}
+                                                    className={`w-full p-3 border rounded-xl outline-none transition-all ${cardErrors.expiryDate
+                                                        ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
+                                                        : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                                                        } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                                                />
+                                                {cardErrors.expiryDate && (
+                                                    <p className="text-red-500 text-xs mt-1">{cardErrors.expiryDate}</p>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">
+                                                    CVV
+                                                </label>
+                                                <div className="relative">
+                                                    <FiLock className="absolute left-3 top-3.5 text-gray-400" />
+                                                    <input
+                                                        type="text"
+                                                        name="cvv"
+                                                        placeholder="123"
+                                                        maxLength={3}
+                                                        value={cardData.cvv}
+                                                        onChange={handleCardChange}
+                                                        disabled={isProcessingPayment}
+                                                        className={`w-full pl-10 p-3 border rounded-xl outline-none transition-all ${cardErrors.cvv
+                                                            ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200'
+                                                            : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                                                            } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                                                    />
+                                                </div>
+                                                {cardErrors.cvv && (
+                                                    <p className="text-red-500 text-xs mt-1">{cardErrors.cvv}</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            disabled={isProcessingPayment}
+                                            className="w-full py-4 bg-gray-900 hover:bg-black disabled:bg-gray-400 text-white font-bold rounded-xl transition-colors flex items-center justify-center mt-6"
+                                        >
+                                            {isProcessingPayment ? (
+                                                <>
+                                                    <FiLoader className="w-5 h-5 mr-2 animate-spin" />
+                                                    Procesando pago...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <FiCreditCard className="w-5 h-5 mr-2" />
+                                                    Pagar {formatCurrency(totalConEnvio)}
+                                                </>
+                                            )}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={handleVolverAlResumen}
+                                            disabled={isProcessingPayment}
+                                            className="w-full py-3 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <FiArrowLeft /> Volver al resumen
+                                        </button>
+                                    </form>
+
+                                    <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
+                                        <FiLock className="text-green-500" />
+                                        <span>Pago seguro - Tus datos estan protegidos</span>
+                                    </div>
                                 </div>
 
-                                {!user && !paymentSuccess && (
-                                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
-                                        <p className="text-gray-600">Debes iniciar sesion para continuar con el pago.</p>
-                                        <button
-                                            onClick={() => navigate('/login')}
-                                            className="mt-4 bg-patisserie-red text-white font-bold py-3 px-8 rounded-xl hover:bg-red-600 transition-all"
-                                        >
-                                            Iniciar Sesion
-                                        </button>
-                                    </div>
-                                )}
-
-                                {!paymentSuccess && (
-                                    <div className="text-center">
-                                        <button
-                                            onClick={() => setStep('summary')}
-                                            className="text-gray-400 hover:text-gray-600 text-sm font-medium flex items-center justify-center gap-1 mx-auto"
-                                        >
-                                            <FiChevronLeft /> Volver al resumen
-                                        </button>
-                                    </div>
-                                )}
+                                <div className="text-center">
+                                    <button
+                                        onClick={handleVolverAlResumen}
+                                        className="text-gray-400 hover:text-gray-600 text-sm font-medium flex items-center justify-center gap-1 mx-auto"
+                                    >
+                                        <FiChevronLeft /> Volver al resumen
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
 
-                    {/* ORDER SUMMARY SIDEBAR (Sticky) */}
                     <div className="lg:col-span-1">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-28">
                             <h3 className="text-lg font-bold text-gray-800 mb-6 border-b border-gray-100 pb-4">Resumen del Pedido</h3>
@@ -646,7 +808,6 @@ const Checkout = () => {
                                     </span>
                                 </div>
 
-                                {/* Advertencia de compra mínima */}
                                 {typeof compraMinima === 'number' && total < compraMinima && (
                                     <div className="mt-4 p-4 bg-red-50 border-2 border-red-300 rounded-xl">
                                         <div className="flex items-start gap-3">
@@ -665,13 +826,11 @@ const Checkout = () => {
                             </div>
                         </div>
 
-                        {/* Security Badge */}
                         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400 bg-gray-50 p-3 rounded-xl border border-gray-100">
                             <FiCheckCircle className="text-green-500" />
                             <span>Garantia de Satisfaccion 100%</span>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

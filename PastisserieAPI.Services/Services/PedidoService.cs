@@ -235,25 +235,6 @@ namespace PastisserieAPI.Services.Services
 
                 subtotal += pedidoItem.Subtotal;
                 pedidoItems.Add(pedidoItem);
-
-                // Descontar Stock del producto (si aplica)
-                if (itemCart.ProductoId.HasValue && itemCart.Producto != null)
-                {
-                    var producto = itemCart.Producto;
-                    if (producto.Stock >= itemCart.Cantidad)
-                    {
-                        producto.Stock -= itemCart.Cantidad;
-                        await _unitOfWork.Productos.UpdateAsync(producto);
-                    }
-                }
-
-                // Descontar Stock de promoción independiente (sin producto vinculado)
-                if (itemCart.PromocionId.HasValue && itemCart.Promocion != null
-                    && itemCart.Promocion.Stock.HasValue && !itemCart.Promocion.ProductoId.HasValue)
-                {
-                    itemCart.Promocion.Stock -= itemCart.Cantidad;
-                    await _unitOfWork.Promociones.UpdateAsync(itemCart.Promocion);
-                }
             }
 
             // 4. Totales (IVA REMOVIDO, DOMICILIO CALCULADO POR COMUNA)
@@ -283,10 +264,7 @@ namespace PastisserieAPI.Services.Services
             // Actualizamos el pedido con sus items
             await _unitOfWork.Pedidos.UpdateAsync(pedido);
 
-            // 7. Vaciar Carrito (Usando el ID del carrito, NO del usuario)
-            await _unitOfWork.Carritos.ClearCarritoAsync(carritoActual.Id);
-
-            // 8. Historial
+            // 7. Historial
             var historial = new PedidoHistorial
             {
                 PedidoId = pedido.Id,
@@ -306,37 +284,6 @@ namespace PastisserieAPI.Services.Services
             // 9. Retorno con datos completos (Include)
             var pedidoCompleto = await _unitOfWork.Pedidos.GetByIdWithDetailsAsync(pedido.Id)
                                  ?? await _unitOfWork.Pedidos.GetByIdAsync(pedido.Id);
-
-            // 10. Notificación al usuario
-            try
-            {
-                await _notificacionService.CrearNotificacionAsync(
-                    userId,
-                    "Pedido Recibido 🍰",
-                    $"Tu pedido #{pedido.Id} ha sido creado exitosamente. Total: ${pedido.Total:N0} COP.",
-                    "Pedido",
-                    "/history"
-                );
-            }
-            catch { }
-
-            // 11. Enviar Correo de Confirmación y Factura (Fire and forget, or awaited)
-            try
-            {
-                var user = await _unitOfWork.Users.GetByIdAsync(userId);
-                if (user != null)
-                {
-                    // Send order confirmation along with invoice
-                    byte[]? pdfBytes = null;
-                    if (pedidoCompleto != null)
-                    {
-                        pdfBytes = _invoiceService.GenerateInvoicePdf(pedidoCompleto, user);
-                    }
-
-                    await _emailService.SendOrderConfirmationEmailAsync(user.Email, user.Nombre, pedido.Id, pedido.Total, pdfBytes);
-                }
-            }
-            catch { /* Ignorar errores de correo para no fallar el pedido */ }
 
             return _mapper.Map<PedidoResponseDto>(pedidoCompleto);
         }

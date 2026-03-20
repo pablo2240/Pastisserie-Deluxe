@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PastisserieAPI.Core.Entities;
 using PastisserieAPI.Core.Interfaces;
 using PastisserieAPI.Services.DTOs.Common;
+using PastisserieAPI.Services.Services.Interfaces;
 using System.Security.Claims;
 
 namespace PastisserieAPI.API.Controllers
@@ -12,60 +14,253 @@ namespace PastisserieAPI.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<PagosController> _logger;
+        private readonly INotificacionService _notificacionService;
+        private readonly IEmailService _emailService;
+        private readonly IInvoiceService _invoiceService;
 
         public PagosController(
             IUnitOfWork unitOfWork,
-            ILogger<PagosController> logger)
+            ILogger<PagosController> logger,
+            INotificacionService notificacionService,
+            IEmailService emailService,
+            IInvoiceService invoiceService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _notificacionService = notificacionService;
+            _emailService = emailService;
+            _invoiceService = invoiceService;
         }
 
-        /// <summary>
-        /// Simula la aprobación de un pago (para entorno de desarrollo/pruebas)
-        /// </summary>
-        [HttpPost("simular-pago/{pedidoId}")]
-        [Authorize]
-        public async Task<IActionResult> SimularPago(int pedidoId)
+        private int? GetUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 ?? User.FindFirst("sub")?.Value;
 
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                return null;
+
+            return userId;
+        }
+
+        private DateTime GetBogotaTime()
+        {
+            try
             {
-                return Unauthorized(ApiResponse<string>.ErrorResponse("Usuario no identificado en token"));
+                var bogotaZone = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time");
+                return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bogotaZone);
             }
+            catch
+            {
+                try
+                {
+                    var bogotaZone = TimeZoneInfo.FindSystemTimeZoneById("America/Bogota");
+                    return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bogotaZone);
+                }
+                catch
+                {
+                    return DateTime.UtcNow.AddHours(-5);
+                }
+            }
+        }
+
+        [HttpPost("registrar-intento/{pedidoId}")]
+        [Authorize]
+        public async Task<IActionResult> RegistrarIntento(int pedidoId)
+        {
+            var userId = GetUserId();
+            if (!userId.HasValue)
+                return Unauthorized(ApiResponse<string>.ErrorResponse("Usuario no identificado"));
 
             try
             {
                 var pedido = await _unitOfWork.Pedidos.GetByIdAsync(pedidoId);
-
                 if (pedido == null)
-                {
                     return NotFound(ApiResponse<string>.ErrorResponse("Pedido no encontrado"));
-                }
 
-                if (pedido.UsuarioId != userId)
-                {
+                if (pedido.UsuarioId != userId.Value)
                     return Forbid();
+
+                var registroExistente = await _unitOfWork.RegistrosPago.GetUltimoIntentoAsync(pedidoId);
+                if (registroExistente != null && registroExistente.Estado == "Espera")
+                {
+                    return Ok(ApiResponse<string>.SuccessResponse(null, "Intento ya registrado"));
                 }
 
-                // Simular pago aprobado
-                pedido.Estado = "Confirmado";
-                pedido.Aprobado = true;
-                pedido.FechaAprobacion = DateTime.UtcNow;
-                await _unitOfWork.Pedidos.UpdateAsync(pedido);
+                var registro = new RegistroPago
+                {
+                    PedidoId = pedidoId,
+                    UsuarioId = userId.Value,
+                    Estado = "Espera",
+                    FechaIntento = GetBogotaTime()
+                };
+
+                await _unitOfWork.RegistrosPago.AddAsync(registro);
                 await _unitOfWork.SaveChangesAsync();
 
-                _logger.LogInformation("Pago simulado aprobado para pedido {PedidoId}", pedidoId);
+                _logger.LogInformation("Intento de pago registrado para pedido {PedidoId}", pedidoId);
+                return Ok(ApiResponse<object>.SuccessResponse(new { registroId = registro.Id }, "Intento registrado"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al registrar intento de pago para pedido {PedidoId}", pedidoId);
+                return BadRequest(ApiResponse<string>.ErrorResponse($"Error: {ex.Message}"));
+            }
+        }
 
-                return Ok(ApiResponse<object>.SuccessResponse(new
+        [HttpPost("abandonar/{pedidoId}")]
+        [Authorize]
+        public async Task<IActionResult> AbandonarPago(int pedidoId)
+        {
+            var userId = GetUserId();
+            if (!userId.HasValue)
+                return Unauthorized(ApiResponse<string>.ErrorResponse("Usuario no identificado"));
+
+            try
+            {
+                var pedido = await _unitOfWork.Pedidos.GetByIdAsync(pedidoId);
+                if (pedido == null)
+                    return NotFound(ApiResponse<string>.ErrorResponse("Pedido no encontrado"));
+
+                if (pedido.UsuarioId != userId.Value)
+                    return Forbid();
+
+                var registroExistente = await _unitOfWork.RegistrosPago.GetUltimoIntentoAsync(pedidoId);
+                if (registroExistente != null && registroExistente.Estado == "Espera")
                 {
-                    pedidoId = pedido.Id,
-                    estado = pedido.Estado,
-                    aprobado = pedido.Aprobado,
-                    mensaje = "Pago aprobado correctamente (simulación)"
-                }, "Pago aprobado"));
+                    registroExistente.Estado = "Fallido";
+                    registroExistente.MensajeError = "Usuario abandonó el proceso de pago";
+                    await _unitOfWork.RegistrosPago.UpdateAsync(registroExistente);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    _logger.LogInformation("Pago abandonado para pedido {PedidoId}", pedidoId);
+                }
+
+                return Ok(ApiResponse<string>.SuccessResponse(null, "Pago marcado como abandonado"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al marcar abandono para pedido {PedidoId}", pedidoId);
+                return BadRequest(ApiResponse<string>.ErrorResponse($"Error: {ex.Message}"));
+            }
+        }
+
+        [HttpPost("simular-pago/{pedidoId}")]
+        [Authorize]
+        public async Task<IActionResult> SimularPago(int pedidoId)
+        {
+            var userId = GetUserId();
+            if (!userId.HasValue)
+                return Unauthorized(ApiResponse<string>.ErrorResponse("Usuario no identificado"));
+
+            try
+            {
+                var pedido = await _unitOfWork.Pedidos.GetByIdWithDetailsAsync(pedidoId);
+                if (pedido == null)
+                    return NotFound(ApiResponse<string>.ErrorResponse("Pedido no encontrado"));
+
+                if (pedido.UsuarioId != userId.Value)
+                    return Forbid();
+
+                var registroExistente = await _unitOfWork.RegistrosPago.GetUltimoIntentoAsync(pedidoId);
+                if (registroExistente != null && registroExistente.Estado == "Exitoso")
+                {
+                    return Ok(ApiResponse<object>.SuccessResponse(new
+                    {
+                        pedidoId = pedido.Id,
+                        estado = pedido.Estado,
+                        aprobado = true,
+                        mensaje = "Pago ya confirmado anteriormente"
+                    }, "Pago ya aprobado"));
+                }
+
+                bool aprobado = true;
+
+                if (aprobado)
+                {
+                    await DescontarStockAsync(pedido);
+
+                    pedido.Estado = "Confirmado";
+                    pedido.Aprobado = true;
+                    pedido.FechaAprobacion = GetBogotaTime();
+                    await _unitOfWork.Pedidos.UpdateAsync(pedido);
+
+                    if (registroExistente != null)
+                    {
+                        registroExistente.Estado = "Exitoso";
+                        registroExistente.FechaConfirmacion = GetBogotaTime();
+                        await _unitOfWork.RegistrosPago.UpdateAsync(registroExistente);
+                    }
+                    else
+                    {
+                        var nuevoRegistro = new RegistroPago
+                        {
+                            PedidoId = pedidoId,
+                            UsuarioId = userId.Value,
+                            Estado = "Exitoso",
+                            FechaIntento = GetBogotaTime(),
+                            FechaConfirmacion = GetBogotaTime()
+                        };
+                        await _unitOfWork.RegistrosPago.AddAsync(nuevoRegistro);
+                    }
+
+                    await _unitOfWork.Carritos.ClearCarritoAsync(pedido.UsuarioId);
+
+                    await _unitOfWork.SaveChangesAsync();
+
+                    try
+                    {
+                        await _notificacionService.CrearNotificacionAsync(
+                            userId.Value,
+                            "Pedido Recibido 🍰",
+                            $"Tu pedido #{pedido.Id} ha sido confirmado exitosamente. Total: ${pedido.Total:N0} COP.",
+                            "Pedido",
+                            "/history"
+                        );
+                    }
+                    catch { }
+
+                    try
+                    {
+                        var usuario = await _unitOfWork.Users.GetByIdAsync(userId.Value);
+                        if (usuario != null)
+                        {
+                            byte[]? pdfBytes = _invoiceService.GenerateInvoicePdf(pedido, usuario);
+                            await _emailService.SendOrderConfirmationEmailAsync(usuario.Email, usuario.Nombre, pedido.Id, pedido.Total, pdfBytes);
+                        }
+                    }
+                    catch { }
+
+                    _logger.LogInformation("Pago simulado aprobado para pedido {PedidoId}", pedidoId);
+
+                    return Ok(ApiResponse<object>.SuccessResponse(new
+                    {
+                        pedidoId = pedido.Id,
+                        estado = pedido.Estado,
+                        aprobado = true,
+                        mensaje = "Pago aprobado correctamente (simulación)"
+                    }, "Pago aprobado"));
+                }
+                else
+                {
+                    if (registroExistente != null)
+                    {
+                        registroExistente.Estado = "Fallido";
+                        registroExistente.MensajeError = "Pago rechazado por el procesador";
+                        await _unitOfWork.RegistrosPago.UpdateAsync(registroExistente);
+                    }
+
+                    await _unitOfWork.SaveChangesAsync();
+
+                    _logger.LogInformation("Pago simulado rechazado para pedido {PedidoId}", pedidoId);
+
+                    return BadRequest(ApiResponse<object>.SuccessResponse(new
+                    {
+                        pedidoId = pedido.Id,
+                        aprobado = false,
+                        mensaje = "Pago rechazado (simulación)"
+                    }, "Pago rechazado"));
+                }
             }
             catch (Exception ex)
             {
@@ -74,34 +269,50 @@ namespace PastisserieAPI.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Verifica el estado de un pedido del usuario autenticado
-        /// </summary>
+        private async Task DescontarStockAsync(Pedido pedido)
+        {
+            foreach (var item in pedido.Items)
+            {
+                if (item.ProductoId.HasValue)
+                {
+                    var producto = await _unitOfWork.Productos.GetByIdAsync(item.ProductoId.Value);
+                    if (producto != null && producto.Stock >= item.Cantidad)
+                    {
+                        producto.Stock -= item.Cantidad;
+                        await _unitOfWork.Productos.UpdateAsync(producto);
+                    }
+                }
+
+                if (item.PromocionId.HasValue && !item.ProductoId.HasValue)
+                {
+                    var promocion = await _unitOfWork.Promociones.GetByIdAsync(item.PromocionId.Value);
+                    if (promocion != null && promocion.Stock.HasValue)
+                    {
+                        promocion.Stock -= item.Cantidad;
+                        await _unitOfWork.Promociones.UpdateAsync(promocion);
+                    }
+                }
+            }
+        }
+
         [HttpGet("verificar-pedido/{pedidoId}")]
         [Authorize]
         public async Task<IActionResult> VerificarPedido(int pedidoId)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                ?? User.FindFirst("sub")?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-            {
-                return Unauthorized(ApiResponse<string>.ErrorResponse("Usuario no identificado en token"));
-            }
+            var userId = GetUserId();
+            if (!userId.HasValue)
+                return Unauthorized(ApiResponse<string>.ErrorResponse("Usuario no identificado"));
 
             try
             {
                 var pedido = await _unitOfWork.Pedidos.GetByIdAsync(pedidoId);
-
                 if (pedido == null)
-                {
                     return NotFound(ApiResponse<string>.ErrorResponse("Pedido no encontrado"));
-                }
 
-                if (pedido.UsuarioId != userId)
-                {
+                if (pedido.UsuarioId != userId.Value)
                     return Forbid();
-                }
+
+                var registro = await _unitOfWork.RegistrosPago.GetUltimoIntentoAsync(pedidoId);
 
                 return Ok(ApiResponse<object>.SuccessResponse(new
                 {
@@ -110,7 +321,8 @@ namespace PastisserieAPI.API.Controllers
                     total = pedido.Total,
                     fechaPedido = pedido.FechaPedido,
                     aprobado = pedido.Aprobado,
-                    fechaAprobacion = pedido.FechaAprobacion
+                    fechaAprobacion = pedido.FechaAprobacion,
+                    registroPagoEstado = registro?.Estado
                 }));
             }
             catch (Exception ex)

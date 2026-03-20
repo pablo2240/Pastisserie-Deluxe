@@ -41,6 +41,7 @@ namespace PastisserieAPI.Infrastructure.Data
         // ============ PAGOS ============
         public DbSet<TipoMetodoPago> TiposMetodoPago { get; set; }
         public DbSet<MetodoPagoUsuario> MetodosPagoUsuario { get; set; }
+        public DbSet<RegistroPago> RegistrosPago { get; set; }
 
         // ============ DIRECCIONES Y ENVÍOS ============
         public DbSet<DireccionEnvio> DireccionesEnvio { get; set; }

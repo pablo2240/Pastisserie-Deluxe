@@ -90,5 +90,17 @@ export const orderService = {
   deleteOrder: async (pedidoId: number) => {
     const response = await api.delete(`/pedidos/${pedidoId}`);
     return response.data;
+  },
+
+  // 8. Registrar intento de pago (entrada a sección de pago)
+  registrarIntentoPago: async (pedidoId: number) => {
+    const response = await api.post(`/pagos/registrar-intento/${pedidoId}`);
+    return response.data;
+  },
+
+  // 9. Abandonar pago (usuario sale sin completar)
+  abandonarPago: async (pedidoId: number) => {
+    const response = await api.post(`/pagos/abandonar/${pedidoId}`);
+    return response.data;
   }
 };

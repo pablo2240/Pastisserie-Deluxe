@@ -32,6 +32,7 @@ namespace PastisserieAPI.Infrastructure.Repositories
         public IRepository<Promocion> Promociones { get; private set; }
         public IRepository<ConfiguracionTienda> Configuracion { get; private set; }
         public IRepository<Reclamacion> Reclamaciones { get; private set; }
+        public IRegistroPagoRepository RegistrosPago { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -61,6 +62,7 @@ namespace PastisserieAPI.Infrastructure.Repositories
             Promociones = new Repository<Promocion>(_context);
             Configuracion = new Repository<ConfiguracionTienda>(_context);
             Reclamaciones = new Repository<Reclamacion>(_context);
+            RegistrosPago = new RegistroPagoRepository(_context);
         }
 
         public IRepository<T> Repository<T>() where T : class

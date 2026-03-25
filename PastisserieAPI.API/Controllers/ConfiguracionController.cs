@@ -9,7 +9,6 @@ namespace PastisserieAPI.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
     public class ConfiguracionController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -22,6 +21,7 @@ namespace PastisserieAPI.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetConfig()
         {
             var config = await _context.ConfiguracionTienda
@@ -31,8 +31,8 @@ namespace PastisserieAPI.API.Controllers
             return Ok(ApiResponse<ConfiguracionTienda>.SuccessResponse(config!, config == null ? "No se encontró configuración" : "Configuración cargada"));
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPut]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateConfig([FromBody] ConfiguracionTienda newConfig)
         {
             var existingConfig = await _context.ConfiguracionTienda

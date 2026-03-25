@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiTag, FiClock, FiPackage, FiShoppingCart } from 'react-icons/fi';
+import { FiTag, FiPackage, FiShoppingCart } from 'react-icons/fi';
 import { promocionesService } from '../services/promocionesService';
 import type { Promocion } from '../services/promocionesService';
 import { formatCurrency } from '../utils/format';
@@ -145,11 +145,8 @@ const Promociones = () => {
         {/* Banner inferior */}
         <div className="mt-16 bg-patisserie-red rounded-2xl p-8 text-center text-white relative overflow-hidden">
           <div className="relative z-10">
-            <h2 className="text-2xl font-bold mb-2">¿Tienes un evento especial?</h2>
-            <p className="mb-6 opacity-90">Cotiza mesas de dulces y pasteles personalizados con descuento por volumen.</p>
-            <Link to="/contacto" className="bg-white text-patisserie-red px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors inline-flex items-center gap-2">
-              <FiClock /> Cotizar Evento
-            </Link>
+            <h2 className="text-2xl font-bold mb-2">¡Gran Promoción!</h2>
+            <p className="mb-6 opacity-90">Aprovecha esta oferta especial. Máximo 3 productos por promoción.</p>
           </div>
           {/* Círculos decorativos de fondo */}
           <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-2xl"></div>

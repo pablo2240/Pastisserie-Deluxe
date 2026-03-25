@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiUser, FiPhone, FiMapPin, FiSave, FiPackage, FiClock, FiCheckCircle, FiX, FiAlertCircle, FiTrash2, FiEye } from 'react-icons/fi';
+import { FiUser, FiPhone, FiMapPin, FiSave, FiPackage, FiClock, FiCheckCircle, FiX, FiAlertCircle, FiEye } from 'react-icons/fi';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { formatCurrency, formatMedellinDate, formatMedellinDateTime } from '../utils/format';
@@ -57,19 +57,6 @@ const Perfil = () => {
       console.error("Error cargando pedidos", error);
     } finally {
       setLoadingPedidos(false);
-    }
-  };
-
-  const eliminarPedido = async (pedidoId: number) => {
-    if (!window.confirm(`¿Estás seguro de eliminar el pedido #${pedidoId}? Esta acción no se puede deshacer.`)) return;
-    try {
-      await api.delete(`/pedidos/${pedidoId}`);
-      toast.success(`Pedido #${pedidoId} eliminado`);
-      if (selectedPedido?.id === pedidoId) setSelectedPedido(null);
-      fetchMisPedidos();
-    } catch (error: any) {
-      const msg = error?.response?.data?.message || 'Error al eliminar pedido';
-      toast.error(msg);
     }
   };
 
@@ -275,13 +262,6 @@ const Perfil = () => {
                       </div>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => eliminarPedido(pedido.id)}
-                          className="bg-red-50 text-red-500 px-3 py-1.5 rounded-lg text-xs font-black hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest"
-                          title="Eliminar pedido"
-                        >
-                          <FiTrash2 size={14} />
-                        </button>
-                        <button
                           onClick={() => setSelectedPedido(pedido)}
                           className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition-all uppercase tracking-widest flex items-center gap-1.5"
                         >
@@ -432,12 +412,6 @@ const Perfil = () => {
               </div>
 
               <div className="px-6 py-4 bg-gray-50 border-t flex justify-end gap-4 shrink-0">
-                <button
-                  onClick={() => eliminarPedido(selectedPedido.id)}
-                  className="bg-red-50 text-red-600 px-6 py-2 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-colors uppercase text-xs flex items-center gap-2 border border-red-100"
-                >
-                  <FiTrash2 /> Eliminar
-                </button>
                 <button
                   onClick={() => handleDownloadInvoice(selectedPedido.id)}
                   className="bg-patisserie-red text-white px-6 py-2 rounded-xl font-bold hover:bg-patisserie-red/80 transition-colors uppercase text-xs flex items-center gap-2"

@@ -164,7 +164,7 @@ const Carrito = () => {
                                 </span>
                             </div>
 
-                            {/* Advertencia de compra mínima */}
+                            {/* Advertencia de compra mínima - solo se muestra si no cumple el monto mínimo */}
                             {typeof compraMinima === 'number' && totalCalculado < compraMinima && (
                                 <div className="mb-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
                                     <div className="flex items-start gap-3">
@@ -181,26 +181,31 @@ const Carrito = () => {
                                 </div>
                             )}
 
-                            {status && !status.estaAbierto && (
-                                <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 animate-pulse">
-                                    <FiClock className="text-red-600 animate-bounce" />
-                                    <div className="text-xs text-red-800 font-bold uppercase tracking-wider">
-                                        Tienda Cerrada (Medellín)
-                                        <p className="text-[10px] font-medium opacity-70 mt-0.5 normal-case">Vuelve a las {status.horaApertura}</p>
-                                    </div>
-                                </div>
-                            )}
+                            {/* Botón Proceder al Pago - solo se muestra si cumple la compra mínima */}
+                            {typeof compraMinima !== 'number' || totalCalculado >= compraMinima ? (
+                                <>
+                                    {status && !status.estaAbierto && (
+                                        <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 animate-pulse">
+                                            <FiClock className="text-red-600 animate-bounce" />
+                                            <div className="text-xs text-red-800 font-bold uppercase tracking-wider">
+                                                Tienda Cerrada (Medellín)
+                                                <p className="text-[10px] font-medium opacity-70 mt-0.5 normal-case">Vuelve a las {status.horaApertura}</p>
+                                            </div>
+                                        </div>
+                                    )}
 
-                            <button
-                                onClick={handleCheckout}
-                                disabled={isLoading || !!(status && !status.estaAbierto)}
-                                className={`w-full font-bold py-4 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 ${(status && !status.estaAbierto)
-                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed grayscale'
-                                    : 'bg-gray-900 text-white hover:bg-patisserie-red hover:shadow-xl'
-                                    } disabled:opacity-70`}
-                            >
-                                {isLoading ? 'Procesando...' : (status && !status.estaAbierto) ? 'Cerrado Temporalmente' : 'Proceder al Pago'}
-                            </button>
+                                    <button
+                                        onClick={handleCheckout}
+                                        disabled={isLoading || !!(status && !status.estaAbierto)}
+                                        className={`w-full font-bold py-4 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 ${(status && !status.estaAbierto)
+                                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed grayscale'
+                                            : 'bg-gray-900 text-white hover:bg-patisserie-red hover:shadow-xl'
+                                            } disabled:opacity-70`}
+                                    >
+                                        {isLoading ? 'Procesando...' : (status && !status.estaAbierto) ? 'Cerrado Temporalmente' : 'Proceder al Pago'}
+                                    </button>
+                                </>
+                            ) : null}
 
                             <Link to="/productos" className="block text-center text-gray-500 text-sm mt-4 hover:text-gray-800 flex items-center justify-center gap-1">
                                 <FiArrowLeft /> Seguir Comprando

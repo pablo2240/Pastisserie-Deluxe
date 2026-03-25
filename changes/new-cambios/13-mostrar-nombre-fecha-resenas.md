@@ -120,7 +120,7 @@ Esto confirmó que ASP.NET Core usa camelCase por defecto en la serialización J
 
 ---
 
-# 14 - Mostrar todas las reseñas aprobadas en Home (sin filtro de estrellas)
+# 13.2 - Mostrar todas las reseñas aprobadas en Home (sin filtro de estrellas)
 
 ## Problema
 

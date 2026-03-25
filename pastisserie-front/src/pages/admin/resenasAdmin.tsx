@@ -123,10 +123,10 @@ const ResenasAdmin = () => {
                                 <div className="flex justify-between items-start mb-8">
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 bg-gray-900 text-white rounded-2xl flex items-center justify-center font-black text-xs shadow-lg group-hover:bg-blue-600 transition-colors">
-                                            {rev.usuarioNombre?.substring(0, 1).toUpperCase() || 'U'}
+                                            {rev.nombreUsuario?.substring(0, 1).toUpperCase() || 'U'}
                                         </div>
                                         <div>
-                                            <p className="font-black text-gray-900 text-xs uppercase tracking-tight">{rev.usuarioNombre}</p>
+                                            <p className="font-black text-gray-900 text-xs uppercase tracking-tight">{rev.nombreUsuario}</p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                                                 <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Verificado</p>
@@ -150,7 +150,7 @@ const ResenasAdmin = () => {
                                 </p>
 
                                 <p className="text-[9px] text-gray-300 font-bold uppercase tracking-widest mt-8">
-                                    Registrado: {new Date(rev.fechaCreacion || '').toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                    Registrado: {new Date(rev.fecha || '').toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })}
                                 </p>
                             </div>
 

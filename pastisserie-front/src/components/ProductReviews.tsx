@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 
 interface Review {
   id: number;
-  usuarioNombre: string; // Asegúrate que tu backend devuelva el nombre aquí
+  nombreUsuario: string;
   comentario: string;
   calificacion: number;
   fecha: string;
@@ -146,7 +146,7 @@ const ProductReviews = ({ productId }: { productId: string | undefined }) => {
                     <div className="w-8 h-8 bg-[#EBCfa8] rounded-full flex items-center justify-center text-[#7D2121]">
                       <FiUser size={14} />
                     </div>
-                    <span className="font-bold text-sm text-gray-700">{rev.usuarioNombre || "Cliente"}</span>
+                    <span className="font-bold text-sm text-gray-700">{rev.nombreUsuario || "Cliente"}</span>
                   </div>
                   <div className="flex text-yellow-400 text-xs">
                     {[...Array(5)].map((_, i) => (

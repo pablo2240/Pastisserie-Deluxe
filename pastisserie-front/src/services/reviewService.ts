@@ -6,10 +6,10 @@ export interface Review {
   productoId: number;
   productoNombre?: string;
   usuarioId: number;
-  usuarioNombre: string;
+  nombreUsuario: string;
   calificacion: number;
   comentario: string;
-  fechaCreacion: string;
+  fecha: string;
   aprobada?: boolean;
 }
 

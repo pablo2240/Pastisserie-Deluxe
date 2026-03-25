@@ -165,11 +165,11 @@ const Home = () => {
 
                 <div className="flex items-center gap-4 mt-auto border-t border-gray-50 pt-4">
                   <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-[#7D2121] font-bold text-lg">
-                    {review.nombre ? review.nombre.substring(0, 1) : (review.usuarioNombre ? review.usuarioNombre.substring(0, 1) : 'C')}
+                    {review.nombreUsuario ? review.nombreUsuario.substring(0, 1) : 'P'}
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900">{review.nombre || review.usuarioNombre}</p>
-                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Cliente Verificado</p>
+                    <p className="font-bold text-gray-900">{review.nombreUsuario}</p>
+                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{review.nombreUsuario}</p>
                   </div>
                 </div>
               </div>

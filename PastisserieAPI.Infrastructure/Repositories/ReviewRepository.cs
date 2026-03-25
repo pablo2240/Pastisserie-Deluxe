@@ -56,7 +56,7 @@ namespace PastisserieAPI.Infrastructure.Repositories
         {
             return await _dbSet
                 .Include(r => r.Usuario)
-                .Where(r => r.Calificacion == 5 && r.Aprobada) // 5 Estrellas y aprobadas
+                .Where(r => r.Aprobada) // Todas las reseñas aprobadas (sin filtro de estrellas)
                 .OrderByDescending(r => r.Fecha)
                 .Take(3)
                 .ToListAsync();

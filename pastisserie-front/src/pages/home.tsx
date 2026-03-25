@@ -113,7 +113,7 @@ const Home = () => {
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <div className="lg:w-1/2 relative">
               <div className="rounded-[2.5rem] overflow-hidden shadow-2xl relative z-10 w-full">
-                <img alt="Chef decorando" className="w-full h-auto max-h-[500px] object-cover" src="https://i.ytimg.com/vi/EJcNzxikaVI/maxresdefault.jpg" />
+                <img alt="Chef decorando" className="w-full h-auto max-h-[500px] object-cover" src="https://uploads-ssl.webflow.com/636cd7c004bf297e18d5cfc9/637272b68332ff110a4542a2_In%C3%ADcio%2002%20(Resized).jpg" />
               </div>
               <div className="absolute -bottom-10 -right-10 w-3/5 rounded-[2rem] overflow-hidden shadow-xl border-8 border-white hidden lg:block z-20">
                 <img src="https://images.unsplash.com/photo-1612203985729-70726954388c?auto=format&fit=crop&q=80&w=400" alt="Detalle donas" />

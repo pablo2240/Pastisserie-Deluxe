@@ -148,6 +148,28 @@ namespace PastisserieAPI.API.Controllers
             return File(pdfBytes, "application/pdf", $"Factura_Pedido_{id}.pdf");
         }
 
+        [HttpGet("{id}/historial")]
+        [Authorize]
+        public async Task<IActionResult> GetHistorial(int id)
+        {
+            var pedido = await _unitOfWork.Pedidos.GetByIdAsync(id);
+            if (pedido == null) return NotFound(ApiResponse.ErrorResponse("Pedido no encontrado"));
+
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin && pedido.UsuarioId.ToString() != userIdStr)
+                return Forbid();
+
+            var historial = await _context.PedidoHistoriales
+                .Where(h => h.PedidoId == id)
+                .OrderByDescending(h => h.FechaCambio)
+                .ToListAsync();
+
+            return Ok(ApiResponse<List<PedidoHistorialResponseDto>>.SuccessResponse(
+                _mapper.Map<List<PedidoHistorialResponseDto>>(historial)
+            ));
+        }
+
         [HttpDelete("{id}")]
         [Authorize]
         public async Task<IActionResult> Delete(int id)

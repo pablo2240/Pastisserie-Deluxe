@@ -5,6 +5,7 @@ using PastisserieAPI.Core.Interfaces;
 using PastisserieAPI.Services.DTOs.Request;
 using PastisserieAPI.Services.DTOs.Response;
 using PastisserieAPI.Services.Services.Interfaces;
+using PastisserieAPI.Infrastructure.Data;
 
 namespace PastisserieAPI.Services.Services
 {
@@ -51,8 +52,9 @@ namespace PastisserieAPI.Services.Services
         private readonly INotificacionService _notificacionService;
         private readonly ITiendaService _tiendaService;
         private readonly ILogger<PedidoService> _logger;
+        private readonly ApplicationDbContext _context;
 
-        public PedidoService(IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService, IInvoiceService invoiceService, INotificacionService notificacionService, ITiendaService tiendaService, ILogger<PedidoService> logger)
+        public PedidoService(IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService, IInvoiceService invoiceService, INotificacionService notificacionService, ITiendaService tiendaService, ILogger<PedidoService> logger, ApplicationDbContext context)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -61,6 +63,7 @@ namespace PastisserieAPI.Services.Services
             _notificacionService = notificacionService;
             _tiendaService = tiendaService;
             _logger = logger;
+            _context = context;
         }
 
         public async Task<PedidoResponseDto> CreateAsync(int userId, CreatePedidoRequestDto request)
@@ -285,8 +288,8 @@ namespace PastisserieAPI.Services.Services
             // Actualizamos el pedido con sus items
             await _unitOfWork.Pedidos.UpdateAsync(pedido);
 
-            // 7. Historial
-            var historial = new PedidoHistorial
+            // 7. Historial - Registro inicial del pedido
+            var historialInicial = new PedidoHistorial
             {
                 PedidoId = pedido.Id,
                 EstadoAnterior = "",
@@ -295,9 +298,7 @@ namespace PastisserieAPI.Services.Services
                 CambiadoPor = userId,
                 Notas = "Pedido creado exitosamente"
             };
-            // Nota: Si PedidoHistorial es una tabla aparte, agrégala al DbSet, si es colección:
-            // pedido.Historial.Add(historial); 
-            // await _unitOfWork.SaveChangesAsync();
+            _context.PedidoHistoriales.Add(historialInicial);
 
             // Guardamos cambios finales
             await _unitOfWork.SaveChangesAsync();
@@ -348,6 +349,9 @@ namespace PastisserieAPI.Services.Services
             var pedido = await _unitOfWork.Pedidos.GetByIdAsync(id);
             if (pedido == null) return null;
 
+            // Guardar estado anterior para el historial
+            var estadoAnterior = pedido.Estado;
+
             // Validar horario para acciones de cocina/preparación (excepto si es una re-asignación de un pedido fallido)
             var estadosRestringidos = new[] { "EnProceso" };
             if (estadosRestringidos.Contains(request.Estado, StringComparer.OrdinalIgnoreCase) && pedido.Estado != "NoEntregado")
@@ -379,17 +383,29 @@ namespace PastisserieAPI.Services.Services
             }
 
             // Si se pasa de NoEntregado a Pendiente o Confirmado (reintento)
-            if (request.Estado == "Pendiente" && pedido.Estado == "NoEntregado")
+            if (request.Estado == "Pendiente" && estadoAnterior == "NoEntregado")
             {
                 pedido.FechaNoEntrega = null;
                 pedido.RepartidorId = null; // LIMPIAR REPARTIDOR PARA REASIGNACIÓN
             }
-            else if ((request.Estado == "Pendiente" || request.Estado == "Confirmado") && pedido.Estado == "NoEntregado")
+            else if ((request.Estado == "Pendiente" || request.Estado == "Confirmado") && estadoAnterior == "NoEntregado")
             {
                 pedido.FechaNoEntrega = null;
             }
 
             await _unitOfWork.Pedidos.UpdateAsync(pedido);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Crear registro de historial
+            var historial = new PedidoHistorial
+            {
+                PedidoId = pedido.Id,
+                EstadoAnterior = estadoAnterior,
+                EstadoNuevo = request.Estado,
+                FechaCambio = GetBogotaTime(),
+                Notas = request.MotivoNoEntrega
+            };
+            _context.PedidoHistoriales.Add(historial);
             await _unitOfWork.SaveChangesAsync();
 
             // Notificar al usuario del cambio de estado

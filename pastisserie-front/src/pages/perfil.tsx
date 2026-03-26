@@ -8,7 +8,8 @@ import toast from 'react-hot-toast';
 import { formatCurrency, formatMedellinDate, formatMedellinDateTime } from '../utils/format';
 import AuthRequiredMessage from '../components/common/AuthRequiredMessage';
 
-import { type Pedido } from '../types';
+import { type Pedido, type PedidoHistorial } from '../types';
+import { orderService } from '../services/orderService';
 
 const Perfil = () => {
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ const Perfil = () => {
   const [loadingPedidos, setLoadingPedidos] = useState(true);
   const [shake, setShake] = useState(false);
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null);
+  const [pedidoHistorial, setPedidoHistorial] = useState<PedidoHistorial[]>([]);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
 
   const handleDownloadInvoice = async (pedidoId: number) => {
     try {
@@ -262,7 +265,20 @@ const Perfil = () => {
                       </div>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => setSelectedPedido(pedido)}
+                          onClick={async () => {
+                            setSelectedPedido(pedido);
+                            // Cargar historial
+                            setLoadingHistorial(true);
+                            try {
+                              const historialData = await orderService.getHistorial(pedido.id);
+                              setPedidoHistorial(historialData || []);
+                            } catch (error) {
+                              console.error('Error cargando historial:', error);
+                              setPedidoHistorial([]);
+                            } finally {
+                              setLoadingHistorial(false);
+                            }
+                          }}
                           className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition-all uppercase tracking-widest flex items-center gap-1.5"
                         >
                           <FiEye size={14} />
@@ -462,6 +478,43 @@ const Perfil = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Historial de Cambios */}
+                {(pedidoHistorial.length > 0 || loadingHistorial) && (
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-gray-800 flex items-center gap-2 border-b pb-2">
+                      <FiClock className="text-patisserie-red" /> Historial de Cambios
+                    </h3>
+                    {loadingHistorial ? (
+                      <div className="py-4 text-center">
+                        <div className="w-6 h-6 border-2 border-patisserie-red/20 border-t-patisserie-red rounded-full animate-spin mx-auto"></div>
+                        <p className="text-gray-400 text-xs mt-2">Cargando historial...</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 mt-3 max-h-48 overflow-y-auto">
+                        {pedidoHistorial.map((h, idx) => (
+                          <div key={h.id} className="flex gap-3 items-start">
+                            <div className="flex flex-col items-center">
+                              <div className={`w-2.5 h-2.5 rounded-full mt-1.5 ${idx === 0 ? 'bg-patisserie-red' : 'bg-gray-300'}`}></div>
+                              {idx < pedidoHistorial.length - 1 && <div className="w-0.5 h-full bg-gray-200 flex-1 min-h-[20px]"></div>}
+                            </div>
+                            <div className="flex-1 pb-2">
+                              <p className="text-sm font-bold text-gray-700">
+                                {h.estadoAnterior || 'Inicio'} <span className="text-patisserie-red">→</span> {h.estadoNuevo}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {formatMedellinDateTime(h.fechaCambio)}
+                              </p>
+                              {h.notas && (
+                                <p className="text-xs text-gray-500 mt-1 italic bg-gray-50 p-2 rounded">{h.notas}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="px-6 py-4 bg-gray-50 border-t flex justify-end gap-4 shrink-0">
@@ -480,7 +533,10 @@ const Perfil = () => {
                   </button>
                 )}
                 <button
-                  onClick={() => setSelectedPedido(null)}
+                  onClick={() => {
+                    setSelectedPedido(null);
+                    setPedidoHistorial([]);
+                  }}
                   className="bg-patisserie-dark text-white px-8 py-2 rounded-xl font-bold hover:bg-gray-800 transition-colors"
                 >
                   Cerrar

@@ -102,5 +102,11 @@ export const orderService = {
   abandonarPago: async (pedidoId: number) => {
     const response = await api.post(`/pagos/abandonar/${pedidoId}`);
     return response.data;
+  },
+
+  // 10. Obtener historial de cambios de estado
+  getHistorial: async (pedidoId: number) => {
+    const response = await api.get(`/pedidos/${pedidoId}/historial`);
+    return response.data.data || response.data;
   }
 };

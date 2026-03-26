@@ -123,6 +123,16 @@ export interface PedidoItem {
   precioOriginal?: number | null;
 }
 
+export interface PedidoHistorial {
+  id: number;
+  pedidoId: number;
+  estadoAnterior: string;
+  estadoNuevo: string;
+  fechaCambio: string;
+  cambiadoPor?: number;
+  notas?: string;
+}
+
 export interface Pedido {
   id: number;
   usuarioId: number;
@@ -133,17 +143,16 @@ export interface Pedido {
     telefono?: string;
   };
   fechaPedido: string;
-  estado: string; // O puedes usar: EstadoPedido
+  estado: string;
   subtotal: number;
-  iva: number;
   costoEnvio: number;
   total: number;
-  esPersonalizado: boolean;
   aprobado: boolean;
   fechaEntregaEstimada?: string;
   items: PedidoItem[];
   direccionEnvio?: DireccionEnvio;
   metodoPago?: string;
+  historial?: PedidoHistorial[];
 }
 // src/types/index.ts
 

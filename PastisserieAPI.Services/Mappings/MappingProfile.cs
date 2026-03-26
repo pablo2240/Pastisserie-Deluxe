@@ -153,6 +153,9 @@ namespace PastisserieAPI.Services.Mappings
             // ============ CATEGORIA MAPPINGS ============
             CreateMap<CategoriaProducto, CategoriaProducto>();
 
+            // ============ PEDIDO HISTORIAL MAPPINGS ============
+            CreateMap<Core.Entities.PedidoHistorial, PedidoHistorialResponseDto>();
+
             // ============ PROMOCION MAPPINGS ============
             CreateMap<Promocion, PromocionResponseDto>()
                 .ForMember(dest => dest.ProductoNombre, opt => opt.MapFrom(src =>

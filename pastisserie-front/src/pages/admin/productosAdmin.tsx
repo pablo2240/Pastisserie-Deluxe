@@ -168,7 +168,7 @@ const ProductosAdmin = () => {
       categoria: producto.categoria || '',
       imagenUrl: producto.imagenUrl || '',
       activo: producto.activo,
-      esPersonalizable: producto.esPersonalizable || false,
+      esPersonalizable: producto.esPersonalizable || false, // Quitar todo lo de es personalizable
       categoriaId: producto.categoriaId || 0
     });
     setErrors({});

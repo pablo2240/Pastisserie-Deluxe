@@ -33,7 +33,7 @@ const Catalogo = () => {
                 response?.data || [];
 
             const data: Producto[] = Array.isArray(rawData) ? rawData : [];
-            const productosValidos = data.filter(p => p && p.activo !== false);
+            const productosValidos = data.filter(p => p && p.activo !== false); //logica para que solo se muestren los productos activos
             setProductos(productosValidos);
 
         } catch (error: any) {

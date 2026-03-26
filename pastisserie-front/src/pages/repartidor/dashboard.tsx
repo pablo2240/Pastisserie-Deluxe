@@ -222,12 +222,29 @@ const RepartidorDashboard = () => {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Dirección de Entrega</p>
-                                        <p className="text-lg font-black text-gray-800 leading-snug">
-                                            {pedido.direccionEnvio?.direccion || 'S/D'}
-                                        </p>
-                                        <p className="text-sm font-bold text-gray-400 mt-1 capitalize">
-                                            {pedido.direccionEnvio?.ciudad || 'Medellín'}
-                                        </p>
+                                        {(() => {
+                                            const dir = pedido.direccionEnvio?.direccion || '';
+                                            const comuna = pedido.direccionEnvio?.comuna || '';
+                                            const ciudad = pedido.direccionEnvio?.ciudad || 'Medellín';
+                                            const direccionFormateada = `${dir}, ${comuna}, ${ciudad}, Colombia`.replace(/^, |, $/g, '');
+                                            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(direccionFormateada)}`;
+                                            
+                                            return (
+                                                <>
+                                                    <a 
+                                                        href={googleMapsUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-lg font-black text-gray-800 leading-snug hover:text-patisserie-red transition-colors cursor-pointer block"
+                                                    >
+                                                        {dir || 'S/D'}
+                                                    </a>
+                                                    <p className="text-sm font-bold text-gray-400 mt-1 capitalize">
+                                                        {comuna || ciudad || 'Medellín'}
+                                                    </p>
+                                                </>
+                                            );
+                                        })()}
 
                                         {pedido.direccionEnvio?.notas && (
                                             <div className="mt-4 bg-patisserie-red/5 p-4 rounded-2xl text-[11px] font-bold text-patisserie-red border border-patisserie-red/10 flex gap-3 italic">

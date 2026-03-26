@@ -302,6 +302,7 @@ namespace PastisserieAPI.API.Controllers
                 direccionEnvio = p.DireccionEnvio == null ? null : new
                 {
                     p.DireccionEnvio.Direccion,
+                    p.DireccionEnvio.Comuna,
                     Ciudad = p.DireccionEnvio.Barrio ?? "Medellín",
                     Notas = p.DireccionEnvio.Referencia ?? ""
                 },

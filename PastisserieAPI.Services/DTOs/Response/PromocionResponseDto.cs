@@ -44,5 +44,9 @@ namespace PastisserieAPI.Services.DTOs.Response
         /// Computado en el servidor: PrecioEfectivo - descuento.
         /// </summary>
         public decimal? PrecioFinal { get; set; }
+        /// <summary>
+        /// Stock del producto asociado (para promociones con producto)
+        /// </summary>
+        public int? ProductoStock { get; set; }
     }
 }

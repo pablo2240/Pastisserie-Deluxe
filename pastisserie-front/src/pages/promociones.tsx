@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { FiTag, FiPackage, FiShoppingCart } from 'react-icons/fi';
 import { promocionesService } from '../services/promocionesService';
@@ -7,14 +7,23 @@ import { formatCurrency } from '../utils/format';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
-// Determina la imagen efectiva de una promoción
+const POLLING_INTERVAL_MS = 10000;
+
 const getPromoImage = (promo: Promocion): string => {
-  // 1. Si tiene producto asociado, usar imagen del producto
   if (promo.productoId && promo.productoImagenUrl) return promo.productoImagenUrl;
-  // 2. Si tiene imagen propia (independiente), usarla
   if (promo.imagenUrl) return promo.imagenUrl;
-  // 3. Fallback
   return 'https://images.unsplash.com/photo-1551024601-bec0273fb832?auto=format&fit=crop&q=80&w=400';
+};
+
+const isPromocionIndependiente = (promo: Promocion): boolean => {
+  return promo.productoId === null || promo.productoId === undefined;
+};
+
+const isAgotada = (promo: Promocion): boolean => {
+  if (isPromocionIndependiente(promo)) {
+    return promo.stock != null && promo.stock <= 0;
+  }
+  return promo.productoStock != null && promo.productoStock <= 0;
 };
 
 const Promociones = () => {
@@ -23,15 +32,7 @@ const Promociones = () => {
   const { isAuthenticated } = useAuth();
   const { addToCart, isLoading: isCartLoading } = useCart();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchPromociones();
-    } else {
-      setLoading(false);
-    }
-  }, [isAuthenticated]);
-
-  const fetchPromociones = async () => {
+  const fetchPromociones = useCallback(async () => {
     try {
       const response = await promocionesService.getAll();
       setPromociones(response.data);
@@ -40,7 +41,17 @@ const Promociones = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchPromociones();
+      const pollingInterval = setInterval(fetchPromociones, POLLING_INTERVAL_MS);
+      return () => clearInterval(pollingInterval);
+    } else {
+      setLoading(false);
+    }
+  }, [isAuthenticated, fetchPromociones]);
 
   return (
     <div className="pt-28 pb-12 min-h-screen animate-fade-in">
@@ -120,13 +131,19 @@ const Promociones = () => {
                   </div>
 
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                    <button
-                      onClick={() => addToCart(promo.productoId || null, 1, promo.id)}
-                      disabled={isCartLoading}
-                      className="bg-patisserie-red text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-red-800 transition-colors inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <FiShoppingCart /> {isCartLoading ? 'Agregando...' : 'Agregar al carrito'}
-                    </button>
+                    {isAgotada(promo) ? (
+                      <span className="text-gray-400 text-xs font-medium px-3 py-2 bg-gray-100 rounded-lg">
+                        Agotado
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => addToCart(promo.productoId || null, 1, promo.id)}
+                        disabled={isCartLoading}
+                        className="bg-patisserie-red text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-red-800 transition-colors inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <FiShoppingCart /> {isCartLoading ? 'Agregando...' : 'Agregar al carrito'}
+                      </button>
+                    )}
                     {promo.productoId && (
                       <Link
                         to={`/productos/${promo.productoId}`}

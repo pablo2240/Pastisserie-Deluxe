@@ -16,6 +16,7 @@ export interface Promocion {
     productoNombre?: string;
     productoImagenUrl?: string;
     productoPrecio?: number | null;
+    productoStock?: number | null;
     precioOriginal?: number | null;
     precioFinal?: number | null;
 }

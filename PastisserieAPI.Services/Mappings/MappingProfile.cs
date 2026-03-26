@@ -172,6 +172,8 @@ namespace PastisserieAPI.Services.Mappings
                     src.Producto != null ? src.Producto.ImagenUrl : null))
                 .ForMember(dest => dest.ProductoPrecio, opt => opt.MapFrom(src =>
                     src.Producto != null ? (decimal?)src.Producto.Precio : null))
+                .ForMember(dest => dest.ProductoStock, opt => opt.MapFrom(src =>
+                    src.Producto != null ? (int?)src.Producto.Stock : null))
                 .ForMember(dest => dest.PrecioOriginal, opt => opt.MapFrom(src =>
                     src.Producto != null ? (decimal?)src.Producto.Precio : src.PrecioOriginal))
                 .ForMember(dest => dest.PrecioFinal, opt => opt.MapFrom(src =>

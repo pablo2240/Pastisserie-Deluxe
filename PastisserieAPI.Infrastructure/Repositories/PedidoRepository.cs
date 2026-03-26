@@ -32,6 +32,7 @@ namespace PastisserieAPI.Infrastructure.Repositories
                     .ThenInclude(m => m.TipoMetodoPago)
                 .Include(p => p.Items)
                     .ThenInclude(i => i.Producto)
+                .Include(p => p.DireccionEnvio)
                 .OrderByDescending(p => p.FechaPedido)
                 .ToListAsync();
         }

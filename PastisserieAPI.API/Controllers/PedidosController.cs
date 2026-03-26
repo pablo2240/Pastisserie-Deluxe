@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PastisserieAPI.Services.DTOs.Request;
 using PastisserieAPI.Services.DTOs.Response;
 using PastisserieAPI.Services.DTOs.Common;
 using PastisserieAPI.Services.Services.Interfaces;
+using PastisserieAPI.Infrastructure.Data;
 using AutoMapper;
 using PastisserieAPI.Core.Interfaces;
 using System.Security.Claims;
@@ -20,19 +22,22 @@ namespace PastisserieAPI.API.Controllers
         private readonly IMapper _mapper;
         private readonly PastisserieAPI.Services.Services.Interfaces.IInvoiceService _invoiceService;
         private readonly ILogger<PedidosController> _logger;
+        private readonly ApplicationDbContext _context;
 
         public PedidosController(
             IPedidoService pedidoService,
             IUnitOfWork unitOfWork,
             IMapper mapper,
             PastisserieAPI.Services.Services.Interfaces.IInvoiceService invoiceService,
-            ILogger<PedidosController> logger)
+            ILogger<PedidosController> logger,
+            ApplicationDbContext context)
         {
             _pedidoService = pedidoService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _invoiceService = invoiceService;
             _logger = logger;
+            _context = context;
         }
 
         // 👇👇👇 ESTA ES LA PARTE QUE TE FALTABA 👇👇👇
@@ -117,8 +122,21 @@ namespace PastisserieAPI.API.Controllers
             var pedido = await _unitOfWork.Pedidos.GetByIdWithDetailsAsync(id) ?? await _unitOfWork.Pedidos.GetByIdAsync(id);
             if (pedido == null) return NotFound(ApiResponse.ErrorResponse("Pedido no encontrado"));
 
+            // Cargar usuario con sus direcciones para la factura
             var user = await _unitOfWork.Users.GetByIdAsync(pedido.UsuarioId);
             if (user == null) return NotFound(ApiResponse.ErrorResponse("Usuario no encontrado"));
+
+            // Cargar direcciones del usuario si no están incluidas
+            if (user.Direcciones == null || !user.Direcciones.Any())
+            {
+                var usuarioConDirecciones = await _context.Users
+                    .Include(u => u.Direcciones)
+                    .FirstOrDefaultAsync(u => u.Id == pedido.UsuarioId);
+                if (usuarioConDirecciones != null)
+                {
+                    user = usuarioConDirecciones;
+                }
+            }
 
             var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (currentUserIdStr != pedido.UsuarioId.ToString() && !User.IsInRole("Admin"))

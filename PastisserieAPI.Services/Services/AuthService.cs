@@ -293,6 +293,7 @@ namespace PastisserieAPI.Services.Services
 
             if (!string.IsNullOrEmpty(request.Nombre)) user.Nombre = request.Nombre;
             if (request.Telefono != null) user.Telefono = request.Telefono;
+            if (request.Direccion != null) user.Direccion = request.Direccion;
 
             user.FechaActualizacion = DateTime.UtcNow;
 

@@ -71,6 +71,10 @@ namespace PastisserieAPI.Services.Services
             {
                 column.Spacing(20);
 
+                // Obtener dirección del usuario (del perfil)
+                var direccionPerfil = usuario.Direcciones?.FirstOrDefault(d => d.EsPredeterminada) 
+                    ?? usuario.Direcciones?.FirstOrDefault();
+
                 column.Item().Row(row =>
                 {
                     row.RelativeItem().Column(col =>
@@ -79,6 +83,16 @@ namespace PastisserieAPI.Services.Services
                         col.Item().Text(usuario.Nombre);
                         col.Item().Text(usuario.Email);
                         if (!string.IsNullOrEmpty(usuario.Telefono)) col.Item().Text($"Tel: {usuario.Telefono}");
+                        
+                        // Agregar dirección del perfil si existe
+                        if (direccionPerfil != null)
+                        {
+                            col.Item().Text(direccionPerfil.Direccion);
+                            if (!string.IsNullOrEmpty(direccionPerfil.Barrio))
+                                col.Item().Text($"Barrio: {direccionPerfil.Barrio}");
+                            if (!string.IsNullOrEmpty(direccionPerfil.Comuna))
+                                col.Item().Text($"Comuna: {direccionPerfil.Comuna}");
+                        }
                     });
 
                     row.RelativeItem().AlignRight().Column(col =>
@@ -104,6 +118,24 @@ namespace PastisserieAPI.Services.Services
                         col.Item().Text($"Fecha Compra: {fechaColombia:dd/MM/yyyy HH:mm}");
                     });
                 });
+
+                // Sección de Dirección de Envío
+                if (pedido.DireccionEnvio != null)
+                {
+                    column.Item().Background("#F9F9F9").Padding(15).Column(col =>
+                    {
+                        col.Item().Text("DIRECCIÓN DE ENVÍO:").SemiBold().FontSize(10).FontColor("#7D2121");
+                        col.Item().Text(pedido.DireccionEnvio.NombreCompleto).FontSize(10);
+                        col.Item().Text(pedido.DireccionEnvio.Direccion).FontSize(10);
+                        if (!string.IsNullOrEmpty(pedido.DireccionEnvio.Barrio))
+                            col.Item().Text($"Barrio: {pedido.DireccionEnvio.Barrio}").FontSize(10);
+                        if (!string.IsNullOrEmpty(pedido.DireccionEnvio.Comuna))
+                            col.Item().Text($"Comuna: {pedido.DireccionEnvio.Comuna}").FontSize(10);
+                        if (!string.IsNullOrEmpty(pedido.DireccionEnvio.Referencia))
+                            col.Item().Text($"Referencia: {pedido.DireccionEnvio.Referencia}").FontSize(10);
+                        col.Item().Text($"Tel: {pedido.DireccionEnvio.Telefono}").FontSize(10);
+                    });
+                }
 
                 column.Item().Element(col => ComposeTable(col, pedido));
 

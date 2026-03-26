@@ -50,6 +50,7 @@ export interface User {
   nombre: string;
   email: string;
   telefono?: string;
+  direccion?: string;
   emailVerificado: boolean;
   fechaRegistro: string;
   activo: boolean;

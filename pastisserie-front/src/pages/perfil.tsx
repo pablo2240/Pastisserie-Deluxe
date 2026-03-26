@@ -347,15 +347,64 @@ const Perfil = () => {
                       <FiMapPin className="text-patisserie-red" /> Información de Entrega
                     </h3>
                     <div className="bg-gray-50 p-5 rounded-2xl space-y-3 text-sm border border-gray-100">
-                      <div className="flex justify-between items-start">
-                        <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Dirección:</span>
-                        <span className="font-medium text-right ml-4">
-                          {typeof selectedPedido.direccionEnvio === 'object'
-                            ? (selectedPedido.direccionEnvio as any)?.direccion
-                            : selectedPedido.direccionEnvio || 'Recogida en tienda'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
+                      {selectedPedido.direccionEnvio ? (
+                        <>
+                          <div className="flex justify-between items-start">
+                            <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Destinatario:</span>
+                            <span className="font-medium text-right ml-4 text-right">
+                              {(selectedPedido.direccionEnvio as any)?.nombreCompleto || '-'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-start">
+                            <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Dirección:</span>
+                            <span className="font-medium text-right ml-4 text-right">
+                              {(selectedPedido.direccionEnvio as any)?.direccion || '-'}
+                            </span>
+                          </div>
+                          {(selectedPedido.direccionEnvio as any)?.barrio && (
+                            <div className="flex justify-between items-start">
+                              <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Barrio:</span>
+                              <span className="font-medium text-right ml-4 text-right">
+                                {(selectedPedido.direccionEnvio as any)?.barrio}
+                              </span>
+                            </div>
+                          )}
+                          {(selectedPedido.direccionEnvio as any)?.comuna && (
+                            <div className="flex justify-between items-start">
+                              <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Comuna:</span>
+                              <span className="font-medium text-right ml-4 text-right">
+                                {(selectedPedido.direccionEnvio as any)?.comuna}
+                              </span>
+                            </div>
+                          )}
+                          {(selectedPedido.direccionEnvio as any)?.referencia && (
+                            <div className="flex justify-between items-start">
+                              <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Referencia:</span>
+                              <span className="font-medium text-right ml-4 text-right">
+                                {(selectedPedido.direccionEnvio as any)?.referencia}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span className="font-bold text-gray-400 uppercase text-[9px]">Teléfono:</span>
+                            <span className="font-medium text-right">{(selectedPedido.direccionEnvio as any)?.telefono || user?.telefono || '-'}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex justify-between items-start">
+                            <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Dirección:</span>
+                            <span className="font-medium text-right ml-4 text-right">
+                              {(user as any)?.direccion || 'No disponible'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-bold text-gray-400 uppercase text-[9px]">Teléfono:</span>
+                            <span className="font-medium text-right">{user?.telefono || '-'}</span>
+                          </div>
+                        </>
+                      )}
+                      <div className="flex justify-between border-t pt-3 mt-3">
                         <span className="font-bold text-gray-400 uppercase text-[9px]">Método de Pago:</span>
                         <span className="font-medium text-right text-patisserie-red">{selectedPedido.metodoPago || 'No especificado'}</span>
                       </div>

@@ -23,6 +23,9 @@ namespace PastisserieAPI.Core.Entities
         [MaxLength(20)]
         public string? Telefono { get; set; }
 
+        [MaxLength(500)]
+        public string? Direccion { get; set; }
+
         public bool EmailVerificado { get; set; } = false;
 
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;

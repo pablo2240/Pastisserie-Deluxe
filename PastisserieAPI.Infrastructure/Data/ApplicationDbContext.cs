@@ -26,11 +26,6 @@ namespace PastisserieAPI.Infrastructure.Data
         public DbSet<PedidoHistorial> PedidoHistoriales { get; set; }
         public DbSet<Factura> Facturas { get; set; }
 
-        // ============ PERSONALIZACIÓN ============
-        public DbSet<PersonalizadoConfig> PersonalizadoConfigs { get; set; }
-        public DbSet<Ingrediente> Ingredientes { get; set; }
-        public DbSet<PersonalizadoConfigIngrediente> PersonalizadoConfigIngredientes { get; set; }
-
         // ============ CARRITO ============
         public DbSet<CarritoCompra> Carritos { get; set; }
         public DbSet<CarritoItem> CarritoItems { get; set; }

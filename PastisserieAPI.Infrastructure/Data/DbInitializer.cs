@@ -22,7 +22,6 @@ namespace PastisserieAPI.Infrastructure.Data
                 SeedRoles(context, logger);
                 SeedCategorias(context, logger);
                 SeedTiposMetodoPago(context, logger);
-                SeedIngredientes(context, logger);
                 SeedAdmin(context, logger);
                 SeedProductos(context, logger);
                 SeedConfiguracionTienda(context, logger);
@@ -163,41 +162,6 @@ namespace PastisserieAPI.Infrastructure.Data
                     throw;
                 }
             });
-        }
-
-        private static void SeedIngredientes(ApplicationDbContext context, ILogger logger)
-        {
-            if (context.Ingredientes.Any()) return;
-
-            var ingredientes = new List<Ingrediente>
-            {
-                new() { Id = 1, Nombre = "Arequipe", Descripcion = "Relleno de arequipe", PrecioAdicional = 5000, Activo = true },
-                new() { Id = 2, Nombre = "Crema de chocolate", Descripcion = "Crema de chocolate belga", PrecioAdicional = 7000, Activo = true },
-                new() { Id = 3, Nombre = "Fresas frescas", Descripcion = "Fresas naturales", PrecioAdicional = 8000, Activo = true },
-                new() { Id = 4, Nombre = "Frutas mixtas", Descripcion = "Variedad de frutas", PrecioAdicional = 10000, Activo = true }
-            };
-
-            var strategy = context.Database.CreateExecutionStrategy();
-            strategy.Execute(() =>
-            {
-                using var transaction = context.Database.BeginTransaction();
-                try
-                {
-                    context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Ingredientes ON");
-                    context.Ingredientes.AddRange(ingredientes);
-                    context.SaveChanges();
-                    context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Ingredientes OFF");
-                    transaction.Commit();
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-                    logger.LogError(ex, "Error seeding ingredients");
-                    throw;
-                }
-            });
-
-            logger.LogInformation("🍓 Ingredientes iniciales agregados.");
         }
 
         private static void SeedAdmin(ApplicationDbContext context, ILogger logger)

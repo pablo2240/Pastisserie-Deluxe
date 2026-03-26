@@ -94,7 +94,7 @@ namespace PastisserieAPI.Services.Services
             pedido.FechaPedido = GetBogotaTime();
             pedido.FechaCreacion = GetBogotaTime();
 
-            // Order starts as Pendiente, not approved until ePayco confirms payment
+            // Order starts as Pendiente, not approved until payment is confirmed
             pedido.Estado = "Pendiente";
             pedido.Aprobado = false;
 
@@ -106,26 +106,26 @@ namespace PastisserieAPI.Services.Services
                 var comunaLabel = ComunasLabels.TryGetValue(request.Comuna, out var label) ? label : request.Comuna;
                 infoEnvio += $"\nComuna: {comunaLabel}";
             }
-            if (!string.IsNullOrEmpty(request.MetodoPago)) infoEnvio += $"\nPago: ePayco";
+            if (!string.IsNullOrEmpty(request.MetodoPago)) infoEnvio += $"\nPago: Tarjeta/Débito";
 
             pedido.NotasCliente = string.IsNullOrEmpty(pedido.NotasCliente)
                 ? infoEnvio
                 : $"{pedido.NotasCliente}\n---\n{infoEnvio}";
 
-            // Determine payment method record in DB (ePayco - payment will be processed externally)
+            // Determine payment method record in DB (Payment processed internally)
             var todosMetodos = await _unitOfWork.MetodosPagoUsuario.GetAllAsync();
             MetodoPagoUsuario? metodoSeleccionado = todosMetodos.FirstOrDefault(m => m.UsuarioId == userId);
 
             if (metodoSeleccionado == null)
             {
                 var todosTipos = await _unitOfWork.TiposMetodoPago.GetAllAsync();
-                var tipo = todosTipos.FirstOrDefault(t => t.Nombre.Contains("ePayco"))
-                          ?? todosTipos.FirstOrDefault(t => t.Nombre.Contains("Tarjeta"))
+                var tipo = todosTipos.FirstOrDefault(t => t.Nombre.Contains("Tarjeta"))
+                          ?? todosTipos.FirstOrDefault(t => t.Nombre.Contains("Débito"))
                           ?? todosTipos.FirstOrDefault();
 
                 if (tipo == null)
                 {
-                    tipo = new TipoMetodoPago { Nombre = "ePayco", Descripcion = "Pagos con ePayco", Activo = true };
+                    tipo = new TipoMetodoPago { Nombre = "Pago con Tarjeta", Descripcion = "Pagos con tarjeta de débito/crédito", Activo = true };
                     await _unitOfWork.TiposMetodoPago.AddAsync(tipo);
                     await _unitOfWork.SaveChangesAsync();
                 }
@@ -135,7 +135,7 @@ namespace PastisserieAPI.Services.Services
                     UsuarioId = userId,
                     TipoMetodoPagoId = tipo.Id,
                     UltimosDigitos = "0000",
-                    TokenPago = "EPAYCO_PENDING",
+                    TokenPago = "PENDING",
                     EsPredeterminado = true,
                     FechaCreacion = GetBogotaTime()
                 };
@@ -270,7 +270,6 @@ namespace PastisserieAPI.Services.Services
             }
             pedido.CostoEnvio = costoEnvio;
             pedido.Total = subtotal + pedido.CostoEnvio;
-            pedido.IVA = 0;
             pedido.Subtotal = subtotal;
 
             // 5. Guardar Pedido (Cabecera)

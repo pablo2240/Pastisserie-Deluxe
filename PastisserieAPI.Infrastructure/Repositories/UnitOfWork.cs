@@ -23,7 +23,6 @@ namespace PastisserieAPI.Infrastructure.Repositories
         public IRepository<UserRol> UserRoles { get; private set; }
         public IRepository<Rol> Roles { get; private set; }
         public IRepository<CategoriaProducto> Categorias { get; private set; }
-        public IRepository<Ingrediente> Ingredientes { get; private set; }
         public IRepository<TipoMetodoPago> TiposMetodoPago { get; private set; }
         public IRepository<MetodoPagoUsuario> MetodosPagoUsuario { get; private set; }
 
@@ -54,7 +53,6 @@ namespace PastisserieAPI.Infrastructure.Repositories
             UserRoles = new Repository<UserRol>(_context);
             Roles = new Repository<Rol>(_context);
             Categorias = new Repository<CategoriaProducto>(_context);
-            Ingredientes = new Repository<Ingrediente>(_context);
             TiposMetodoPago = new Repository<TipoMetodoPago>(_context);
             MetodosPagoUsuario = new Repository<MetodoPagoUsuario>(_context);
 

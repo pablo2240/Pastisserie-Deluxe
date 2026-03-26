@@ -57,9 +57,6 @@ namespace PastisserieAPI.Infrastructure.Repositories
                 .Include(p => p.MetodoPago)
                     .ThenInclude(m => m.TipoMetodoPago)
                 .Include(p => p.DireccionEnvio)
-                .Include(p => p.PersonalizadoConfig)
-                    .ThenInclude(pc => pc!.Ingredientes)
-                        .ThenInclude(pci => pci.Ingrediente)
                 .Include(p => p.Envio)
                 .Include(p => p.Factura)
                 .FirstOrDefaultAsync(p => p.Id == id);

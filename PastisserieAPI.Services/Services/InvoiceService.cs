@@ -71,10 +71,6 @@ namespace PastisserieAPI.Services.Services
             {
                 column.Spacing(20);
 
-                // Obtener dirección del usuario (del perfil)
-                var direccionPerfil = usuario.Direcciones?.FirstOrDefault(d => d.EsPredeterminada) 
-                    ?? usuario.Direcciones?.FirstOrDefault();
-
                 column.Item().Row(row =>
                 {
                     row.RelativeItem().Column(col =>
@@ -84,14 +80,12 @@ namespace PastisserieAPI.Services.Services
                         col.Item().Text(usuario.Email);
                         if (!string.IsNullOrEmpty(usuario.Telefono)) col.Item().Text($"Tel: {usuario.Telefono}");
                         
-                        // Agregar dirección del perfil si existe
-                        if (direccionPerfil != null)
+                        // Usar dirección del pedido (datos del checkout - inmutables)
+                        if (pedido.DireccionEnvio != null && !string.IsNullOrEmpty(pedido.DireccionEnvio.Direccion))
                         {
-                            col.Item().Text(direccionPerfil.Direccion);
-                            if (!string.IsNullOrEmpty(direccionPerfil.Barrio))
-                                col.Item().Text($"Barrio: {direccionPerfil.Barrio}");
-                            if (!string.IsNullOrEmpty(direccionPerfil.Comuna))
-                                col.Item().Text($"Comuna: {direccionPerfil.Comuna}");
+                            col.Item().Text(pedido.DireccionEnvio.Direccion);
+                            if (!string.IsNullOrEmpty(pedido.DireccionEnvio.Comuna))
+                                col.Item().Text($"Comuna: {pedido.DireccionEnvio.Comuna}");
                         }
                     });
 
@@ -131,9 +125,10 @@ namespace PastisserieAPI.Services.Services
                             col.Item().Text($"Barrio: {pedido.DireccionEnvio.Barrio}").FontSize(10);
                         if (!string.IsNullOrEmpty(pedido.DireccionEnvio.Comuna))
                             col.Item().Text($"Comuna: {pedido.DireccionEnvio.Comuna}").FontSize(10);
+                        if (!string.IsNullOrEmpty(pedido.DireccionEnvio.Telefono))
+                            col.Item().Text($"Teléfono: {pedido.DireccionEnvio.Telefono}").FontSize(10);
                         if (!string.IsNullOrEmpty(pedido.DireccionEnvio.Referencia))
-                            col.Item().Text($"Referencia: {pedido.DireccionEnvio.Referencia}").FontSize(10);
-                        col.Item().Text($"Tel: {pedido.DireccionEnvio.Telefono}").FontSize(10);
+                            col.Item().Text($"Notas: {pedido.DireccionEnvio.Referencia}").FontSize(10);
                     });
                 }
 

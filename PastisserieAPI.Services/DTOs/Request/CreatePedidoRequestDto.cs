@@ -8,6 +8,7 @@
         public int? DireccionEnvioId { get; set; }
         public string? Direccion { get; set; } // Simulación: Address text
         public string? Comuna { get; set; } // Comuna de entrega (Guayabal, Belen)
+        public string? Telefono { get; set; }
         public string? NotasCliente { get; set; }
         public List<PedidoItemRequestDto> Items { get; set; } = new();
         public PersonalizadoConfigRequestDto? PersonalizadoConfig { get; set; }

@@ -29,6 +29,24 @@ const Checkout = () => {
         notas: ''
     });
     const [shake, setShake] = useState(false);
+    const [autocompletadoPerfil, setAutocompletadoPerfil] = useState(false);
+
+    // Autocompletar datos desde el perfil del usuario
+    useEffect(() => {
+        if (user && step === 'shipping') {
+            const perfilDireccion = (user as any)?.direccion;
+            const perfilTelefono = user?.telefono;
+            
+            if (!formData.direccion && perfilDireccion) {
+                setFormData(prev => ({ ...prev, direccion: perfilDireccion }));
+                setAutocompletadoPerfil(true);
+            }
+            if (!formData.telefono && perfilTelefono) {
+                setFormData(prev => ({ ...prev, telefono: perfilTelefono }));
+                setAutocompletadoPerfil(true);
+            }
+        }
+    }, [user, step]);
 
     const total = carrito?.total || 0;
 
@@ -422,9 +440,18 @@ const Checkout = () => {
                     <div className="lg:col-span-2">
                         {step === 'shipping' && (
                             <div className={`bg-white p-8 rounded-2xl shadow-sm border border-gray-100 animate-slide-in-left ${shake ? 'animate-shake' : ''}`}>
-                                <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-4">
+                                <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-4">
                                     <FiTruck className="text-patisserie-red" /> Datos de Envio
                                 </h2>
+
+                                {autocompletadoPerfil && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
+                                        <p className="text-xs text-blue-700 font-medium">
+                                            <FiEdit2 className="inline mr-1" />
+                                            Algunos datos han sido autocompletados desde tu perfil. Puedes modificarlos antes de confirmar tu pedido.
+                                        </p>
+                                    </div>
+                                )}
 
                                 <form id="shipping-form" onSubmit={handleShippingSubmit} className="space-y-5" noValidate>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

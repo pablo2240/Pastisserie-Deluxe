@@ -146,6 +146,28 @@ namespace PastisserieAPI.Services.Services
 
             pedido.MetodoPagoId = metodoSeleccionado.Id;
 
+            // Crear DireccionEnvio con los datos del checkout (captura estática)
+            if (!string.IsNullOrEmpty(request.Direccion) || !string.IsNullOrEmpty(request.Comuna))
+            {
+                var usuario = await _unitOfWork.Users.GetByIdAsync(userId);
+                var direccionEnvio = new DireccionEnvio
+                {
+                    UsuarioId = userId,
+                    NombreCompleto = usuario?.Nombre ?? "Cliente",
+                    Direccion = request.Direccion ?? string.Empty,
+                    Comuna = request.Comuna,
+                    Barrio = null,
+                    Referencia = request.NotasCliente,
+                    Telefono = request.Telefono ?? usuario?.Telefono ?? string.Empty,
+                    EsPredeterminada = false,
+                    FechaCreacion = GetBogotaTime()
+                };
+
+                await _unitOfWork.DireccionesEnvio.AddAsync(direccionEnvio);
+                await _unitOfWork.SaveChangesAsync();
+                pedido.DireccionEnvioId = direccionEnvio.Id;
+            }
+
             decimal subtotal = 0;
             var pedidoItems = new List<PedidoItem>();
 

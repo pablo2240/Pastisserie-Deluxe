@@ -2,85 +2,80 @@
 
 ## Problema resuelto
 
-El sistema de facturación y visualización de pedidos ahora muestra correctamente la dirección del cliente en:
-1. Modal "Ver detalles" del pedido en el perfil del usuario
-2. PDF de factura generado (sección "FACTURADO A:")
-3. Perfil del usuario (campo de dirección editable)
+El sistema de facturación ahora garantiza **integridad de datos**:
+1. Los datos de envío se capturan estáticamente al confirmar el pedido
+2. La factura usa exclusivamente los datos del checkout, no del perfil
+3. Los cambios en el perfil NO afectan las facturas históricas
+4. El checkout autocompleta datos desde el perfil como sugerencia
 
 ## Archivos modificados
 
 | Capa | Archivo |
 |------|---------|
-| Backend | `PastisserieAPI.Infrastructure/Repositories/PedidoRepository.cs` |
-| Backend | `PastisserieAPI.Services/Services/InvoiceService.cs` |
-| Backend | `PastisserieAPI.API/Controllers/PedidosController.cs` |
 | Backend | `PastisserieAPI.Core/Entities/User.cs` |
 | Backend | `PastisserieAPI.Services/DTOs/Request/UpdateUserRequestDto.cs` |
 | Backend | `PastisserieAPI.Services/DTOs/Response/UserResponseDto.cs` |
+| Backend | `PastisserieAPI.Services/DTOs/Request/CreatePedidoRequestDto.cs` |
 | Backend | `PastisserieAPI.Services/Services/AuthService.cs` |
+| Backend | `PastisserieAPI.Services/Services/PedidoService.cs` |
+| Backend | `PastisserieAPI.Services/Services/InvoiceService.cs` |
+| Backend | `PastisserieAPI.Infrastructure/Repositories/PedidoRepository.cs` |
+| Backend | `PastisserieAPI.Infrastructure/Repositories/UnitOfWork.cs` |
+| Backend | `PastisserieAPI.Core/Interfaces/IUnitOfWork.cs` |
 | Frontend | `pastisserie-front/src/pages/perfil.tsx` |
+| Frontend | `pastisserie-front/src/pages/checkout.tsx` |
 | Frontend | `pastisserie-front/src/types/index.ts` |
 
 ## Cambios implementados
 
-### 1. Backend - PedidoRepository.cs
-- Agregado `.Include(p => p.DireccionEnvio)` en el método `GetByUsuarioIdAsync`
-- Esto permite que la consulta de pedidos del usuario incluya los datos de dirección
+### 1. Backend - PedidoService.cs (CAMBIO CLAVE)
+- Al crear un pedido, se crea una nueva entidad `DireccionEnvio` con los datos del checkout
+- Esta dirección queda asociada al pedido y es **inmutable**
+- Los datos se capturan: dirección, comuna, teléfono, notas como referencia
 
-### 2. Backend - InvoiceService.cs
-- Agregada nueva sección "DIRECCIÓN DE ENVÍO" en el PDF de factura
-- Muestra: Nombre completo, Dirección, Barrio, Comuna, Referencia, Teléfono
-- La sección solo aparece si existe dirección de envío asociada al pedido
-- La sección "FACTURADO A:" ahora incluye la dirección del perfil del cliente
+### 2. Backend - InvoiceService.cs (CAMBIO CLAVE)
+- La sección "FACTURADO A:" ahora usa exclusivamente `pedido.DireccionEnvio` (datos del checkout)
+- Ya NO usa datos del perfil del usuario
+- La sección "DIRECCIÓN DE ENVÍO" muestra los datos guardados en el pedido
 
-### 3. Backend - PedidosController.cs
-- Modificado endpoint de factura para cargar las direcciones del usuario
-- Ahora incluye la dirección del perfil del cliente en "FACTURADO A:" del PDF
+### 3. Backend - CreatePedidoRequestDto.cs
+- Agregado campo `Telefono` para capturar el teléfono del checkout
 
-### 4. Backend - User.cs (NUEVO)
-- Agregado campo `Direccion` a la entidad User
+### 4. Backend - UnitOfWork.cs / IUnitOfWork.cs
+- Agregado repositorio `DireccionesEnvio` para guardar direcciones de envío
 
-### 5. Backend - UpdateUserRequestDto.cs (NUEVO)
-- Agregado campo `Direccion` para permitir actualizar desde el perfil
+### 5. Frontend - checkout.tsx
+- Autocompletado de dirección y teléfono desde el perfil del usuario
+- Mensaje de提示: "Algunos datos han sido autocompletados desde tu perfil. Puedes modificarlos antes de confirmar tu pedido."
+- El usuario puede editar los datos antes de confirmar
 
-### 6. Backend - UserResponseDto.cs (NUEVO)
-- Agregado campo `Direccion` en la respuesta del perfil
+### 6. Frontend - perfil.tsx
+- Muestra la dirección del pedido (datos del checkout)
+- Si no hay dirección de envío, muestra la dirección del perfil como fallback
 
-### 7. Backend - AuthService.cs (NUEVO)
-- Modificado `UpdateProfileAsync` para guardar el campo Direccion
-
-### 8. Frontend - perfil.tsx
-- Corregida la visualización de información de entrega en el modal de detalles
-- Ahora muestra todos los campos de dirección:
-  - Destinatario (nombre completo)
-  - Dirección
-  - Barrio
-  - Comuna
-  - Referencia
-  - Teléfono
-- Si no hay dirección de envío, muestra la dirección del perfil del usuario
-
-### 9. Frontend - types/index.ts (NUEVO)
-- Agregado campo `direccion` a la interfaz User
-
-### 10. Base de datos
-- Migración creada: `AddDireccionToUser` para agregar columna Direccion a la tabla Users
+### 7. Otros cambios (de tarea anterior)
+- Campo `Direccion` en User, UpdateUserRequestDto, UserResponseDto
+- Migración `AddDireccionToUser`
 
 ## Cómo probarlo
 
 1. Ejecutar la migración: `dotnet ef database update`
 2. Iniciar sesión como usuario
-3. Actualizar el perfil con una dirección
-4. Ir a "Mis Pedidos" en el perfil
-5. Hacer clic en "Ver detalles" de cualquier pedido
-6. Verificar que se muestra la dirección completa en "Información de Entrega"
-7. Descargar la factura PDF y verificar que incluye:
-   - La dirección del cliente en "FACTURADO A:"
-   - La dirección de envío en la sección correspondiente
+3. Actualizar el perfil con una dirección y teléfono
+4. Ir al checkout y verificar:
+   - Los campos se autocompletan desde el perfil
+   - Aparece el mensaje de autocompletado
+   - El usuario puede modificar los datos
+5. Confirmar el pedido
+6. Ir a "Mis Pedidos" > "Ver detalles"
+7. Verificar que muestra los datos del checkout (no del perfil)
+8. Descargar la factura PDF y verificar que usa datos del pedido
+9. Cambiar la dirección en el perfil
+10. Verificar que el pedido y factura NO cambian (integridad de datos)
 
 ## Impacto en el sistema
 
-- **Backend**: Cambio en entidades, DTOs y servicios
-- **Frontend**: Mejora en visualización
+- **Backend**: Creación de DireccionEnvio al crear pedido
+- **Frontend**: Autocompletado desde perfil + mensaje de提示
 - **Base de datos**: Nueva columna `Direccion` en tabla Users
-- **Riesgo bajo**: Solo agrega un nuevo campo opcional
+- **Integridad**: Las facturas son inmutables - no se ven afectadas por cambios en el perfil

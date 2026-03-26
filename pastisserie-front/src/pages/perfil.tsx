@@ -377,14 +377,18 @@ const Perfil = () => {
                               </span>
                             </div>
                           )}
-                          {(selectedPedido.direccionEnvio as any)?.referencia && (
-                            <div className="flex justify-between items-start">
-                              <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Referencia:</span>
-                              <span className="font-medium text-right ml-4 text-right">
-                                {(selectedPedido.direccionEnvio as any)?.referencia}
-                              </span>
-                            </div>
-                          )}
+                          {(() => {
+                            const ref = (selectedPedido.direccionEnvio as any)?.referencia;
+                            const notasLimpias = ref && ref.includes('Notas:') ? ref.split('Notas:')[1]?.trim() : ref;
+                            return notasLimpias ? (
+                              <div className="flex justify-between items-start">
+                                <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Notas:</span>
+                                <span className="font-medium text-right ml-4 text-right">
+                                  {notasLimpias}
+                                </span>
+                              </div>
+                            ) : null;
+                          })()}
                           <div className="flex justify-between">
                             <span className="font-bold text-gray-400 uppercase text-[9px]">Teléfono:</span>
                             <span className="font-medium text-right">{(selectedPedido.direccionEnvio as any)?.telefono || user?.telefono || '-'}</span>

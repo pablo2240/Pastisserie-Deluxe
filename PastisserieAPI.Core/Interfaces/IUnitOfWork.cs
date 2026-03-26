@@ -20,6 +20,7 @@
         Repositories.IRepository<Entities.Promocion> Promociones { get; }
         Repositories.IRepository<Entities.ConfiguracionTienda> Configuracion { get; }
         Repositories.IRepository<Entities.Reclamacion> Reclamaciones { get; }
+        Repositories.IRepository<Entities.DireccionEnvio> DireccionesEnvio { get; }
         IRegistroPagoRepository RegistrosPago { get; }
 
         // Métodos

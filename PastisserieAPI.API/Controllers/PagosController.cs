@@ -276,20 +276,41 @@ namespace PastisserieAPI.API.Controllers
                 if (item.ProductoId.HasValue)
                 {
                     var producto = await _unitOfWork.Productos.GetByIdAsync(item.ProductoId.Value);
-                    if (producto != null && producto.Stock >= item.Cantidad)
+                    if (producto == null)
                     {
-                        producto.Stock -= item.Cantidad;
-                        await _unitOfWork.Productos.UpdateAsync(producto);
+                        _logger.LogWarning("Producto {ProductoId} no encontrado al intentar descontar stock", item.ProductoId.Value);
+                        continue;
                     }
+
+                    if (producto.Stock < item.Cantidad)
+                    {
+                        throw new Exception($"Stock insuficiente para {producto.Nombre}. Disponible: {producto.Stock}, requerido: {item.Cantidad}");
+                    }
+
+                    producto.Stock -= item.Cantidad;
+                    await _unitOfWork.Productos.UpdateAsync(producto);
+                    _logger.LogInformation("Stock actualizado para {ProductoNombre}: {NuevoStock}", producto.Nombre, producto.Stock);
                 }
 
                 if (item.PromocionId.HasValue && !item.ProductoId.HasValue)
                 {
                     var promocion = await _unitOfWork.Promociones.GetByIdAsync(item.PromocionId.Value);
-                    if (promocion != null && promocion.Stock.HasValue)
+                    if (promocion == null)
+                    {
+                        _logger.LogWarning("Promocion {PromocionId} no encontrada al intentar descontar stock", item.PromocionId.Value);
+                        continue;
+                    }
+
+                    if (promocion.Stock.HasValue && promocion.Stock < item.Cantidad)
+                    {
+                        throw new Exception($"Stock insuficiente para promoción {promocion.Nombre}. Disponible: {promocion.Stock}, requerido: {item.Cantidad}");
+                    }
+
+                    if (promocion.Stock.HasValue)
                     {
                         promocion.Stock -= item.Cantidad;
                         await _unitOfWork.Promociones.UpdateAsync(promocion);
+                        _logger.LogInformation("Stock actualizado para promoción {PromocionNombre}: {NuevoStock}", promocion.Nombre, promocion.Stock);
                     }
                 }
             }

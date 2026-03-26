@@ -31,6 +31,7 @@ const Dashboard = () => {
   });
   const [isHistorialLoading, setIsHistorialLoading] = useState(false);
   const [reclamaciones, setReclamaciones] = useState<Reclamacion[]>([]);
+  const [productosBajoStock, setProductosBajoStock] = useState<any[]>([]);
 
   const COLORS = ['#7D2121', '#EBCfa8', '#111111', '#5D1919', '#9ca3af'];
 
@@ -50,10 +51,13 @@ const Dashboard = () => {
 
       setData(stats);
 
-      // Stock bajo
+      // Cargar productos bajo stock mínimo
       const productsList = Array.isArray(productsData) ? productsData : productsData?.data || [];
       if (Array.isArray(productsList)) {
-        // setLowStock(productsList.filter((p: any) => p.stock < 5).sort((a, b) => a.stock - b.stock)); // Removed lowStock usage
+        const bajoStock = productsList.filter((p: any) => 
+          p.stockMinimo && p.stock <= p.stockMinimo
+        ).sort((a: any, b: any) => a.stock - b.stock);
+        setProductosBajoStock(bajoStock);
       }
 
       // Reclamaciones con validación de ID positivo
@@ -261,6 +265,30 @@ const Dashboard = () => {
             >
               Configuración de Umbrales
             </button>
+
+            {/* Alertas de Productos bajo Stock Mínimo */}
+            {productosBajoStock.length > 0 && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                <h4 className="text-red-700 font-bold text-xs uppercase tracking-widest mb-3 flex items-center gap-2">
+                  ⚠️ Productos bajo stock mínimo
+                </h4>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {productosBajoStock.slice(0, 5).map((producto: any) => (
+                    <div key={producto.id} className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700 truncate max-w-[150px]">{producto.nombre}</span>
+                      <span className={`font-bold ${producto.stock === 0 ? 'text-red-600' : 'text-amber-600'}`}>
+                        Stock: {producto.stock} (Mín: {producto.stockMinimo})
+                      </span>
+                    </div>
+                  ))}
+                  {productosBajoStock.length > 5 && (
+                    <p className="text-xs text-gray-500 text-center pt-2">
+                      +{productosBajoStock.length - 5} productos más
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Section 2: Audit Summary */}

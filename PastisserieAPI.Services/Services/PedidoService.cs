@@ -11,8 +11,8 @@ namespace PastisserieAPI.Services.Services
 {
     public class PedidoService : IPedidoService
     {
-        // Comunas permitidas para entrega y sus costos de envío (COP)
-        private static readonly Dictionary<string, decimal> CostosEnvioPorComuna = new(StringComparer.OrdinalIgnoreCase)
+        // Valores por defecto si no hay configuración
+        private static readonly Dictionary<string, decimal> CostosEnvioPorComunaDefault = new(StringComparer.OrdinalIgnoreCase)
         {
             { "Guayabal", 5000m },
             { "Belen", 6000m }
@@ -23,6 +23,28 @@ namespace PastisserieAPI.Services.Services
             { "Guayabal", "Comuna 15 - Guayabal" },
             { "Belen", "Comuna 16 - Belén" }
         };
+
+        private Dictionary<string, decimal> GetCostosEnvioDesdeConfig(ConfiguracionTienda? config)
+        {
+            if (string.IsNullOrEmpty(config?.CostosEnvioPorComuna))
+            {
+                return CostosEnvioPorComunaDefault;
+            }
+
+            try
+            {
+                var costos = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, decimal>>(
+                    config.CostosEnvioPorComuna, 
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                );
+                return costos ?? CostosEnvioPorComunaDefault;
+            }
+            catch
+            {
+                _logger.LogWarning("Error al parsear CostosEnvioPorComuna, usando valores por defecto");
+                return CostosEnvioPorComunaDefault;
+            }
+        }
 
         private DateTime GetBogotaTime()
         {
@@ -263,12 +285,15 @@ namespace PastisserieAPI.Services.Services
             }
 
             // 4. Totales (IVA REMOVIDO, DOMICILIO CALCULADO POR COMUNA)
+            var config = await _tiendaService.GetConfiguracionAsync();
+            var costosDesdeConfig = GetCostosEnvioDesdeConfig(config);
+            
             decimal costoEnvio = 5000m; // Valor por defecto
             if (!string.IsNullOrEmpty(request.Comuna))
             {
-                if (!CostosEnvioPorComuna.TryGetValue(request.Comuna, out costoEnvio))
+                if (!costosDesdeConfig.TryGetValue(request.Comuna, out costoEnvio))
                 {
-                    throw new Exception($"La comuna '{request.Comuna}' no es válida para entregas. Comunas permitidas: {string.Join(", ", ComunasLabels.Values)}");
+                    throw new Exception($"La comuna '{request.Comuna}' no es válida para entregas. Comunas permitidas: {string.Join(", ", costosDesdeConfig.Keys)}");
                 }
             }
             pedido.CostoEnvio = costoEnvio;

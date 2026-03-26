@@ -8,6 +8,8 @@ interface StoreData {
     direccion: string;
     telefono: string;
     emailContacto: string;
+    costoEnvio: number;
+    costosEnvioPorComuna: string;
     compraMinima: number;
     moneda: string;
     mensajeBienvenida: string;
@@ -41,6 +43,8 @@ const Configuracion: React.FC = () => {
         direccion: '',
         telefono: '',
         emailContacto: '',
+        costoEnvio: 5000,
+        costosEnvioPorComuna: '{"Guayabal": 5000, "Belen": 6000}',
         compraMinima: 15000,
         moneda: 'COP',
         mensajeBienvenida: '',
@@ -98,6 +102,8 @@ const Configuracion: React.FC = () => {
                 setStoreData({
                     ...config,
                     // backward compat: fill in new fields from config, fallback defaults
+                    costoEnvio: config.costoEnvio || 5000,
+                    costosEnvioPorComuna: config.costosEnvioPorComuna || '{"Guayabal": 5000, "Belen": 6000}',
                     compraMinima: config.compraMinima !== undefined ? config.compraMinima : 15000,
                     maxUnidadesPorProducto: config.maxUnidadesPorProducto !== undefined ? config.maxUnidadesPorProducto : 10,
                     limitarUnidadesPorProducto: config.limitarUnidadesPorProducto !== undefined ? config.limitarUnidadesPorProducto : false,
@@ -497,6 +503,21 @@ const Configuracion: React.FC = () => {
                                     />
                                 </div>
                                 <small className="text-[11px] text-gray-500 ml-2">Este campo define el monto mínimo (en {storeData.moneda}) para permitir una compra. Si el pedido no alcanza este valor, el sistema bloqueará el pago.</small>
+                            </div>
+
+                            <div className="space-y-4 mt-10">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700 ml-4 italic opacity-70">Costos de envío por comuna (JSON) <span title="Formato: {'Comuna': costo}. Ej: {'Guayabal': 5000, 'Belen': 6000}" className="ml-2 text-gray-400 cursor-help">ℹ️</span></label>
+                                <div className="relative group">
+                                    <textarea
+                                        name="costosEnvioPorComuna"
+                                        value={storeData.costosEnvioPorComuna}
+                                        onChange={handleChange}
+                                        rows={3}
+                                        placeholder='{"Guayabal": 5000, "Belen": 6000}'
+                                        className="w-full pl-6 pr-6 py-3 bg-amber-50/20 border-2 border-amber-100 rounded-[1.5rem] focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/5 transition-all font-outfit font-black text-gray-900 text-sm shadow-inner resize-none"
+                                    />
+                                </div>
+                                <small className="text-[11px] text-gray-500 ml-2">Ingrese el costo de envío por cada comuna en formato JSON. Deje vacío para usar valores por defecto.</small>
                             </div>
 
                             <div className="space-y-4 mt-10">

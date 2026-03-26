@@ -26,6 +26,10 @@ namespace PastisserieAPI.Core.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal CostoEnvio { get; set; }
 
+        /// <summary>Costos de envío por comuna en formato JSON: {"Guayabal": 5000, "Belén": 6000}</summary>
+        [MaxLength(1000)]
+        public string? CostosEnvioPorComuna { get; set; }
+
         /// <summary>Monto mínimo de compra requerido para completar el checkout.</summary>
         [Column(TypeName = "decimal(18,2)")]
         public decimal CompraMinima { get; set; } = 15000;

@@ -6,6 +6,18 @@ using PastisserieAPI.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ============ CONFIGURACIÓN DE ZONA HORARIA (BOGOTÁ, COLOMBIA) ============
+var bogotaZone = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time");
+TimeZoneInfo.ClearCachedData();
+Console.WriteLine($"🌎 Zona horaria configurada: {bogotaZone.DisplayName}");
+
+// Configurar cultura para formato de fechas
+var culture = new System.Globalization.CultureInfo("es-CO");
+culture.DateTimeFormat.ShortDatePattern = "yyyy-MM-dd";
+culture.DateTimeFormat.LongDatePattern = "yyyy-MM-dd HH:mm:ss";
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture = culture;
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = culture;
+
 // ============ CONFIGURACIÓN DE SERVICIOS ============
 
 builder.Services.AddControllers()

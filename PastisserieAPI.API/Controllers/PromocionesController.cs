@@ -18,6 +18,25 @@ namespace PastisserieAPI.API.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ApplicationDbContext _context;
+        private static readonly TimeZoneInfo BogotaZone = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time");
+
+        private static DateTime ConvertToBogotaTime(DateTime utcDateTime)
+        {
+            return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, BogotaZone);
+        }
+
+        private static DateTime ParseAsBogotaTime(string dateStr)
+        {
+            if (DateTime.TryParse(dateStr, out var result))
+            {
+                if (result.Kind == DateTimeKind.Utc)
+                    return TimeZoneInfo.ConvertTimeFromUtc(result, BogotaZone);
+                if (result.Kind == DateTimeKind.Unspecified)
+                    return TimeZoneInfo.ConvertTimeToUtc(result, BogotaZone);
+                return result;
+            }
+            return DateTime.MinValue;
+        }
 
         public PromocionesController(IUnitOfWork unitOfWork, IMapper mapper, ApplicationDbContext context)
         {
@@ -29,7 +48,8 @@ namespace PastisserieAPI.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] bool mostrarTodas = false)
         {
-            var now = DateTime.UtcNow;
+            // Las fechas se guardan tal cual (hora de Bogotá), usar hora local del servidor
+            var now = DateTime.Now;
 
             // Incluir Producto para mapear ProductoNombre y ProductoImagenUrl
             var query = _context.Promociones.Include(p => p.Producto).AsQueryable();
@@ -43,6 +63,7 @@ namespace PastisserieAPI.API.Controllers
 
             var promociones = await query.ToListAsync();
             var promocionesDto = _mapper.Map<List<PromocionResponseDto>>(promociones);
+            
             return Ok(ApiResponse<List<PromocionResponseDto>>.SuccessResponse(promocionesDto));
         }
 
@@ -65,6 +86,7 @@ namespace PastisserieAPI.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CreatePromocionRequestDto request)
         {
+            // Guardar fechas tal cual (hora de Bogotá)
             if (request.FechaFin <= request.FechaInicio)
             {
                 return BadRequest(ApiResponse.ErrorResponse("La fecha de fin debe ser posterior a la fecha de inicio"));
@@ -109,6 +131,7 @@ namespace PastisserieAPI.API.Controllers
             var promocion = await _unitOfWork.Promociones.GetByIdAsync(id);
             if (promocion == null) return NotFound(ApiResponse.ErrorResponse("Promoción no encontrada"));
 
+            // Guardar fechas tal cual (hora de Bogotá)
             if (request.FechaFin <= request.FechaInicio)
             {
                 return BadRequest(ApiResponse.ErrorResponse("La fecha de fin debe ser posterior a la fecha de inicio"));
@@ -140,6 +163,9 @@ namespace PastisserieAPI.API.Controllers
                 .FirstOrDefaultAsync(p => p.Id == promocion.Id);
 
             var promocionDto = _mapper.Map<PromocionResponseDto>(promocionConProducto);
+            // Convertir fechas de UTC a hora de Bogotá para el response
+            promocionDto.FechaInicio = ConvertToBogotaTime(promocionDto.FechaInicio);
+            promocionDto.FechaFin = ConvertToBogotaTime(promocionDto.FechaFin);
             return Ok(ApiResponse<PromocionResponseDto>.SuccessResponse(promocionDto, "Promoción actualizada exitosamente"));
         }
 

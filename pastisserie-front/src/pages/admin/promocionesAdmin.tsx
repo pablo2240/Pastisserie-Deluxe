@@ -12,8 +12,8 @@ const getLocalDateString = () => new Date().toLocaleDateString('sv-SE');
 
 const formatLocalISO = (dateStr?: string) => {
     if (!dateStr) return '';
+    // El backend devuelve fechas en hora de Bogotá, solo formatear para input
     const date = new Date(dateStr);
-    // Create ISO string in local time without timezone conversion
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -23,17 +23,9 @@ const formatLocalISO = (dateStr?: string) => {
 };
 
 const toISOStringLocal = (localDateTime: string) => {
-    // Preserve the exact local time entered by user
     if (!localDateTime) return '';
-    const [datePart, timePart] = localDateTime.split('T');
-    if (!datePart || !timePart) return '';
-    
-    const [year, month, day] = datePart.split('-').map(Number);
-    const [hours, minutes] = timePart.split(':').map(Number);
-    
-    // Create date in local timezone and convert to ISO
-    const date = new Date(year, month - 1, day, hours, minutes);
-    return date.toISOString();
+    // Enviar tal cual al backend (hora de Bogotá)
+    return localDateTime;
 };
 
 type TipoPromocion = 'producto' | 'independiente';

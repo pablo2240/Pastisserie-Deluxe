@@ -161,13 +161,26 @@ namespace PastisserieAPI.API.Controllers
                 return Forbid();
 
             var historial = await _context.PedidoHistoriales
+                .Include(h => h.Pedido).ThenInclude(p => p.Usuario)
                 .Where(h => h.PedidoId == id)
                 .OrderByDescending(h => h.FechaCambio)
                 .ToListAsync();
 
-            return Ok(ApiResponse<List<PedidoHistorialResponseDto>>.SuccessResponse(
-                _mapper.Map<List<PedidoHistorialResponseDto>>(historial)
-            ));
+            var historialDto = historial.Select(h => new PedidoHistorialResponseDto
+            {
+                Id = h.Id,
+                PedidoId = h.PedidoId,
+                EstadoAnterior = h.EstadoAnterior,
+                EstadoNuevo = h.EstadoNuevo,
+                FechaCambio = h.FechaCambio,
+                CambiadoPor = h.CambiadoPor,
+                NombreCambiadoPor = h.CambiadoPor.HasValue 
+                    ? _context.Users.Where(u => u.Id == h.CambiadoPor).Select(u => u.Nombre).FirstOrDefault() 
+                    : (h.Pedido?.Usuario?.Nombre ?? "Sistema"),
+                Notas = h.Notas
+            }).ToList();
+
+            return Ok(ApiResponse<List<PedidoHistorialResponseDto>>.SuccessResponse(historialDto));
         }
 
         [HttpDelete("{id}")]

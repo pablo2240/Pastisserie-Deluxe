@@ -153,6 +153,29 @@ const ReportesAdmin = () => {
                 </div>
               </div>
 
+              {/* Información del Domiciliario (si existe) */}
+              {selectedReclamo.motivoDomiciliario && (
+                <div>
+                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Reporte del Domiciliario</h3>
+                  <div className="bg-orange-50 rounded-xl p-5 border border-orange-100 space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-orange-600 text-xs">Domiciliario:</span>
+                      <span className="font-bold text-gray-800 text-sm">{selectedReclamo.nombreDomiciliario || 'Domiciliario'}</span>
+                    </div>
+                    {selectedReclamo.fechaNoEntrega && (
+                      <div className="flex justify-between">
+                        <span className="text-orange-600 text-xs">Fecha No Entrega:</span>
+                        <span className="font-bold text-gray-800 text-sm">{formatMedellinDateTime(selectedReclamo.fechaNoEntrega)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-orange-600 text-xs">Motivo:</span>
+                      <span className="font-bold text-gray-800 text-sm">{selectedReclamo.motivoDomiciliario}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Descripcion de la solicitud</h3>
                 <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">

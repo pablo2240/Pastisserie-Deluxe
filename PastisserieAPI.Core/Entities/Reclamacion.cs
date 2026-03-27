@@ -25,11 +25,29 @@ namespace PastisserieAPI.Core.Entities
         [MaxLength(50)]
         public string Estado { get; set; } = "Pendiente";
 
+        // ============ CAMPOS ADICIONALES DEL DOMICILIARIO ============
+        /// <summary>Motivo por el cual el domiciliario marcó como NoEntregado.</summary>
+        [MaxLength(1000)]
+        public string? MotivoDomiciliario { get; set; }
+
+        /// <summary>Fecha cuando se marcó el pedido como NoEntregado.</summary>
+        public DateTime? FechaNoEntrega { get; set; }
+
+        /// <summary>ID del domiciliario que marcó el pedido como NoEntregado.</summary>
+        public int? DomiciliarioId { get; set; }
+
+        /// <summary>Nombre del domiciliario que marcó el pedido como NoEntregado.</summary>
+        [MaxLength(200)]
+        public string? NombreDomiciliario { get; set; }
+
         // ============ RELACIONES ============
         [ForeignKey("PedidoId")]
         public virtual Pedido Pedido { get; set; } = null!;
 
         [ForeignKey("UsuarioId")]
         public virtual User Usuario { get; set; } = null!;
+
+        [ForeignKey("DomiciliarioId")]
+        public virtual User? Domiciliario { get; set; }
     }
 }

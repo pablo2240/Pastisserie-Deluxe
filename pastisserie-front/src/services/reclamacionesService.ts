@@ -8,6 +8,10 @@ export interface Reclamacion {
     fecha: string;
     motivo: string;
     estado: string;
+    motivoDomiciliario?: string;
+    fechaNoEntrega?: string;
+    domiciliarioId?: number;
+    nombreDomiciliario?: string;
 }
 
 export interface CreateReclamacionDto {

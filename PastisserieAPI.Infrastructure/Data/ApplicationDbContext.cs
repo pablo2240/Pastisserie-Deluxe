@@ -61,6 +61,13 @@ namespace PastisserieAPI.Infrastructure.Data
                 .HasForeignKey(r => r.UsuarioId)
                 .OnDelete(DeleteBehavior.NoAction); // Evita el error de SQL Server 1785
 
+            // Evitar ciclos de cascada en Reclamación (Domiciliario)
+            modelBuilder.Entity<Reclamacion>()
+                .HasOne(r => r.Domiciliario)
+                .WithMany()
+                .HasForeignKey(r => r.DomiciliarioId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             // Aplicar todas las configuraciones automáticamente
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 

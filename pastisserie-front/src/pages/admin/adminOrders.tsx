@@ -3,11 +3,12 @@ import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import api from '../../api/axios';
 import {
-  FiEye, FiCheckCircle, FiPackage, FiUser, FiMapPin, FiX, FiClock
+  FiEye, FiCheckCircle, FiPackage, FiUser, FiMapPin, FiX, FiClock, FiActivity
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import ShopStatusWidget from '../../components/admin/ShopStatusWidget';
 import { formatMedellinDate, formatMedellinDateTime } from '../../utils/format';
+import { orderService } from '../../services/orderService';
 
 
 // Tipos definidos localmente para asegurar compatibilidad
@@ -16,6 +17,17 @@ interface PedidoItem {
   nombreProducto: string;
   cantidad: number;
   subtotal: number;
+}
+
+interface HistorialCambio {
+  id: number;
+  pedidoId: number;
+  estadoAnterior: string;
+  estadoNuevo: string;
+  fechaCambio: string;
+  cambiadoPor: number | null;
+  nombreCambiadoPor: string | null;
+  notas: string | null;
 }
 
 interface PedidoAdmin {
@@ -39,6 +51,8 @@ const PedidosAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'gestion' | 'historial' | 'todos'>('gestion');
   const [selectedPedido, setSelectedPedido] = useState<PedidoAdmin | null>(null);
+  const [historial, setHistorial] = useState<HistorialCambio[]>([]);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -325,7 +339,20 @@ const PedidosAdmin = () => {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button
-                          onClick={() => setSelectedPedido(pedido)}
+                          onClick={async () => {
+                            setSelectedPedido(pedido);
+                            // Cargar historial
+                            setLoadingHistorial(true);
+                            try {
+                              const historialData = await orderService.getHistorial(pedido.id);
+                              setHistorial(Array.isArray(historialData) ? historialData : []);
+                            } catch (error) {
+                              console.error('Error cargando historial:', error);
+                              setHistorial([]);
+                            } finally {
+                              setLoadingHistorial(false);
+                            }
+                          }}
                           className="bg-gray-100 hover:bg-[#7D2121] hover:text-white text-gray-600 px-3 py-1.5 rounded-lg flex items-center gap-2 transition-all font-bold text-xs mx-auto shadow-sm"
                         >
                           <FiEye /> Detalles
@@ -457,6 +484,57 @@ const PedidosAdmin = () => {
                     <p className="text-center py-10 text-gray-400 italic">No hay productos en este pedido.</p>
                   )}
                 </div>
+              </div>
+
+              {/* Historial de Cambios */}
+              <div className="md:col-span-2 space-y-4">
+                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+                  <FiActivity className="text-[#7D2121]" /> Historial de Cambios
+                </h3>
+                {loadingHistorial ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7D2121] mx-auto"></div>
+                    <p className="text-gray-400 text-sm mt-2">Cargando historial...</p>
+                  </div>
+                ) : historial.length === 0 ? (
+                  <p className="text-center py-8 text-gray-400 italic">No hay historial de cambios para este pedido.</p>
+                ) : (
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    {historial.map((item) => (
+                      <div key={item.id} className="flex items-start gap-4 p-4 bg-white border border-gray-100 rounded-xl hover:border-[#7D2121]/20 transition-all">
+                        <div className="w-10 h-10 bg-[#7D2121]/5 text-[#7D2121] flex items-center justify-center rounded-full shrink-0">
+                          <FiActivity size={18} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`px-2 py-0.5 rounded text-xs font-bold ${getStatusColor(item.estadoAnterior)}`}>
+                                {item.estadoAnterior || 'Inicial'}
+                              </span>
+                              <span className="text-gray-400 text-xs">→</span>
+                              <span className={`px-2 py-0.5 rounded text-xs font-bold ${getStatusColor(item.estadoNuevo)}`}>
+                                {item.estadoNuevo}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-gray-400 shrink-0">
+                              {formatMedellinDateTime(item.fechaCambio)}
+                            </span>
+                          </div>
+                          {item.nombreCambiadoPor && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              <span className="font-bold">Cambiado por:</span> {item.nombreCambiadoPor}
+                            </p>
+                          )}
+                          {item.notas && (
+                            <p className="text-xs text-gray-600 mt-2 p-2 bg-gray-50 rounded-lg">
+                              <span className="font-bold">Nota:</span> {item.notas}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

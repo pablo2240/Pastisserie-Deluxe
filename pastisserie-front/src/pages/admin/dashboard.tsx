@@ -25,9 +25,17 @@ const Dashboard = () => {
   // Estado para los datos reales del dashboard
   const [data, setData] = useState<any>(null);
   const [earningsHistory, setEarningsHistory] = useState<any[]>([]);
-  const [dateRange, setDateRange] = useState({
-    start: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0],
-    end: new Date().toISOString().split('T')[0]
+  const [dateRange, setDateRange] = useState(() => {
+    const hoy = new Date();
+    const hace7Dias = new Date(hoy);
+    hace7Dias.setDate(hoy.getDate() - 7);
+    
+    const formatDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    
+    return {
+      start: formatDate(hace7Dias),
+      end: formatDate(hoy)
+    };
   });
   const [isHistorialLoading, setIsHistorialLoading] = useState(false);
   const [reclamaciones, setReclamaciones] = useState<Reclamacion[]>([]);
@@ -84,27 +92,39 @@ const Dashboard = () => {
     setIsHistorialLoading(true);
     try {
       const resp = await dashboardService.getEarningsHistory(start || dateRange.start, end || dateRange.end);
-      if (resp?.dailyData) {
+      if (resp?.dailyData && Array.isArray(resp.dailyData) && resp.dailyData.length > 0) {
         setEarningsHistory(resp.dailyData);
       } else {
-        setEarningsHistory(Array.isArray(resp) ? resp : []);
+        setEarningsHistory([]);
       }
     } catch (error) {
       console.error("Error cargando historial:", error);
+      setEarningsHistory([]);
     } finally {
       setIsHistorialLoading(false);
     }
   };
 
   const setQuickFilter = (type: 'hoy' | 'semana' | 'mes') => {
-    const end = new Date();
-    let start = new Date();
-
-    if (type === 'semana') start.setDate(end.getDate() - 7);
-    else if (type === 'mes') start.setMonth(end.getMonth() - 1);
-
-    const startStr = start.toISOString().split('T')[0];
-    const endStr = end.toISOString().split('T')[0];
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
+    const endStr = `${year}-${month}-${day}`;
+    
+    let startStr: string;
+    
+    if (type === 'hoy') {
+      startStr = endStr; // Mismo día
+    } else if (type === 'semana') {
+      const fechaInicio = new Date(hoy);
+      fechaInicio.setDate(hoy.getDate() - 7);
+      startStr = `${fechaInicio.getFullYear()}-${String(fechaInicio.getMonth() + 1).padStart(2, '0')}-${String(fechaInicio.getDate()).padStart(2, '0')}`;
+    } else {
+      const fechaInicio = new Date(hoy);
+      fechaInicio.setMonth(hoy.getMonth() - 1);
+      startStr = `${fechaInicio.getFullYear()}-${String(fechaInicio.getMonth() + 1).padStart(2, '0')}-${String(fechaInicio.getDate()).padStart(2, '0')}`;
+    }
 
     setDateRange({ start: startStr, end: endStr });
     fetchHistory(startStr, endStr);
@@ -114,7 +134,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 30000); // Polling cada 30s
+    fetchHistory(); // Cargar datos de la gráfica al inicio
+    const interval = setInterval(() => {
+      loadData();
+      fetchHistory();
+    }, 30000); // Polling cada 30s
     return () => clearInterval(interval);
   }, []);
 
@@ -354,7 +378,7 @@ const Dashboard = () => {
               </div>
             )}
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={earningsHistory.length > 0 ? earningsHistory : data.ventasPorDia}>
+              <AreaChart data={earningsHistory.length > 0 ? earningsHistory : (data?.ventasPorDia || [])}>
                 <defs>
                   <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#7D2121" stopOpacity={0.2} />
@@ -363,14 +387,14 @@ const Dashboard = () => {
                 </defs>
                 <CartesianGrid strokeDasharray="12 12" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="nombre" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} dy={20} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} dx={-10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} dx={-10} tickFormatter={(val) => `$${(val/1000).toFixed(0)}k`} />
                 <RechartsTooltip
                   contentStyle={{ borderRadius: '2rem', border: 'none', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', padding: '24px', background: '#fff' }}
                   itemStyle={{ color: '#7D2121', fontWeight: 900, fontSize: '18px' }}
                   labelStyle={{ fontWeight: 900, fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px' }}
-                  formatter={(val: number) => [`$${val.toLocaleString()}`, 'Ganancia']}
+                  formatter={(val: number) => [`$${val.toLocaleString()}`, 'Ventas']}
                 />
-                <Area type="monotone" dataKey="ventas" stroke="#7D2121" strokeWidth={5} fill="url(#colorSales)" animationDuration={2000} />
+                <Area type="monotone" dataKey="ventas" stroke="#7D2121" strokeWidth={3} fill="url(#colorSales)" animationDuration={2000} />
               </AreaChart>
             </ResponsiveContainer>
           </div>

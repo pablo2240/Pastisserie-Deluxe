@@ -145,38 +145,52 @@ namespace PastisserieAPI.API.Controllers
 
         [HttpGet("earnings-history")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetEarningsHistory([FromQuery] DateTime? start, [FromQuery] DateTime? end)
+        public async Task<IActionResult> GetEarningsHistory([FromQuery] string? start, [FromQuery] string? end)
         {
-            var fechaFin = end ?? DateTime.UtcNow.AddHours(-5);
-            var fechaInicio = start ?? fechaFin.AddDays(-30);
+            // Parsear fechas usando hora local de Colombia (UTC-5)
+            var fechaFin = !string.IsNullOrEmpty(end) 
+                ? DateTime.Parse(end + "T23:59:59").AddHours(-5) 
+                : DateTime.UtcNow.AddHours(-5);
+            var fechaInicio = !string.IsNullOrEmpty(start) 
+                ? DateTime.Parse(start + "T00:00:00").AddHours(-5) 
+                : fechaFin.AddDays(-7);
 
             var pedidos = await _context.Pedidos
                 .Where(p => p.Estado != "Cancelado" && p.Estado != "Rechazado" && p.Estado != "NoEntregado" && (p.FechaEntrega ?? p.FechaPedido) >= fechaInicio && (p.FechaEntrega ?? p.FechaPedido) <= fechaFin)
                 .ToListAsync();
 
-            // Si es un solo día, agrupamos por HORA para mayor detalle
-            if (fechaInicio.Date == fechaFin.Date)
+            var diasDiff = (fechaFin.Date - fechaInicio.Date).Days;
+            List<object> dailyData;
+
+            // DÍA: agrupar por hora (muestra las 24 horas del día)
+            if (diasDiff == 0)
             {
                 var dataHoras = pedidos
-                    .GroupBy(p => (p.FechaEntrega ?? p.FechaPedido).AddHours(-5).Hour) // Ajuste a Colombia
+                    .GroupBy(p => (p.FechaEntrega ?? p.FechaPedido).AddHours(-5).Hour)
                     .Select(g => new
                     {
                         hora = g.Key,
-                        ventas = g.Sum(p => p.Total)
+                        ventas = g.Sum(p => p.Total),
+                        cantidad = g.Count()
                     })
                     .ToList();
 
-                var hourlyData = new List<object>();
+                dailyData = new List<object>();
                 for (int h = 0; h < 24; h++)
                 {
-                    var hStr = h.ToString("D2") + ":00";
-                    var v = dataHoras.FirstOrDefault(x => x.hora == h)?.ventas ?? 0;
-                    hourlyData.Add(new { fecha = hStr, nombre = hStr, ventas = v });
+                    var horaData = dataHoras.FirstOrDefault(x => x.hora == h);
+                    dailyData.Add(new
+                    {
+                        fecha = h.ToString("D2") + ":00",
+                        nombre = h.ToString("D2") + ":00",
+                        ventas = horaData?.ventas ?? 0,
+                        cantidad = horaData?.cantidad ?? 0
+                    });
                 }
 
                 return Ok(ApiResponse<object>.SuccessResponse(new
                 {
-                    dailyData = hourlyData,
+                    dailyData = dailyData,
                     periodStats = new
                     {
                         totalGanancia = pedidos.Sum(p => p.Total),
@@ -188,19 +202,64 @@ namespace PastisserieAPI.API.Controllers
                 }));
             }
 
+            // SEMANA: agrupar por día de la semana (Lun, Mar, Mié...)
+            if (diasDiff <= 7)
+            {
+                var dataDiasSemana = pedidos
+                    .GroupBy(p => (p.FechaEntrega ?? p.FechaPedido).AddHours(-5).DayOfWeek)
+                    .Select(g => new
+                    {
+                        diaSemana = g.Key,
+                        ventas = g.Sum(p => p.Total),
+                        cantidad = g.Count()
+                    })
+                    .ToList();
+
+                var diasOrden = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday };
+                var nombresDias = new[] { "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom" };
+
+                dailyData = new List<object>();
+                for (int i = 0; i < 7; i++)
+                {
+                    var diaData = dataDiasSemana.FirstOrDefault(x => x.diaSemana == diasOrden[i]);
+                    dailyData.Add(new
+                    {
+                        fecha = diasOrden[i].ToString(),
+                        nombre = nombresDias[i],
+                        ventas = diaData?.ventas ?? 0,
+                        cantidad = diaData?.cantidad ?? 0
+                    });
+                }
+
+                return Ok(ApiResponse<object>.SuccessResponse(new
+                {
+                    dailyData = dailyData,
+                    periodStats = new
+                    {
+                        totalGanancia = pedidos.Sum(p => p.Total),
+                        totalPedidos = pedidos.Count,
+                        promedioVenta = pedidos.Count > 0 ? pedidos.Sum(p => p.Total) / pedidos.Count : 0
+                    },
+                    topProductsInRange = await GetTopProductsInRange(pedidos),
+                    ordersInRange = MapOrders(pedidos)
+                }));
+            }
+
+            // MES: agrupar por día del mes (1, 2, 3...)
             var data = pedidos
-                .GroupBy(p => (p.FechaEntrega ?? p.FechaPedido).Date)
+                .GroupBy(p => (p.FechaEntrega ?? p.FechaPedido).AddHours(-5).Date)
                 .Select(g => new
                 {
                     fecha = g.Key.ToString("yyyy-MM-dd"),
-                    nombre = g.Key.ToString("dd/MM"),
-                    ventas = g.Sum(p => p.Total)
+                    nombre = g.Key.ToString("dd"),
+                    ventas = g.Sum(p => p.Total),
+                    cantidad = g.Count()
                 })
                 .OrderBy(x => x.fecha)
                 .ToList();
 
-            // Rellenar días sin ventas para la gráfica
-            var dailyData = new List<object>();
+            // Rellenar días sin ventas
+            dailyData = new List<object>();
             for (var dt = fechaInicio.Date; dt <= fechaFin.Date; dt = dt.AddDays(1))
             {
                 var diaStr = dt.ToString("yyyy-MM-dd");
@@ -208,8 +267,9 @@ namespace PastisserieAPI.API.Controllers
                 dailyData.Add(new
                 {
                     fecha = diaStr,
-                    nombre = dt.ToString("dd/MM"),
-                    ventas = diaData?.ventas ?? 0
+                    nombre = dt.ToString("dd MMM"),
+                    ventas = diaData?.ventas ?? 0,
+                    cantidad = diaData?.cantidad ?? 0
                 });
             }
 

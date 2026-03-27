@@ -3,7 +3,6 @@
     public class CreatePedidoRequestDto
     {
         public int UsuarioId { get; set; }
-        public int MetodoPagoId { get; set; }
         public string? MetodoPago { get; set; }
         public int? DireccionEnvioId { get; set; }
         public string? Direccion { get; set; }

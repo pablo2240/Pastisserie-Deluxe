@@ -10,9 +10,6 @@ namespace PastisserieAPI.Services.Validators
             RuleFor(x => x.UsuarioId)
                 .GreaterThan(0).WithMessage("El ID de usuario es inválido");
 
-            RuleFor(x => x.MetodoPagoId)
-                .GreaterThan(0).WithMessage("Debe seleccionar un método de pago");
-
             RuleFor(x => x.Items)
                 .NotEmpty().WithMessage("El pedido debe tener al menos un producto")
                 .Must(items => items.Count <= 50).WithMessage("No puede agregar más de 50 productos al pedido");

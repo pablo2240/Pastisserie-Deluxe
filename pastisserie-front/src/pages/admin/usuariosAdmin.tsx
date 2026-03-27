@@ -4,7 +4,7 @@ import api from '../../api/axios';
 import {
     Search, User, Mail, Shield, Calendar,
     X, Filter, UserPlus,
-    ShieldAlert
+    ShieldAlert, Trash2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -70,6 +70,21 @@ const UsuariosAdmin = () => {
         } catch (error: any) {
             console.error(error);
             toast.error(error.response?.data?.message || 'Error al actualizar estado');
+        }
+    };
+
+    const handleDeleteUser = async (id: number, nombre: string) => {
+        if (!window.confirm(`¿Estás seguro de eliminar el usuario "${nombre}"? Esta acción no se puede deshacer.`)) {
+            return;
+        }
+        
+        try {
+            await api.delete(`/users/${id}`);
+            toast.success('Usuario eliminado correctamente');
+            fetchUsuarios();
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Error al eliminar usuario');
         }
     };
 
@@ -244,6 +259,13 @@ const UsuariosAdmin = () => {
                                                 title={user.activo ? "Revocar Acceso" : "Restaurar Acceso"}
                                             >
                                                 <ShieldAlert size={18} strokeWidth={2.5} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteUser(user.id, user.nombre)}
+                                                className="p-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all"
+                                                title="Eliminar usuario"
+                                            >
+                                                <Trash2 size={18} strokeWidth={2.5} />
                                             </button>
                                         </div>
                                     </td>

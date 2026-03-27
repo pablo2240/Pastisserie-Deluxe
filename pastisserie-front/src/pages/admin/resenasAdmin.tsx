@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
     MessageSquare, Star, Package,
-    Trash2, Clock, Check
+    Trash2, Clock, Check, Edit3, X
 } from 'lucide-react';
 import { reviewService } from '../../services/reviewService';
 import type { Review } from '../../services/reviewService';
@@ -11,6 +11,10 @@ const ResenasAdmin = () => {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'pending' | 'approved' | 'all'>('pending');
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+    const [editForm, setEditForm] = useState({ calificacion: 5, comentario: '' });
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         loadReviews();
@@ -64,8 +68,34 @@ const ResenasAdmin = () => {
         }
     };
 
+    const openEditModal = (review: Review) => {
+        setSelectedReview(review);
+        setEditForm({ calificacion: review.calificacion, comentario: review.comentario || '' });
+        setEditModalOpen(true);
+    };
+
+    const handleEdit = async () => {
+        if (!selectedReview) return;
+        if (!editForm.comentario.trim()) {
+            toast.error('El comentario no puede estar vacío');
+            return;
+        }
+        try {
+            setSaving(true);
+            await reviewService.update(selectedReview.id, editForm.calificacion, editForm.comentario);
+            toast.success('Reseña actualizada exitosamente');
+            setEditModalOpen(false);
+            loadReviews();
+        } catch (error) {
+            toast.error('Error al actualizar la reseña');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     return (
-        <div className="animate-fade-in max-w-7xl mx-auto">
+        <>
+            <div className="animate-fade-in max-w-7xl mx-auto">
             {/* HEADER PROFESIONAL */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
                 <div>
@@ -164,6 +194,14 @@ const ResenasAdmin = () => {
                                     </button>
                                 )}
                                 <button
+                                    onClick={() => openEditModal(rev)}
+                                    className={`${rev.aprobada ? 'flex-1' : 'w-20'} bg-blue-50 text-blue-600 font-black py-4 rounded-[2rem] hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-3 text-[10px] uppercase tracking-widest active:scale-90`}
+                                    title="Editar reseña"
+                                >
+                                    <Edit3 size={16} strokeWidth={2.5} />
+                                    {rev.aprobada && "Editar"}
+                                </button>
+                                <button
                                     onClick={() => handleDelete(rev.id)}
                                     className={`${rev.aprobada ? 'flex-1' : 'w-20'} bg-red-50 text-red-600 font-black py-4 rounded-[2rem] hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-3 text-[10px] uppercase tracking-widest group/del active:scale-90`}
                                     title="Descartar permanentemente"
@@ -177,6 +215,67 @@ const ResenasAdmin = () => {
                 </div>
             )}
         </div>
+
+        {/* Modal de Edición */}
+        {editModalOpen && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-2xl animate-scale-in">
+                    <div className="flex justify-between items-center mb-8">
+                        <h2 className="text-2xl font-serif font-black text-gray-900">Editar Reseña</h2>
+                        <button onClick={() => setEditModalOpen(false)} className="p-3 hover:bg-gray-100 rounded-full transition-colors">
+                            <X size={24} className="text-gray-400" />
+                        </button>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Calificación</label>
+                            <div className="flex gap-2">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                        key={star}
+                                        type="button"
+                                        onClick={() => setEditForm({ ...editForm, calificacion: star })}
+                                        className="p-2 hover:scale-110 transition-transform"
+                                    >
+                                        <Star
+                                            size={32}
+                                            className={star <= editForm.calificacion ? 'text-amber-500 fill-current' : 'text-gray-200'}
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Comentario</label>
+                            <textarea
+                                value={editForm.comentario}
+                                onChange={(e) => setEditForm({ ...editForm, comentario: e.target.value })}
+                                className="w-full p-4 border border-gray-200 rounded-[2rem] text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                rows={4}
+                                placeholder="Escribe el comentario de la reseña..."
+                            />
+                        </div>
+
+                        <button
+                            onClick={handleEdit}
+                            disabled={saving}
+                            className="w-full bg-gray-900 text-white font-black py-4 rounded-[2rem] hover:bg-blue-600 transition-all flex items-center justify-center gap-3 text-[10px] uppercase tracking-widest disabled:opacity-50"
+                        >
+                            {saving ? (
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    <Edit3 size={16} strokeWidth={2.5} /> Guardar Cambios
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
     );
 };
 

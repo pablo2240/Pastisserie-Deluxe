@@ -256,7 +256,7 @@ const Promociones = () => {
             </p>
             <div className="flex justify-center gap-4">
               <Link 
-                to="/catalog" 
+                to="/productos" 
                 className="bg-white text-gray-900 px-8 py-3.5 rounded-xl font-bold hover:bg-gray-100 transition-all"
               >
                 Ver Catálogo Completo

@@ -84,6 +84,14 @@ namespace PastisserieAPI.API.Controllers
             return Ok(ApiResponse<IEnumerable<ReviewResponseDto>>.SuccessResponse(result));
         }
 
+        [HttpGet("admin/todas")]
+        [Authorize(Roles = "Admin,Administrador,Administrator")]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _reviewService.GetAllAsync();
+            return Ok(ApiResponse<IEnumerable<ReviewResponseDto>>.SuccessResponse(result));
+        }
+
         [HttpPut("{id}/aprobar")]
         [Authorize(Roles = "Admin,Administrador,Administrator")]
         public async Task<IActionResult> Approve(int id)

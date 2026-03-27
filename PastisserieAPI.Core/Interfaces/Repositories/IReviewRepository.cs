@@ -14,5 +14,8 @@ namespace PastisserieAPI.Core.Interfaces.Repositories
         
         // 👇 NUEVO: Obtener reseña específica de un usuario para un producto
         Task<Review?> GetByProductoYUsuarioAsync(int productoId, int usuarioId);
+
+        // 👇 NUEVO: Obtener todas las reseñas (para admin)
+        Task<IEnumerable<Review>> GetAllAsync();
     }
 }

@@ -19,11 +19,14 @@ const ResenasAdmin = () => {
     const loadReviews = async () => {
         try {
             setLoading(true);
-            const dataRaw = (filter === 'pending')
-                ? await reviewService.getPending()
-                : (filter === 'approved')
-                    ? (await reviewService.getFeatured()).filter((r: Review) => r.aprobada)
-                    : await reviewService.getFeatured();
+            let dataRaw;
+            if (filter === 'pending') {
+                dataRaw = await reviewService.getPending();
+            } else if (filter === 'approved') {
+                dataRaw = (await reviewService.getFeatured()).filter((r: Review) => r.aprobada);
+            } else {
+                dataRaw = await reviewService.getAll();
+            }
 
             // Filtrar datos de prueba
             const filteredData = (Array.isArray(dataRaw) ? dataRaw : []).filter(r =>

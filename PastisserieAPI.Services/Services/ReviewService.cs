@@ -83,6 +83,12 @@ namespace PastisserieAPI.Services.Services
             return _mapper.Map<IEnumerable<ReviewResponseDto>>(reviews);
         }
 
+        public async Task<IEnumerable<ReviewResponseDto>> GetAllAsync()
+        {
+            var reviews = await _unitOfWork.Reviews.GetAllAsync();
+            return _mapper.Map<IEnumerable<ReviewResponseDto>>(reviews);
+        }
+
         public async Task ApproveAsync(int reviewId)
         {
             var review = await _unitOfWork.Reviews.GetByIdAsync(reviewId);

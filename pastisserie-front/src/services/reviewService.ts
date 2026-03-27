@@ -68,5 +68,15 @@ export const reviewService = {
     } catch {
       return [];
     }
+  },
+
+  // Obtener todas las reseñas (Admin - incluyendo no aprobadas)
+  getAll: async () => {
+    try {
+      const response = await api.get('/Reviews/admin/todas');
+      return response.data.data || response.data;
+    } catch {
+      return [];
+    }
   }
 };

@@ -68,5 +68,13 @@ namespace PastisserieAPI.Infrastructure.Repositories
                 .Include(r => r.Usuario)
                 .FirstOrDefaultAsync(r => r.ProductoId == productoId && r.UsuarioId == usuarioId);
         }
+
+        public async Task<IEnumerable<Review>> GetAllAsync()
+        {
+            return await _dbSet
+                .Include(r => r.Usuario)
+                .OrderByDescending(r => r.Fecha)
+                .ToListAsync();
+        }
     }
 }

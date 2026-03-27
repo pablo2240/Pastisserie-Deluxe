@@ -11,6 +11,7 @@ namespace PastisserieAPI.Services.Services.Interfaces
         Task<ReviewResponseDto> CreateAsync(int userId, CreateReviewRequestDto request);
         Task<ReviewResponseDto> UpdateAsync(int reviewId, int userId, UpdateReviewRequestDto request);
         Task<IEnumerable<ReviewResponseDto>> GetPendingAsync();
+        Task<IEnumerable<ReviewResponseDto>> GetAllAsync();
         Task ApproveAsync(int reviewId);
         Task DeleteAsync(int reviewId);
     }

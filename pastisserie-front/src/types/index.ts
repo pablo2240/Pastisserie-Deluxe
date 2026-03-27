@@ -70,8 +70,8 @@ export interface Producto {
   precio: number;
   stock: number;
   stockMinimo?: number;
-  categoria: string;
-  categoriaId: number; // El ID de la categoría (para guardar/editar)
+  categoriaProductoId?: number;
+  categoriaNombre?: string;
   imagenUrl?: string;
   esPersonalizable: boolean;
   activo: boolean;

@@ -46,9 +46,9 @@ namespace PastisserieAPI.Services.Services
             return producto == null ? null : _mapper.Map<ProductoResponseDto>(producto);
         }
 
-        public async Task<List<ProductoResponseDto>> GetByCategoriaAsync(string categoria)
+        public async Task<List<ProductoResponseDto>> GetByCategoriaAsync(int categoriaId)
         {
-            var productos = await _unitOfWork.Productos.GetByCategoriaAsync(categoria);
+            var productos = await _unitOfWork.Productos.GetByCategoriaAsync(categoriaId);
             return _mapper.Map<List<ProductoResponseDto>>(productos);
         }
 

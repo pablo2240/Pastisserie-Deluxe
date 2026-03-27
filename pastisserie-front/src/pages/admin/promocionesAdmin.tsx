@@ -13,9 +13,27 @@ const getLocalDateString = () => new Date().toLocaleDateString('sv-SE');
 const formatLocalISO = (dateStr?: string) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    const offset = date.getTimezoneOffset() * 60000;
-    const localDate = new Date(date.getTime() - offset);
-    return localDate.toISOString().slice(0, 16);
+    // Create ISO string in local time without timezone conversion
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const toISOStringLocal = (localDateTime: string) => {
+    // Preserve the exact local time entered by user
+    if (!localDateTime) return '';
+    const [datePart, timePart] = localDateTime.split('T');
+    if (!datePart || !timePart) return '';
+    
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hours, minutes] = timePart.split(':').map(Number);
+    
+    // Create date in local timezone and convert to ISO
+    const date = new Date(year, month - 1, day, hours, minutes);
+    return date.toISOString();
 };
 
 type TipoPromocion = 'producto' | 'independiente';
@@ -241,8 +259,8 @@ const PromocionesAdmin = () => {
 
             const payload = {
                 ...formData,
-                fechaInicio: new Date(formData.fechaInicio).toISOString(),
-                fechaFin: new Date(formData.fechaFin).toISOString(),
+                fechaInicio: toISOStringLocal(formData.fechaInicio),
+                fechaFin: toISOStringLocal(formData.fechaFin),
                 // Si es tipo producto, limpiar imagenUrl (se usará la del producto)
                 // Si es independiente, limpiar productoId
                 productoId: tipoPromocion === 'producto' ? formData.productoId : null,
@@ -268,15 +286,16 @@ const PromocionesAdmin = () => {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Eliminar esta promoción?')) return;
+    const handleDelete = async (id: number, nombre: string) => {
+        if (!window.confirm(`¿Estás seguro de eliminar la promoción "${nombre}"? Esta acción no se puede deshacer.`)) return;
         try {
             await promocionesService.delete(id);
-            toast.success('Promoción eliminada');
+            toast.success('Promoción eliminada correctamente');
             fetchPromociones();
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error('No se pudo eliminar');
+            const msg = error?.response?.data?.message || 'No se pudo eliminar. Puede que la promoción esté siendo usada.';
+            toast.error(msg);
         }
     };
 
@@ -432,7 +451,7 @@ const PromocionesAdmin = () => {
                                         </td>
                                         <td className="px-4 py-3 flex gap-2">
                                             <button onClick={() => openEditModal(promo)} className="text-blue-600 hover:bg-blue-50 p-2 rounded"><FiEdit /></button>
-                                            <button onClick={() => handleDelete(promo.id)} className="text-red-600 hover:bg-red-50 p-2 rounded"><FiTrash2 /></button>
+                                            <button onClick={() => handleDelete(promo.id, promo.nombre)} className="text-red-600 hover:bg-red-50 p-2 rounded"><FiTrash2 /></button>
                                         </td>
                                     </tr>
                                 );
@@ -602,7 +621,7 @@ const PromocionesAdmin = () => {
                                                                     )}
                                                                     <div className="min-w-0 flex-1">
                                                                         <p className="text-sm font-bold text-gray-800 truncate">{prod.nombre}</p>
-                                                                        <p className="text-xs text-gray-400">{prod.categoria} - {formatCurrency(prod.precio)}</p>
+                                                                        <p className="text-xs text-gray-400">{prod.categoriaNombre} - {formatCurrency(prod.precio)}</p>
                                                                     </div>
                                                                 </button>
                                                             ))
@@ -623,7 +642,7 @@ const PromocionesAdmin = () => {
                                                     )}
                                                     <div className="flex-1 min-w-0">
                                                         <p className="font-bold text-gray-800 truncate">{productoSeleccionado.nombre}</p>
-                                                        <p className="text-xs text-gray-500">{productoSeleccionado.categoria} - {formatCurrency(productoSeleccionado.precio)}</p>
+                                                        <p className="text-xs text-gray-500">{productoSeleccionado.categoriaNombre} - {formatCurrency(productoSeleccionado.precio)}</p>
                                                         <p className="text-[10px] text-blue-600 font-bold mt-1">La imagen de este producto se usará en la promoción</p>
                                                     </div>
                                                     <div className="shrink-0">

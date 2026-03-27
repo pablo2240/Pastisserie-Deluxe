@@ -8,6 +8,11 @@ export const productService = {
     return response.data;
   },
 
+  getActivos: async () => {
+    const response = await api.get('/productos/activos');
+    return response.data;
+  },
+
   getById: async (id: string | number) => {
     const response = await api.get(`/productos/${id}`);
     return response.data;
@@ -22,7 +27,7 @@ export const productService = {
       Precio: Number(producto.precio),
       Stock: Number(producto.stock),
       ImagenUrl: producto.imagenUrl,
-      Categoria: producto.categoria || 'Sin Categoría',
+      CategoriaProductoId: producto.categoriaProductoId || null,
       EsPersonalizable: !!producto.esPersonalizable
     };
     const response = await api.post('/productos', payload);
@@ -36,7 +41,8 @@ export const productService = {
       Precio: producto.precio ? Number(producto.precio) : undefined,
       Stock: producto.stock ? Number(producto.stock) : undefined,
       ImagenUrl: producto.imagenUrl,
-      Categoria: producto.categoria
+      CategoriaProductoId: producto.categoriaProductoId,
+      Activo: producto.activo !== undefined ? producto.activo : undefined
     };
     const response = await api.put(`/productos/${id}`, payload);
     return response.data;

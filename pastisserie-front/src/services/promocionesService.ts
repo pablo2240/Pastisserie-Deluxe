@@ -23,6 +23,11 @@ export interface Promocion {
 
 export const promocionesService = {
     getAll: async (): Promise<ApiResponse<Promocion[]>> => {
+        const response = await api.get<ApiResponse<Promocion[]>>('/promociones?mostrarTodas=true');
+        return response.data;
+    },
+
+    getActivas: async (): Promise<ApiResponse<Promocion[]>> => {
         const response = await api.get<ApiResponse<Promocion[]>>('/promociones');
         return response.data;
     },

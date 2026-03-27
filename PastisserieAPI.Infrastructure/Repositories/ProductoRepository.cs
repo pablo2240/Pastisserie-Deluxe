@@ -11,16 +11,26 @@ namespace PastisserieAPI.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<Producto>> GetByCategoriaAsync(string categoria)
+        public async Task<IEnumerable<Producto>> GetAllAsync()
         {
             return await _dbSet
-                .Where(p => p.Categoria == categoria && p.Activo)
+                .Include(p => p.CategoriaProducto)
+                .OrderBy(p => p.Nombre)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Producto>> GetByCategoriaAsync(int categoriaId)
+        {
+            return await _dbSet
+                .Include(p => p.CategoriaProducto)
+                .Where(p => p.CategoriaProductoId == categoriaId && p.Activo)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Producto>> GetPersonalizablesAsync()
         {
             return await _dbSet
+                .Include(p => p.CategoriaProducto)
                 .Where(p => p.EsPersonalizable && p.Activo)
                 .ToListAsync();
         }
@@ -28,6 +38,7 @@ namespace PastisserieAPI.Infrastructure.Repositories
         public async Task<IEnumerable<Producto>> GetProductosActivosAsync()
         {
             return await _dbSet
+                .Include(p => p.CategoriaProducto)
                 .Where(p => p.Activo)
                 .OrderBy(p => p.Nombre)
                 .ToListAsync();
@@ -36,6 +47,7 @@ namespace PastisserieAPI.Infrastructure.Repositories
         public async Task<IEnumerable<Producto>> GetProductosBajoStockAsync()
         {
             return await _dbSet
+                .Include(p => p.CategoriaProducto)
                 .Where(p => p.StockMinimo.HasValue && p.Stock <= p.StockMinimo.Value)
                 .ToListAsync();
         }
@@ -43,6 +55,7 @@ namespace PastisserieAPI.Infrastructure.Repositories
         public async Task<Producto?> GetByIdWithReviewsAsync(int id)
         {
             return await _dbSet
+                .Include(p => p.CategoriaProducto)
                 .Include(p => p.Reviews)
                     .ThenInclude(r => r.Usuario)
                 .FirstOrDefaultAsync(p => p.Id == id);

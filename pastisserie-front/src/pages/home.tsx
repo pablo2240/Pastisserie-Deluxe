@@ -18,8 +18,8 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 1. Cargar Productos Destacados
-        const prodResponse = await productService.getAll();
+        // 1. Cargar Productos Destacados (solo activos)
+        const prodResponse = await productService.getActivos();
 
         // Robust check for data (handling both wrapped and unwrapped responses)
         const products = prodResponse?.data?.data ||

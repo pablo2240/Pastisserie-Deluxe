@@ -41,7 +41,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, tiendaStatus, status
           {/* Badges */}
           <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
             <span className="glass-badge uppercase tracking-[0.2em] text-patisserie-red">
-              {product.categoria}
+              {product.categoriaNombre}
             </span>
 
             {product.stock === 0 && (

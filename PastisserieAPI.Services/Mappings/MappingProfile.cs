@@ -35,6 +35,8 @@ namespace PastisserieAPI.Services.Mappings
 
             // ============ PRODUCTO MAPPINGS ============
             CreateMap<Producto, ProductoResponseDto>()
+                .ForMember(dest => dest.CategoriaProductoId, opt => opt.MapFrom(src => src.CategoriaProductoId))
+                .ForMember(dest => dest.CategoriaNombre, opt => opt.MapFrom(src => src.CategoriaProducto != null ? src.CategoriaProducto.Nombre : null))
                 .ForMember(dest => dest.PromedioCalificacion, opt => opt.MapFrom(src =>
                     src.Reviews.Any(r => r.Aprobada)
                         ? src.Reviews.Where(r => r.Aprobada).Average(r => r.Calificacion)
@@ -44,10 +46,12 @@ namespace PastisserieAPI.Services.Mappings
 
             CreateMap<CreateProductoRequestDto, Producto>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.CategoriaProductoId, opt => opt.MapFrom(src => src.CategoriaProductoId))
                 .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.Activo, opt => opt.MapFrom(src => true));
 
             CreateMap<UpdateProductoRequestDto, Producto>()
+                .ForMember(dest => dest.CategoriaProductoId, opt => opt.MapFrom(src => src.CategoriaProductoId))
                 .ForMember(dest => dest.FechaActualizacion, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PastisserieAPI.Core.Entities;
 using PastisserieAPI.Core.Interfaces;
+using PastisserieAPI.Infrastructure.Data;
 using PastisserieAPI.Services.DTOs.Common;
 using PastisserieAPI.Services.Services.Interfaces;
 using System.Security.Claims;
@@ -17,19 +18,22 @@ namespace PastisserieAPI.API.Controllers
         private readonly INotificacionService _notificacionService;
         private readonly IEmailService _emailService;
         private readonly IInvoiceService _invoiceService;
+        private readonly ApplicationDbContext _context;
 
         public PagosController(
             IUnitOfWork unitOfWork,
             ILogger<PagosController> logger,
             INotificacionService notificacionService,
             IEmailService emailService,
-            IInvoiceService invoiceService)
+            IInvoiceService invoiceService,
+            ApplicationDbContext context)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _notificacionService = notificacionService;
             _emailService = emailService;
             _invoiceService = invoiceService;
+            _context = context;
         }
 
         private int? GetUserId()
@@ -210,21 +214,21 @@ namespace PastisserieAPI.API.Controllers
 
                     try
                     {
-                        await _notificacionService.CrearNotificacionAsync(
-                            userId.Value,
-                            "Pedido Recibido 🍰",
-                            $"Tu pedido #{pedido.Id} ha sido confirmado exitosamente. Total: ${pedido.Total:N0} COP.",
-                            "Pedido",
-                            "/history"
-                        );
-                    }
-                    catch { }
-
-                    try
-                    {
                         var usuario = await _unitOfWork.Users.GetByIdAsync(userId.Value);
                         if (usuario != null)
                         {
+                            var factura = new Factura
+                            {
+                                PedidoId = pedido.Id,
+                                NumeroFactura = $"FAC-{pedido.Id}-{DateTime.UtcNow:yyyyMMdd}",
+                                FechaEmision = DateTime.UtcNow,
+                                Subtotal = pedido.Subtotal,
+                                IVA = 0,
+                                Total = pedido.Total
+                            };
+                            _context.Facturas.Add(factura);
+                            await _unitOfWork.SaveChangesAsync();
+
                             byte[]? pdfBytes = _invoiceService.GenerateInvoicePdf(pedido, usuario);
                             await _emailService.SendOrderConfirmationEmailAsync(usuario.Email, usuario.Nombre, pedido.Id, pedido.Total, pdfBytes);
                         }

@@ -310,7 +310,7 @@ namespace PastisserieAPI.API.Controllers
                 {
                     cantidad = i.Cantidad,
                     precioUnitario = i.PrecioUnitario,
-                    producto = new { nombre = i.Producto?.Nombre, categoria = i.Producto?.Categoria }
+                    producto = new { nombre = i.Producto?.Nombre, categoria = i.Producto?.CategoriaProducto?.Nombre }
                 }).ToList(),
                 itemsCount = p.Items.Count
             };

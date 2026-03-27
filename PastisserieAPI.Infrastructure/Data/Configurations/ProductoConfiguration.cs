@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PastisserieAPI.Core.Entities;
 
@@ -27,16 +27,18 @@ namespace PastisserieAPI.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasDefaultValue(0);
 
-            builder.Property(p => p.Categoria)
-                .IsRequired()
-                .HasMaxLength(100);
-
             builder.Property(p => p.ImagenUrl)
                 .HasMaxLength(500);
 
+            // Relación con CategoriaProducto
+            builder.HasOne(p => p.CategoriaProducto)
+                .WithMany(c => c.Productos)
+                .HasForeignKey(p => p.CategoriaProductoId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Índices
-            builder.HasIndex(p => p.Categoria)
-                .HasDatabaseName("IX_Productos_Categoria");
+            builder.HasIndex(p => p.CategoriaProductoId)
+                .HasDatabaseName("IX_Productos_CategoriaProductoId");
 
             builder.HasIndex(p => p.Nombre)
                 .HasDatabaseName("IX_Productos_Nombre");

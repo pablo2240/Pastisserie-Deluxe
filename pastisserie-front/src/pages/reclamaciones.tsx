@@ -7,44 +7,38 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import AuthRequiredMessage from '../components/common/AuthRequiredMessage';
 
-// Servicios
 import { reclamacionesService, type Reclamacion } from '../services/reclamacionesService';
 
 const Reclamaciones = () => {
     const { user } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
-    const queryParams = new URLSearchParams(location.search);
-    const pedidoIdFromUrl = queryParams.get('pedidoId');
-
-    // Verificar autenticación
-    if (!user) {
-        return (
-            <div className="animate-fade-in max-w-6xl mx-auto px-4 py-12">
-                <AuthRequiredMessage
-                    title="¡Ups! Acceso Restringido"
-                    message="Para crear o ver reclamaciones, necesitas tener una cuenta activa."
-                />
-            </div>
-        );
-    }
-
+    
+    // Todos los hooks al principio
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [myClaims, setMyClaims] = useState<Reclamacion[]>([]);
-
-    // Form state
-    const [pedidoId, setPedidoId] = useState(pedidoIdFromUrl || '');
+    const [pedidoId, setPedidoId] = useState('');
     const [motivo, setMotivo] = useState('');
     const [formErrors, setFormErrors] = useState<{ pedidoId?: string; motivo?: string }>({});
 
+    // Obtener pedidoId de URL
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const pedidoIdFromUrl = queryParams.get('pedidoId');
+        if (pedidoIdFromUrl) {
+            setPedidoId(pedidoIdFromUrl);
+        }
+    }, [location.search]);
+
+    // Fetch claims
     const fetchMyClaims = async () => {
         try {
             const response = await reclamacionesService.getMisReclamaciones();
             setMyClaims(response.data || []);
-            setLoading(false);
         } catch (error) {
             console.error(error);
+        } finally {
             setLoading(false);
         }
     };
@@ -108,6 +102,18 @@ const Reclamaciones = () => {
             default: return 'bg-gray-100 text-gray-700 border-gray-200';
         }
     };
+
+    // Verificar autenticación DESPUÉS de los hooks
+    if (!user) {
+        return (
+            <div className="animate-fade-in max-w-6xl mx-auto px-4 py-12">
+                <AuthRequiredMessage
+                    title="¡Ups! Acceso Restringido"
+                    message="Para crear o ver reclamaciones, necesitas tener una cuenta activa."
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="animate-fade-in max-w-6xl mx-auto px-4 py-12">

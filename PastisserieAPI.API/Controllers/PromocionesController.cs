@@ -148,12 +148,13 @@ namespace PastisserieAPI.API.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var promocion = await _unitOfWork.Promociones.GetByIdAsync(id);
-            if (promocion == null) return NotFound(ApiResponse.ErrorResponse("Promoción no encontrada"));
+            if (promocion == null) 
+                return NotFound(ApiResponse<object>.ErrorResponse("Promoción no encontrada"));
 
             await _unitOfWork.Promociones.DeleteAsync(promocion);
             await _unitOfWork.SaveChangesAsync();
 
-            return Ok(ApiResponse.SuccessResponse("Promoción eliminada exitosamente"));
+            return Ok(ApiResponse<object>.SuccessResponse(null, "Promoción eliminada exitosamente"));
         }
     }
 }

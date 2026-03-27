@@ -104,7 +104,7 @@ namespace PastisserieAPI.Infrastructure.Data
 
             // ============ ÍNDICES DE RENDIMIENTO ============
             modelBuilder.Entity<Producto>()
-                .HasIndex(p => p.Categoria);
+                .HasIndex(p => p.CategoriaProductoId);
 
             modelBuilder.Entity<Pedido>()
                 .HasIndex(p => p.Estado);

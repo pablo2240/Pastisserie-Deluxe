@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { FiTag, FiPackage, FiShoppingCart } from 'react-icons/fi';
+import { FiTag, FiPackage, FiShoppingCart, FiClock, FiCheck } from 'react-icons/fi';
 import { promocionesService } from '../services/promocionesService';
 import type { Promocion } from '../services/promocionesService';
 import { formatCurrency } from '../utils/format';
@@ -34,7 +34,7 @@ const Promociones = () => {
 
   const fetchPromociones = useCallback(async () => {
     try {
-      const response = await promocionesService.getAll();
+      const response = await promocionesService.getActivas();
       setPromociones(response.data);
     } catch (error) {
       console.error("Error cargando promociones", error);
@@ -53,103 +53,188 @@ const Promociones = () => {
     }
   }, [isAuthenticated, fetchPromociones]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#1a0505] to-[#2d0a0a] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-white/20 border-t-amber-400 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/60 text-sm font-medium">Cargando promociones...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#1a0505] via-[#2d0a0a] to-[#1a0505] flex items-center justify-center p-6">
+        <div className="max-w-lg w-full text-center">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-red-500/20 blur-3xl rounded-full"></div>
+            <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-12">
+              <div className="w-24 h-24 bg-gradient-to-br from-amber-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                <FiTag className="text-white text-4xl" />
+              </div>
+              <h2 className="text-3xl font-serif font-bold text-white mb-4">Ofertas Exclusivas</h2>
+              <p className="text-white/60 mb-8 text-lg">
+                Inicia sesión para descubrir nuestras promociones especiales, combos del mes y descuentos exclusivos.
+              </p>
+              <div className="flex flex-col gap-3">
+                <Link 
+                  to="/login" 
+                  className="w-full bg-gradient-to-r from-amber-500 to-red-600 text-white px-8 py-4 rounded-xl font-bold hover:from-amber-400 hover:to-red-500 transition-all shadow-xl shadow-red-900/30"
+                >
+                  Iniciar Sesión
+                </Link>
+                <Link 
+                  to="/registro" 
+                  className="w-full bg-white/10 text-white border border-white/20 px-8 py-4 rounded-xl font-bold hover:bg-white/20 transition-all"
+                >
+                  Crear Cuenta
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="pt-28 pb-12 min-h-screen animate-fade-in">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-serif font-bold mb-4">Promociones Especiales</h1>
-          <p className="text-gray-500">Aprovecha nuestras ofertas y combos por tiempo limitado.</p>
+    <div className="min-h-screen bg-gradient-to-b from-[#1a0505] via-[#2d0a0a] to-[#1a0505] pt-28 pb-16">
+      <div className="container mx-auto px-4 max-w-6xl">
+        {/* Header */}
+        <div className="text-center mb-12 relative">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-500/10 rounded-full blur-3xl"></div>
+          <div className="relative z-10">
+            <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-amber-500 to-red-600 text-white text-xs font-bold uppercase tracking-[0.3em] rounded-full mb-4 shadow-lg">
+              Ofertas Limitadas
+            </span>
+            <h1 className="text-5xl md:text-6xl font-serif font-bold text-white mb-4">
+              Promociones <span className="text-amber-500">Especiales</span>
+            </h1>
+            <p className="text-white/50 text-lg max-w-xl mx-auto">
+              Descubre nuestros combos exclusivos y descuentos por tiempo limitado. 
+              ¡No te los pierdas!
+            </p>
+          </div>
         </div>
 
-        {loading ? (
+        {promociones.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-12 h-12 border-4 border-red-200 border-t-red-800 rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-500">Cargando promociones...</p>
-          </div>
-        ) : !isAuthenticated ? (
-          <div className="text-center py-20 bg-patisserie-cream/50 rounded-3xl border border-patisserie-red/10 max-w-2xl mx-auto shadow-sm">
-            <div className="w-20 h-20 bg-patisserie-red/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <FiTag className="text-patisserie-red text-3xl" />
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FiTag className="text-white/30 text-3xl" />
             </div>
-            <h2 className="text-2xl font-serif font-bold text-gray-800 mb-4">Ofertas Exclusivas para Miembros</h2>
-            <p className="text-gray-600 mb-8 px-6">
-              Inicia sesión o regístrate para descubrir nuestras promociones especiales, combos del mes y descuentos exclusivos de nuestra pastelería.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center px-6">
-              <Link to="/login" className="bg-patisserie-red text-white px-8 py-3 rounded-xl font-bold hover:bg-red-800 transition-all shadow-lg hover:shadow-red-800/20">
-                Iniciar Sesión
-              </Link>
-              <Link to="/registro" className="bg-white text-patisserie-dark border border-gray-200 px-8 py-3 rounded-xl font-bold hover:bg-gray-50 transition-all">
-                Crear Cuenta
-              </Link>
-            </div>
-          </div>
-        ) : promociones.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 rounded-2xl">
-            <p className="text-gray-500 text-lg">No hay promociones activas en este momento.</p>
-            <p className="text-gray-400 mt-2">¡Vuelve pronto!</p>
+            <p className="text-white/40 text-xl mb-2">No hay promociones activas</p>
+            <p className="text-white/20 text-sm">¡Vuelve pronto para nuevas ofertas!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {promociones.map((promo) => (
-              <div key={promo.id} className="rounded-2xl p-6 border border-gray-100 flex flex-col sm:flex-row gap-6 items-center shadow-sm hover:shadow-md transition-shadow bg-white hover:bg-red-50/30">
-                <img
-                  src={getPromoImage(promo)}
-                  alt={promo.nombre}
-                  className="w-full sm:w-40 h-40 object-cover rounded-xl shadow-sm bg-gray-200"
-                />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {promociones.map((promo, index) => (
+              <div 
+                key={promo.id} 
+                className="group relative bg-gradient-to-br from-white to-white/95 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-red-900/20 transition-all duration-500 hover:-translate-y-1"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* Badge de descuento */}
+                <div className="absolute top-4 left-4 z-20">
+                  <div className="bg-gradient-to-r from-amber-500 to-red-600 text-white px-4 py-2 rounded-xl font-black text-sm shadow-lg flex items-center gap-2">
+                    <FiTag size={16} />
+                    {promo.tipoDescuento === 'Porcentaje' ? `-${promo.valor}%` : `-${formatCurrency(promo.valor)}`}
+                  </div>
+                </div>
 
-                <div className="flex-grow text-center sm:text-left">
-                  <span className="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold mb-2 shadow-sm uppercase tracking-wider">
-                    <FiTag className="inline mr-1" /> {promo.tipoDescuento === 'Porcentaje' ? `${promo.valor}% OFF` : 'OFERTA'}
-                  </span>
-
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">{promo.nombre}</h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{promo.descripcion}</p>
-
-                  {promo.productoNombre && (
-                    <p className="text-xs text-blue-600 font-bold mb-3 flex items-center gap-1 justify-center sm:justify-start">
-                      <FiPackage size={12} /> Aplica a: {promo.productoNombre}
-                    </p>
+                {/* Imagen */}
+                <div className="relative h-56 overflow-hidden">
+                  <img
+                    src={getPromoImage(promo)}
+                    alt={promo.nombre}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                  
+                  {/* Stock info overlay */}
+                  {isAgotada(promo) && (
+                    <div className="absolute top-4 right-4 bg-gray-900/90 text-white px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider">
+                      Agotado
+                    </div>
                   )}
 
-                  <div className="flex items-end justify-center sm:justify-start gap-3 mb-4">
+                  {/* Producto info */}
+                  {promo.productoNombre && (
+                    <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 text-white/90 text-sm">
+                      <FiPackage size={14} />
+                      <span className="font-medium truncate">{promo.productoNombre}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Contenido */}
+                <div className="p-6">
+                  <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2 group-hover:text-red-700 transition-colors">
+                    {promo.nombre}
+                  </h3>
+                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">
+                    {promo.descripcion || '¡No te pierdas esta oferta especial!'}
+                  </p>
+
+                  {/* Precios */}
+                  <div className="flex items-baseline gap-3 mb-6">
                     {promo.precioOriginal != null && promo.precioFinal != null ? (
                       <>
+                        <span className="text-3xl font-black text-gray-900">
+                          {formatCurrency(promo.precioFinal)}
+                        </span>
                         <span className="text-lg text-gray-400 line-through font-medium">
                           {formatCurrency(promo.precioOriginal)}
                         </span>
-                        <span className="text-3xl font-bold text-patisserie-red">
-                          {formatCurrency(promo.precioFinal)}
+                        <span className="text-sm font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">
+                          Ahorra {formatCurrency(promo.precioOriginal - promo.precioFinal)}
                         </span>
                       </>
                     ) : promo.tipoDescuento === 'MontoFijo' ? (
-                      <span className="text-3xl font-bold text-patisserie-red">
+                      <span className="text-3xl font-black text-gray-900">
                         -{formatCurrency(promo.valor)}
                       </span>
                     ) : null}
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  {/* Fechas */}
+                  <div className="flex items-center gap-4 text-xs text-gray-400 mb-6">
+                    <div className="flex items-center gap-1.5">
+                      <FiClock size={14} />
+                      <span>Desde: {new Date(promo.fechaInicio).toLocaleDateString('es-CO')}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                      <span>Hasta: {new Date(promo.fechaFin).toLocaleDateString('es-CO')}</span>
+                    </div>
+                  </div>
+
+                  {/* Acciones */}
+                  <div className="flex gap-3">
                     {isAgotada(promo) ? (
-                      <span className="text-gray-400 text-xs font-medium px-3 py-2 bg-gray-100 rounded-lg">
-                        Agotado
-                      </span>
+                      <button
+                        disabled
+                        className="flex-1 bg-gray-100 text-gray-400 px-6 py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-not-allowed"
+                      >
+                        <FiCheck size={18} /> Agotado
+                      </button>
                     ) : (
                       <button
                         onClick={() => addToCart(promo.productoId || null, 1, promo.id)}
                         disabled={isCartLoading}
-                        className="bg-patisserie-red text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-red-800 transition-colors inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 bg-gradient-to-r from-amber-500 to-red-600 text-white px-6 py-3.5 rounded-xl font-bold text-sm hover:from-amber-400 hover:to-red-500 transition-all shadow-lg shadow-red-900/20 flex items-center justify-center gap-2 disabled:opacity-50"
                       >
-                        <FiShoppingCart /> {isCartLoading ? 'Agregando...' : 'Agregar al carrito'}
+                        <FiShoppingCart size={18} /> 
+                        {isCartLoading ? 'Agregando...' : 'Agregar al Carrito'}
                       </button>
                     )}
                     {promo.productoId && (
                       <Link
                         to={`/productos/${promo.productoId}`}
-                        className="bg-patisserie-dark text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-gray-800 transition-colors inline-block"
+                        className="px-4 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:border-gray-300 hover:bg-gray-50 transition-all"
                       >
-                        Ver Producto
+                        Ver
                       </Link>
                     )}
                   </div>
@@ -159,17 +244,26 @@ const Promociones = () => {
           </div>
         )}
 
-        {/* Banner inferior */}
-        <div className="mt-16 bg-patisserie-red rounded-2xl p-8 text-center text-white relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="text-2xl font-bold mb-2">¡Gran Promoción!</h2>
-            <p className="mb-6 opacity-90">Aprovecha esta oferta especial. Máximo 3 productos por promoción.</p>
+        {/* Footer CTA */}
+        <div className="mt-16 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-red-500/20 blur-3xl rounded-3xl"></div>
+          <div className="relative bg-gradient-to-r from-[#3d1212] to-[#4d1818] rounded-3xl p-8 md:p-12 text-center border border-white/5">
+            <h2 className="text-2xl md:text-3xl font-serif font-bold text-white mb-3">
+              ¿Quieres ser el primero en ver nuestras ofertas?
+            </h2>
+            <p className="text-white/50 mb-6 max-w-lg mx-auto">
+              Síguenos en redes sociales y activa las notificaciones para no perderte ninguna promoción.
+            </p>
+            <div className="flex justify-center gap-4">
+              <Link 
+                to="/catalog" 
+                className="bg-white text-gray-900 px-8 py-3.5 rounded-xl font-bold hover:bg-gray-100 transition-all"
+              >
+                Ver Catálogo Completo
+              </Link>
+            </div>
           </div>
-          {/* Círculos decorativos de fondo */}
-          <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-2xl"></div>
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/10 rounded-full translate-x-1/2 translate-y-1/2 blur-2xl"></div>
         </div>
-
       </div>
     </div>
   );

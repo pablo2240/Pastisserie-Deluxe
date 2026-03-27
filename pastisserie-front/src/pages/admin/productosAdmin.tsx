@@ -29,7 +29,7 @@ const initialFormState = {
   imagenUrl: '',
   activo: true,
   esPersonalizable: false,
-  categoriaId: 0
+  categoriaId: null as number | null
 };
 
 const ProductosAdmin = () => {
@@ -148,7 +148,18 @@ const ProductosAdmin = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const finalValue = type === 'number' ? Number(value) : value;
-    setFormData(prev => ({ ...prev, [name]: finalValue }));
+    
+    // Cuando cambia la categoría, actualizar both categoria string y categoriaId
+    if (name === 'categoria') {
+      const selectedCat = categorias.find(c => c.nombre === value);
+      setFormData(prev => ({ 
+        ...prev, 
+        categoria: value,
+        categoriaId: selectedCat?.id || null
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: finalValue }));
+    }
   };
 
   const openNewModal = () => {
@@ -165,11 +176,11 @@ const ProductosAdmin = () => {
       descripcion: producto.descripcion || '',
       precio: producto.precio,
       stock: producto.stock,
-      categoria: producto.categoria || '',
+      categoria: producto.categoriaNombre || '',
       imagenUrl: producto.imagenUrl || '',
       activo: producto.activo,
-      esPersonalizable: producto.esPersonalizable || false, // Quitar todo lo de es personalizable
-      categoriaId: producto.categoriaId || 0
+      esPersonalizable: producto.esPersonalizable || false,
+      categoriaId: producto.categoriaProductoId || null
     });
     setErrors({});
     setCurrentId(producto.id);
@@ -229,11 +240,11 @@ const ProductosAdmin = () => {
     const query = busqueda.toLowerCase().trim();
     const matchesBusqueda = !query ||
       (p.nombre?.toLowerCase() || '').includes(query) ||
-      (p.categoria?.toLowerCase() || '').includes(query) ||
+      (p.categoriaNombre?.toLowerCase() || '').includes(query) ||
       (p.descripcion?.toLowerCase() || '').includes(query) ||
       p.id.toString() === query || `#${p.id} ` === query || p.id.toString().includes(query);
 
-    const matchesCategoria = !filtroCategoria || p.categoria === filtroCategoria;
+    const matchesCategoria = !filtroCategoria || p.categoriaNombre === filtroCategoria;
 
     let matchesStock = true;
     if (filtroStock === 'bajo') matchesStock = p.stock > 0 && p.stock < 10;
@@ -456,96 +467,36 @@ const ProductosAdmin = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="p-6 md:p-10 space-y-8 overflow-y-auto flex-1 bg-[#fcfcfc] custom-scrollbar">
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">Identidad del Producto</label>
-                  <input
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleInputChange}
-                    className={`w - full bg - white border rounded - 2xl px - 6 py - 4 text - sm font - serif font - black focus: ring - 4 outline - none transition - all shadow - sm ${errors.nombre ? 'border-rose-500 focus:ring-rose-50' : 'border-gray-100 focus:ring-[#5D1919]/5 focus:border-[#5D1919]/20'} `}
-                    placeholder="Nombre del manjar..."
-                  />
-                  {errors.nombre && <p className="text-[10px] text-rose-500 mt-2 font-bold flex items-center gap-1 ml-1"><AlertCircle size={10} /> {errors.nombre}</p>}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 ml-1">Arquitectura de Precios</label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-[#5D1919] font-black">
-                        $
-                      </div>
-                      <input
-                        type="number"
-                        name="precio"
-                        placeholder="0"
-                        value={formData.precio}
-                        onChange={handleInputChange}
-                        onFocus={(e) => e.target.select()}
-                        className={`w - full bg - white border pl - 12 pr - 6 py - 4 rounded - 2xl outline - none focus: ring - 4 transition - all font - black text - gray - 900 ${errors.precio ? 'border-rose-500 focus:ring-rose-50' : 'border-gray-100 focus:ring-[#5D1919]/5 focus:border-[#5D1919]/20'} `}
-                      />
-                    </div>
-                    {errors.precio && <p className="text-[10px] text-rose-500 mt-1 font-bold flex items-center gap-1 ml-1"><AlertCircle size={10} /> {errors.precio}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 ml-1">Nivel de Stock</label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        name="stock"
-                        placeholder="0"
-                        value={formData.stock}
-                        onChange={handleInputChange}
-                        onFocus={(e) => e.target.select()}
-                        className={`w - full bg - white border px - 6 py - 4 rounded - 2xl outline - none focus: ring - 4 transition - all font - black text - gray - 900 ${errors.stock ? 'border-rose-500 focus:ring-rose-50' : 'border-gray-100 focus:ring-[#5D1919]/5 focus:border-[#5D1919]/20'} `}
-                      />
-                      {formData.stock < 10 && <AlertCircle className="absolute right-6 top-1/2 -translate-y-1/2 text-rose-500" size={18} />}
-                    </div>
-                    {errors.stock && <p className="text-[10px] text-rose-500 mt-1 font-bold flex items-center gap-1 ml-1"><AlertCircle size={10} /> {errors.stock}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">Colección</label>
-                    <div className="relative">
-                      <select
-                        name="categoria"
-                        value={formData.categoria}
-                        onChange={handleInputChange}
-                        className="w-full bg-white border-2 border-gray-100 px-6 py-4 rounded-2xl focus:ring-4 focus:ring-[#5D1919]/5 focus:border-[#5D1919]/20 outline-none font-black text-gray-900 cursor-pointer shadow-sm transition-all pr-12"
-                      >
-                        <option value="">Seleccione Familia...</option>
-                        {categorias.map(cat => (
-                          <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>
-                        ))}
-                      </select>
-                      <Layers className="absolute right-6 top-1/2 -translate-y-1/2 text-[#5D1919] pointer-events-none opacity-40" size={18} />
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">Presentación Visual</label>
-                  <div className="flex gap-4 items-center">
+            <form onSubmit={handleSave} className="p-6 md:p-8 overflow-y-auto flex-1 bg-gradient-to-br from-gray-50 to-gray-100/50 custom-scrollbar">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Columna Izquierda - Imagen y Info Principal */}
+                <div className="lg:col-span-4 space-y-6">
+                  {/* Card de Imagen */}
+                  <div className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Imagen del Producto</label>
                     <div
                       onClick={() => !isUploading && fileInputRef.current?.click()}
-                      className={`flex - 1 h - [58px] border - 2 border - dashed rounded - 2xl flex items - center justify - center gap - 3 cursor - pointer transition - all ${isDragging ? 'border-[#5D1919] bg-[#5D1919]/5' : 'border-gray-100 hover:border-[#5D1919]/30 hover:bg-gray-50'} ${isUploading ? 'opacity-50 cursor-not-allowed' : ''} `}
+                      className={`relative aspect-square rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden group ${
+                        isDragging ? 'border-[#5D1919] bg-[#5D1919]/5' : 'border-gray-200 hover:border-[#5D1919]/40'
+                      } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                       onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
                       onDrop={handleDrop}
                     >
                       {formData.imagenUrl ? (
                         <>
-                          <div className="w-8 h-8 rounded-lg overflow-hidden border border-gray-100">
-                            <img src={formData.imagenUrl} className="w-full h-full object-cover" alt="preview" />
+                          <img src={formData.imagenUrl} className="w-full h-full object-cover" alt="preview" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                            <span className="text-white text-xs font-black uppercase tracking-widest">Cambiar</span>
                           </div>
-                          <span className="text-[10px] font-black text-[#5D1919] uppercase tracking-widest">{isUploading ? 'Subiendo...' : 'Cambiar Imagen'}</span>
                         </>
                       ) : (
-                        <>
-                          <ImageIcon className="text-gray-300" size={18} />
-                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isUploading ? 'Subiendo...' : 'Cargar Media'}</span>
-                        </>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                            <ImageIcon className="text-gray-400" size={28} />
+                          </div>
+                          <span className="text-xs font-medium text-gray-400">Arrastra o sube</span>
+                        </div>
                       )}
                       <input
                         ref={fileInputRef}
@@ -560,50 +511,168 @@ const ProductosAdmin = () => {
                       <button
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, imagenUrl: '' }))}
-                        className="p-4 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-100 transition-all border border-rose-100 shadow-sm"
-                        title="Eliminar Imagen"
+                        className="w-full mt-4 py-3 bg-rose-50 text-rose-600 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-rose-100 transition-all flex items-center justify-center gap-2"
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={14} /> Eliminar Imagen
                       </button>
                     )}
                   </div>
+
+                  {/* Card de Estado */}
+                  <div className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Estado</label>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${formData.activo ? 'bg-green-500 shadow-lg shadow-green-500/50' : 'bg-gray-300'}`}></div>
+                        <span className={`text-sm font-bold ${formData.activo ? 'text-green-600' : 'text-gray-400'}`}>
+                          {formData.activo ? 'Activo' : 'Inactivo'}
+                        </span>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.activo}
+                          onChange={(e) => setFormData(prev => ({ ...prev, activo: e.target.checked }))}
+                          className="sr-only peer"
+                        />
+                        <div className="w-14 h-8 bg-gray-200 peer-checked:bg-[#5D1919] rounded-full transition-all duration-300 shadow-inner"></div>
+                        <div className="absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 peer-checked:translate-x-6"></div>
+                      </label>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-3">
+                      {formData.activo ? 'Visible en catálogo público' : 'Oculto para clientes'}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">Reseña Gastronómica / Descripción</label>
-                <textarea
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleInputChange}
-                  className="w-full bg-white border border-gray-100 px-6 py-4 rounded-2xl focus:ring-4 focus:ring-[#5D1919]/5 focus:border-[#5D1919]/20 outline-none h-32 resize-none text-sm font-medium text-gray-600 shadow-sm"
-                  placeholder="Describe los matices, ingredientes y experiencia del producto..."
-                ></textarea>
-              </div>
+                {/* Columna Derecha - Datos del Producto */}
+                <div className="lg:col-span-8 space-y-6">
+                  {/* Card Principal */}
+                  <div className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100 space-y-5">
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">Nombre del Producto</label>
+                      <input
+                        name="nombre"
+                        value={formData.nombre}
+                        onChange={handleInputChange}
+                        className={`w-full bg-gray-50 border rounded-xl px-5 py-3.5 text-base font-semibold focus:ring-4 outline-none transition-all ${
+                          errors.nombre 
+                            ? 'border-rose-400 focus:ring-rose-100 bg-rose-50/30' 
+                            : 'border-gray-200 focus:ring-[#5D1919]/10 focus:border-[#5D1919]'
+                        }`}
+                        placeholder="Ej: Tarta Ópera Real"
+                      />
+                      {errors.nombre && (
+                        <p className="text-xs text-rose-500 mt-2 font-semibold flex items-center gap-1 ml-1">
+                          <AlertCircle size={12} /> {errors.nombre}
+                        </p>
+                      )}
+                    </div>
 
-              <div className="pt-8 border-t border-gray-100 flex justify-end gap-4 items-center">
-                <button
-                  type="button"
-                  onClick={() => { setShowModal(false); document.body.classList.remove('overflow-hidden'); }}
-                  className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-all"
-                >
-                  Descartar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUploading}
-                  className="bg-[#5D1919] text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-[#7D2121] transition-all shadow-xl shadow-[#5D1919]/20 flex items-center gap-3 active:scale-95 disabled:opacity-50"
-                >
-                  {isUploading ? (
-                    <span className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Procesando Media...
-                    </span>
-                  ) : (
-                    <>
-                      <Save size={18} strokeWidth={3} /> {isEditing ? 'Guardar Cambios Maestros' : 'Publicar Producto'}
-                    </>
-                  )}
-                </button>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">Descripción</label>
+                      <textarea
+                        name="descripcion"
+                        value={formData.descripcion}
+                        onChange={handleInputChange}
+                        className="w-full bg-gray-50 border border-gray-200 px-5 py-3.5 rounded-xl outline-none focus:ring-4 focus:ring-[#5D1919]/10 focus:border-[#5D1919] text-sm resize-none h-28"
+                        placeholder="Describe los matices, ingredientes y experiencia del producto..."
+                      ></textarea>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Precio</label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                          <input
+                            type="number"
+                            name="precio"
+                            value={formData.precio}
+                            onChange={handleInputChange}
+                            onFocus={(e) => e.target.select()}
+                            className={`w-full bg-gray-50 border pl-8 pr-4 py-3.5 rounded-xl outline-none focus:ring-4 font-semibold ${
+                              errors.precio 
+                                ? 'border-rose-400 focus:ring-rose-100' 
+                                : 'border-gray-200 focus:ring-[#5D1919]/10 focus:border-[#5D1919]'
+                            }`}
+                          />
+                        </div>
+                        {errors.precio && <p className="text-xs text-rose-500 font-semibold ml-1"><AlertCircle size={10} /> {errors.precio}</p>}
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Stock</label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            name="stock"
+                            value={formData.stock}
+                            onChange={handleInputChange}
+                            onFocus={(e) => e.target.select()}
+                            className={`w-full bg-gray-50 border px-4 py-3.5 rounded-xl outline-none focus:ring-4 font-semibold ${
+                              errors.stock 
+                                ? 'border-rose-400 focus:ring-rose-100' 
+                                : 'border-gray-200 focus:ring-[#5D1919]/10 focus:border-[#5D1919]'
+                            }`}
+                          />
+                          {formData.stock === 0 && (
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-rose-500 bg-rose-100 px-2 py-1 rounded-lg">AGOTADO</span>
+                          )}
+                          {formData.stock > 0 && formData.stock < 10 && (
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-lg">BAJO</span>
+                          )}
+                        </div>
+                        {errors.stock && <p className="text-xs text-rose-500 font-semibold ml-1"><AlertCircle size={10} /> {errors.stock}</p>}
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Categoría</label>
+                        <div className="relative">
+                          <select
+                            name="categoria"
+                            value={formData.categoria}
+                            onChange={handleInputChange}
+                            className="w-full bg-gray-50 border border-gray-200 px-4 py-3.5 rounded-xl outline-none focus:ring-4 focus:ring-[#5D1919]/10 focus:border-[#5D1919] font-semibold appearance-none cursor-pointer"
+                          >
+                            <option value="">Seleccionar...</option>
+                            {categorias.map(cat => (
+                              <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>
+                            ))}
+                          </select>
+                          <Layers className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card de Acciones */}
+                  <div className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => { setShowModal(false); document.body.classList.remove('overflow-hidden'); }}
+                      className="px-8 py-3.5 text-sm font-bold text-gray-400 hover:text-gray-600 transition-all rounded-xl hover:bg-gray-100 w-full sm:w-auto"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isUploading}
+                      className="w-full sm:w-auto bg-gradient-to-r from-[#5D1919] to-[#7D2121] text-white px-10 py-3.5 rounded-xl font-bold text-sm uppercase tracking-wider hover:shadow-xl hover:shadow-[#5D1919]/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                    >
+                      {isUploading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          <Save size={18} /> {isEditing ? 'Guardar Cambios' : 'Crear Producto'}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </form>
           </div>

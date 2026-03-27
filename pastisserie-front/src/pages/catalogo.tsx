@@ -48,7 +48,7 @@ const Catalogo = () => {
     const productosFiltrados = (productos || [])
         .filter(p => {
             if (!p) return false;
-            const catP = (p.categoria || '').trim().toLowerCase();
+            const catP = (p.categoriaNombre || '').trim().toLowerCase();
             const catF = (categoriaFiltro || 'Todos').trim().toLowerCase();
             const coincideCategoria = catF === 'todos' || catP === catF;
             const coincideBusqueda = (p.nombre || '').toLowerCase().includes((busqueda || '').toLowerCase());
@@ -62,7 +62,7 @@ const Catalogo = () => {
             return (a.nombre || '').localeCompare(b.nombre || '');
         });
 
-    const categorias = ['Todos', ...new Set(productos.map(p => p.categoria).filter(Boolean))];
+    const categorias = ['Todos', ...new Set(productos.map(p => p.categoriaNombre).filter(Boolean) as string[])];
 
     return (
         <div className="min-h-screen bg-gray-50 pt-24 pb-20 animate-fade-in transition-all duration-500">

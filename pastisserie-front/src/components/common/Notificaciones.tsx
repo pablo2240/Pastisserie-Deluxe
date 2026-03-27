@@ -16,8 +16,12 @@ const Notificaciones: React.FC<NotificacionesProps> = ({ className }) => {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const cargarNotificaciones = async () => {
-        // ... (omitting intermediate logic if possible, but replace_file_content needs contiguous block)
-        // I will just replace the whole component definition part including the render start.
+        // Verificar que hay usuario autenticado antes de hacer la petición
+        if (!user || !user.id) {
+            setNotificaciones([]);
+            return;
+        }
+
         try {
             const response = await notificacionService.getMisNotificaciones();
             // Resiliencia ante formatos: { success, data } o array directo
@@ -52,11 +56,15 @@ const Notificaciones: React.FC<NotificacionesProps> = ({ className }) => {
     };
 
     useEffect(() => {
-        // Cargar al inicio y cada 12 segundos (Alta Frecuencia para flujo profesional)
-        cargarNotificaciones();
-        const interval = setInterval(cargarNotificaciones, 12000);
-        return () => clearInterval(interval);
-    }, []);
+        // Solo cargar notificaciones si hay usuario autenticado
+        if (user && user.id) {
+            cargarNotificaciones();
+            const interval = setInterval(cargarNotificaciones, 12000);
+            return () => clearInterval(interval);
+        }
+        // Limpiar notificaciones cuando no hay usuario
+        setNotificaciones([]);
+    }, [user]);
 
     // Cerrar dropdown al hacer click fuera
     useEffect(() => {

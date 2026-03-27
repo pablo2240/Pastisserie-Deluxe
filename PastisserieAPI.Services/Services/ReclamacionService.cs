@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PastisserieAPI.Core.Entities;
 using PastisserieAPI.Core.Interfaces;
 using PastisserieAPI.Services.DTOs.Response;
@@ -10,11 +11,13 @@ namespace PastisserieAPI.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificacionService _notificacionService;
+        private readonly ILogger<ReclamacionService> _logger;
 
-        public ReclamacionService(IUnitOfWork unitOfWork, INotificacionService notificacionService)
+        public ReclamacionService(IUnitOfWork unitOfWork, INotificacionService notificacionService, ILogger<ReclamacionService> logger)
         {
             _unitOfWork = unitOfWork;
             _notificacionService = notificacionService;
+            _logger = logger;
         }
 
         public async Task<ReclamacionResponseDto> CreateAsync(int usuarioId, int pedidoId, string motivo)
@@ -74,7 +77,10 @@ namespace PastisserieAPI.Services.Services
                     );
                 }
             }
-            catch { /* No fallar si la notificación falla */ }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al enviar notificación de reclamación para usuario {UsuarioId}, pedido {PedidoId}", usuarioId, pedidoId);
+            }
 
             var usuario = await _unitOfWork.Users.GetByIdAsync(usuarioId);
             return MapToDto(reclamacion, usuario?.Nombre ?? "");
@@ -128,7 +134,10 @@ namespace PastisserieAPI.Services.Services
                     "/reclamaciones"
                 );
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al enviar notificación de actualización de reclamación {ReclamacionId}", id);
+            }
 
             var usuario = await _unitOfWork.Users.GetByIdAsync(reclamacion.UsuarioId);
             return MapToDto(reclamacion, usuario?.Nombre ?? "");

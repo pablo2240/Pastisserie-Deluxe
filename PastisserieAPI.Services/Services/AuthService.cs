@@ -10,6 +10,7 @@ using PastisserieAPI.Services.Helpers;
 using PastisserieAPI.Services.Services.Interfaces;
 using BCrypt.Net;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace PastisserieAPI.Services.Services
 {
@@ -20,14 +21,16 @@ namespace PastisserieAPI.Services.Services
         private readonly JwtHelper _jwtHelper;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IUnitOfWork unitOfWork, IMapper mapper, JwtHelper jwtHelper, IEmailService emailService, IConfiguration configuration)
+        public AuthService(IUnitOfWork unitOfWork, IMapper mapper, JwtHelper jwtHelper, IEmailService emailService, IConfiguration configuration, ILogger<AuthService> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _jwtHelper = jwtHelper;
             _emailService = emailService;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto request)
@@ -117,7 +120,8 @@ namespace PastisserieAPI.Services.Services
             var userWithRoles = await _unitOfWork.Users.GetByEmailWithRolesAsync(user.Email);
 
             // Enviar correo de bienvenida
-            try { await _emailService.SendWelcomeEmailAsync(user.Email, user.Nombre); } catch { }
+            try { await _emailService.SendWelcomeEmailAsync(user.Email, user.Nombre); } 
+            catch (Exception ex) { _logger.LogWarning(ex, "Error al enviar correo de bienvenida a {Email}", user.Email); }
 
             return _mapper.Map<UserResponseDto>(userWithRoles);
         }
@@ -249,7 +253,7 @@ namespace PastisserieAPI.Services.Services
                 string resetLink = $"{frontendUrl}/reset-password?token={token}&email={email}";
                 await _emailService.SendPasswordResetEmailAsync(email, resetLink);
             }
-            catch { }
+            catch (Exception ex) { _logger.LogWarning(ex, "Error al enviar correo de recuperación a {Email}", email); }
 
             return token;
         }

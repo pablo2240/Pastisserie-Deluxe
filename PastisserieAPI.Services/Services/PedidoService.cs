@@ -302,7 +302,28 @@ namespace PastisserieAPI.Services.Services
             // Guardamos cambios finales
             await _unitOfWork.SaveChangesAsync();
 
-            // 9. Retorno con datos completos (Include)
+            // 10. Notificar a los administradores de nuevo pedido
+            try
+            {
+                var admins = (await _unitOfWork.Users.GetAllAsync())
+                    .Where(u => u.Id == 1 || (u.Email != null && u.Email.Contains("admin")));
+                foreach (var admin in admins)
+                {
+                    await _notificacionService.CrearNotificacionAsync(
+                        admin.Id,
+                        $"Nuevo Pedido #{pedido.Id} 🛒",
+                        $"Se ha realizado un nuevo pedido por ${pedido.Total:N0}. Revisa los detalles en el panel de administración.",
+                        "Pedido",
+                        "/admin/pedidos"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al enviar notificación de nuevo pedido a administradores");
+            }
+
+            // 11. Retorno con datos completos (Include)
             var pedidoCompleto = await _unitOfWork.Pedidos.GetByIdWithDetailsAsync(pedido.Id)
                                  ?? await _unitOfWork.Pedidos.GetByIdAsync(pedido.Id);
 
@@ -415,16 +436,24 @@ namespace PastisserieAPI.Services.Services
                     "EnProceso" => "está siendo preparado 👨‍🍳",
                     "EnCamino" => "está en camino 🚚",
                     "Entregado" => "fue entregado exitosamente ✅",
-                    "NoEntregado" => "no pudo ser entregado. Por favor contáctanos. ❌",
+                    "NoEntregado" => "no pudo ser entregado. Por favor contactanos para crear una reclamación. ❌",
                     "Cancelado" => "fue cancelado 🚫",
                     _ => $"cambió a {request.Estado}"
                 };
+
+                // Enlace dinámico según el estado
+                var enlace = request.Estado switch
+                {
+                    "NoEntregado" => $"/reclamaciones?pedidoId={pedido.Id}",
+                    _ => "/history"
+                };
+
                 await _notificacionService.CrearNotificacionAsync(
                     pedido.UsuarioId,
                     $"Pedido #{pedido.Id} - {request.Estado}",
-                    $"Tu pedido #{pedido.Id} {estadoMensaje}.",
+                    $"Tu pedido #{pedido.Id} {estadoMensaje}",
                     "Pedido",
-                    "/history"
+                    enlace
                 );
 
                 if (request.Estado == "NoEntregado")
@@ -442,7 +471,10 @@ namespace PastisserieAPI.Services.Services
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al enviar notificación de cambio de estado para pedido {PedidoId}", pedido.Id);
+            }
 
             // Enviar correo de cambio de estado
             try
@@ -462,7 +494,10 @@ namespace PastisserieAPI.Services.Services
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al enviar correo de cambio de estado para pedido {PedidoId}", pedido.Id);
+            }
 
             return _mapper.Map<PedidoResponseDto>(pedido);
         }
@@ -539,7 +574,10 @@ namespace PastisserieAPI.Services.Services
                     );
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al enviar notificación/email de asignación de repartidor para pedido {PedidoId}", pedido.Id);
+            }
 
             return _mapper.Map<PedidoResponseDto>(pedido);
         }

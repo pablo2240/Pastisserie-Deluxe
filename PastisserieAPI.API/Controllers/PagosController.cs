@@ -237,6 +237,22 @@ namespace PastisserieAPI.API.Controllers
 
                     _logger.LogInformation("Pago simulado aprobado para pedido {PedidoId}", pedidoId);
 
+                    // Notificar al usuario que el pago fue aprobado
+                    try
+                    {
+                        await _notificacionService.CrearNotificacionAsync(
+                            userId.Value,
+                            $"Pago Aprobado - Pedido #{pedido.Id} ✅",
+                            $"El pago de tu pedido #{pedido.Id} ha sido aprobado. Tu pedido está siendo preparado.",
+                            "Pago",
+                            "/history"
+                        );
+                    }
+                    catch (Exception exNotif)
+                    {
+                        _logger.LogWarning(exNotif, "Error al enviar notificación de pago aprobado para pedido {PedidoId}", pedidoId);
+                    }
+
                     return Ok(ApiResponse<object>.SuccessResponse(new
                     {
                         pedidoId = pedido.Id,
@@ -257,6 +273,22 @@ namespace PastisserieAPI.API.Controllers
                     await _unitOfWork.SaveChangesAsync();
 
                     _logger.LogInformation("Pago simulado rechazado para pedido {PedidoId}", pedidoId);
+
+                    // Notificar al usuario que el pago fue rechazado
+                    try
+                    {
+                        await _notificacionService.CrearNotificacionAsync(
+                            userId.Value,
+                            $"Pago Rechazado - Pedido #{pedido.Id} ❌",
+                            $"El pago de tu pedido #{pedido.Id} no pudo ser procesado. Por favor intenta nuevamente o contactanos.",
+                            "Pago",
+                            "/checkout"
+                        );
+                    }
+                    catch (Exception exNotif)
+                    {
+                        _logger.LogWarning(exNotif, "Error al enviar notificación de pago rechazado para pedido {PedidoId}", pedidoId);
+                    }
 
                     return BadRequest(ApiResponse<object>.SuccessResponse(new
                     {

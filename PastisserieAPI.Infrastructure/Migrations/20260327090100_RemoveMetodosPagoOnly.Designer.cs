@@ -12,8 +12,8 @@ using PastisserieAPI.Infrastructure.Data;
 namespace PastisserieAPI.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260327084638_RemoveMetodosPagoTables")]
-    partial class RemoveMetodosPagoTables
+    [Migration("20260327090100_RemoveMetodosPagoOnly")]
+    partial class RemoveMetodosPagoOnly
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -16,8 +16,6 @@ namespace PastisserieAPI.Infrastructure.Repositories
         {
             return await _dbSet
                 .Include(p => p.Usuario)
-                .Include(p => p.MetodoPago)
-                    .ThenInclude(m => m.TipoMetodoPago)
                 .Include(p => p.Items)
                     .ThenInclude(i => i.Producto)
                 .OrderByDescending(p => p.FechaPedido)
@@ -28,8 +26,6 @@ namespace PastisserieAPI.Infrastructure.Repositories
         {
             return await _dbSet
                 .Where(p => p.UsuarioId == usuarioId)
-                .Include(p => p.MetodoPago)
-                    .ThenInclude(m => m.TipoMetodoPago)
                 .Include(p => p.Items)
                     .ThenInclude(i => i.Producto)
                 .Include(p => p.DireccionEnvio)
@@ -54,8 +50,6 @@ namespace PastisserieAPI.Infrastructure.Repositories
                 .Include(p => p.Items)
                     .ThenInclude(i => i.Producto)
                 .Include(p => p.Usuario)
-                .Include(p => p.MetodoPago)
-                    .ThenInclude(m => m.TipoMetodoPago)
                 .Include(p => p.DireccionEnvio)
                 .Include(p => p.Envio)
                 .Include(p => p.Factura)
@@ -67,8 +61,6 @@ namespace PastisserieAPI.Infrastructure.Repositories
             return await _dbSet
                 .Where(p => p.Estado == "Pendiente" || p.Estado == "Confirmado")
                 .Include(p => p.Usuario)
-                .Include(p => p.MetodoPago)
-                    .ThenInclude(m => m.TipoMetodoPago)
                 .Include(p => p.Items)
                     .ThenInclude(i => i.Producto)
                 .OrderBy(p => p.FechaPedido)

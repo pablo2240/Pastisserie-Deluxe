@@ -21,7 +21,6 @@ namespace PastisserieAPI.Infrastructure.Data
                 // Orden de ejecución de seeds (manteniendo integridad referencial)
                 SeedRoles(context, logger);
                 SeedCategorias(context, logger);
-                SeedTiposMetodoPago(context, logger);
                 SeedAdmin(context, logger);
                 SeedProductos(context, logger);
                 SeedConfiguracionTienda(context, logger);
@@ -67,41 +66,6 @@ namespace PastisserieAPI.Infrastructure.Data
             });
             
             logger.LogInformation("🔑 Roles iniciales agregados.");
-        }
-
-        private static void SeedTiposMetodoPago(ApplicationDbContext context, ILogger logger)
-        {
-            if (context.TiposMetodoPago.Any()) return;
-
-            var metodos = new List<TipoMetodoPago>
-            {
-                new() { Id = 1, Nombre = "Efectivo", Descripcion = "Pago en efectivo contra entrega", Activo = true },
-                new() { Id = 2, Nombre = "Tarjeta de Crédito", Descripcion = "Pago con tarjeta de crédito", Activo = true },
-                new() { Id = 3, Nombre = "Tarjeta de Débito", Descripcion = "Pago con tarjeta de débito", Activo = true },
-                new() { Id = 4, Nombre = "Transferencia", Descripcion = "Transferencia bancaria", Activo = true },
-                new() { Id = 5, Nombre = "PSE", Descripcion = "Pago electrónico PSE", Activo = true }
-            };
-
-            var strategy = context.Database.CreateExecutionStrategy();
-            strategy.Execute(() =>
-            {
-                using var transaction = context.Database.BeginTransaction();
-                try
-                {
-                    context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT TiposMetodoPago ON");
-                    context.TiposMetodoPago.AddRange(metodos);
-                    context.SaveChanges();
-                    context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT TiposMetodoPago OFF");
-                    transaction.Commit();
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-            });
-
-            logger.LogInformation("💳 Métodos de pago agregados.");
         }
 
         private static void SeedCategorias(ApplicationDbContext context, ILogger logger)

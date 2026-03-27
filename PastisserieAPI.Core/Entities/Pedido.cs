@@ -18,7 +18,8 @@ namespace PastisserieAPI.Core.Entities
         public string Estado { get; set; } = "Pendiente";
 
         [Required]
-        public int MetodoPagoId { get; set; }
+        [MaxLength(100)]
+        public string MetodoPago { get; set; } = "Efectivo";
 
         public int? DireccionEnvioId { get; set; }
 
@@ -38,7 +39,6 @@ namespace PastisserieAPI.Core.Entities
 
         public DateTime? FechaEntregaEstimada { get; set; }
 
-        /// <summary>Fecha real en que el pedido fue entregado. Se establece al marcar Estado = Entregado.</summary>
         public DateTime? FechaEntrega { get; set; }
 
         [MaxLength(1000)]
@@ -61,9 +61,6 @@ namespace PastisserieAPI.Core.Entities
 
         [ForeignKey("RepartidorId")]
         public virtual User? Repartidor { get; set; }
-
-        [ForeignKey("MetodoPagoId")]
-        public virtual MetodoPagoUsuario MetodoPago { get; set; } = null!;
 
         [ForeignKey("DireccionEnvioId")]
         public virtual DireccionEnvio? DireccionEnvio { get; set; }

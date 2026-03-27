@@ -131,45 +131,19 @@ namespace PastisserieAPI.Services.Services
                 var comunaLabel = ComunasLabels.TryGetValue(request.Comuna, out var label) ? label : request.Comuna;
                 infoEnvio += $"\nComuna: {comunaLabel}";
             }
-            if (!string.IsNullOrEmpty(request.MetodoPago)) infoEnvio += $"\nPago: Tarjeta/Débito";
+            if (!string.IsNullOrEmpty(request.MetodoPago)) 
+            {
+                infoEnvio += $"\nPago: {request.MetodoPago}";
+                pedido.MetodoPago = request.MetodoPago;
+            }
+            else
+            {
+                pedido.MetodoPago = "Efectivo";
+            }
 
             pedido.NotasCliente = string.IsNullOrEmpty(pedido.NotasCliente)
                 ? infoEnvio
                 : $"{pedido.NotasCliente}\n---\n{infoEnvio}";
-
-            // Determine payment method record in DB (Payment processed internally)
-            var todosMetodos = await _unitOfWork.MetodosPagoUsuario.GetAllAsync();
-            MetodoPagoUsuario? metodoSeleccionado = todosMetodos.FirstOrDefault(m => m.UsuarioId == userId);
-
-            if (metodoSeleccionado == null)
-            {
-                var todosTipos = await _unitOfWork.TiposMetodoPago.GetAllAsync();
-                var tipo = todosTipos.FirstOrDefault(t => t.Nombre.Contains("Tarjeta"))
-                          ?? todosTipos.FirstOrDefault(t => t.Nombre.Contains("Débito"))
-                          ?? todosTipos.FirstOrDefault();
-
-                if (tipo == null)
-                {
-                    tipo = new TipoMetodoPago { Nombre = "Pago con Tarjeta", Descripcion = "Pagos con tarjeta de débito/crédito", Activo = true };
-                    await _unitOfWork.TiposMetodoPago.AddAsync(tipo);
-                    await _unitOfWork.SaveChangesAsync();
-                }
-
-                metodoSeleccionado = new MetodoPagoUsuario
-                {
-                    UsuarioId = userId,
-                    TipoMetodoPagoId = tipo.Id,
-                    UltimosDigitos = "0000",
-                    TokenPago = "PENDING",
-                    EsPredeterminado = true,
-                    FechaCreacion = GetBogotaTime()
-                };
-
-                await _unitOfWork.MetodosPagoUsuario.AddAsync(metodoSeleccionado);
-                await _unitOfWork.SaveChangesAsync();
-            }
-
-            pedido.MetodoPagoId = metodoSeleccionado.Id;
 
             // Crear DireccionEnvio con los datos del checkout (captura estática)
             if (!string.IsNullOrEmpty(request.Direccion) || !string.IsNullOrEmpty(request.Comuna))

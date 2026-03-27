@@ -61,7 +61,7 @@ namespace PastisserieAPI.Services.Mappings
                 // 👇 ESTA LÍNEA ES LA CLAVE: Mapeamos el objeto completo
                 .ForMember(dest => dest.Usuario, opt => opt.MapFrom(src => src.Usuario))
                 .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items))
-                .ForMember(dest => dest.MetodoPago, opt => opt.MapFrom(src => src.MetodoPago.TipoMetodoPago.Nombre))
+                .ForMember(dest => dest.MetodoPago, opt => opt.MapFrom(src => src.MetodoPago))
                 .ForMember(dest => dest.DireccionEnvio, opt => opt.MapFrom(src => src.DireccionEnvio));
 
             CreateMap<PedidoItem, PedidoItemResponseDto>()

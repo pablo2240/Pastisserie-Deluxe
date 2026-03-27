@@ -13,8 +13,6 @@
         Repositories.IRepository<Entities.UserRol> UserRoles { get; }
         Repositories.IRepository<Entities.Rol> Roles { get; }
         Repositories.IRepository<Entities.CategoriaProducto> Categorias { get; }
-        Repositories.IRepository<Entities.MetodoPagoUsuario> MetodosPagoUsuario { get; }
-        Repositories.IRepository<Entities.TipoMetodoPago> TiposMetodoPago { get; }
         Repositories.IRepository<Entities.Notificacion> Notificaciones { get; }
         Repositories.IRepository<Entities.Promocion> Promociones { get; }
         Repositories.IRepository<Entities.ConfiguracionTienda> Configuracion { get; }

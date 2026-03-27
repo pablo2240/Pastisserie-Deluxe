@@ -114,7 +114,7 @@ const Checkout = () => {
                 direccion: formData.direccion,
                 comuna: formData.comuna,
                 telefono: formData.telefono,
-                metodoPago: 'Simulado',
+                metodoPago: 'Tarjeta Crédito',
                 notas: formData.notas
             });
 

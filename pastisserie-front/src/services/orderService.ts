@@ -41,7 +41,6 @@ export const orderService = {
     notas?: string
   }) => {
     const payload = {
-      MetodoPagoId: 0,
       DireccionEnvioId: null,
       MetodoPago: orderData.metodoPago,
       Direccion: orderData.direccion,

@@ -1,24 +1,78 @@
-# Logs
-logs
+## ==== PATCH: Seguridad y producción (React + .NET + AI tools) ====
+# ---- .NET Output ----
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ---- Node.js / React Output ----
+node_modules/
+dist/
+build/
+coverage/
+.nyc_output/
+
+# ---- Logs, Temp, System ----
 *.log
 npm-debug.log*
-yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.pid
 
-node_modules
-dist
-dist-ssr
-*.local
+# ---- Env, Local Settings, Secrets ----
+.env
+.env.*
+!.env.example
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.secrets.json
+local.settings.json
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# ---- IDE / Editor ----
+.vscode/
+.idea/
+*.code-workspace
+
+# ---- Cache / Misc ----
+.cache/
+tmp/
+out/
+bower_components/
+.sass-cache/
+*.tgz
+*.db
+*.sqlite
+*.mdf
+*.ldf
+
+# ---- Coverage/Docs (if auto-generated) ----
+coverage/
+*.lcov
+docs/DB
+
+# ---- AI Tooling / Local Agent Config ----
+.gentle-ai/
+gentle-ai/
+.gga
+.opencode/
+.engram/
+.cursor/
+.codex/
+.windsurf/
+# Si gentle-ai/ contiene código fuente importante (ej: skills originales necesarias para deploy), ajustá la regla
+
+# ---- Misc/OS ----
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+Desktop.ini
+
+# ==== Fin PATCH =====
+
+# === ORIGINAL .gitignore ===

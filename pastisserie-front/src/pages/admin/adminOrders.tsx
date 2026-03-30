@@ -538,20 +538,12 @@ const PedidosAdmin = () => {
               </div>
             </div>
 
-            <div className="p-6 md:p-8 bg-gray-50 border-t flex justify-end gap-3 shrink-0">
+            <div className="p-6 md:p-8 bg-gray-50 border-t flex justify-end shrink-0">
               <button
                 onClick={() => setSelectedPedido(null)}
                 className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-sm transition-colors"
               >
                 Cerrar
-              </button>
-              <button
-                onClick={() => {
-                  window.print();
-                }}
-                className="px-6 py-2.5 bg-[#7D2121] hover:bg-red-900 text-white rounded-xl font-bold text-sm transition-colors flex items-center gap-2"
-              >
-                Imprimir Comprobante
               </button>
             </div>
           </div>

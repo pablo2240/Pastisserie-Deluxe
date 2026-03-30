@@ -240,12 +240,12 @@ const Perfil = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-6">
-                        <div className="text-right">
+                      <div className="flex flex-nowrap items-center gap-4">
+                        <div className="text-right shrink-0">
                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total</p>
                           <p className="font-bold text-patisserie-red text-xl">{formatCurrency(pedido.total)}</p>
                         </div>
-                        <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest min-w-[90px] text-center ${getStatusColor(pedido.estado)}`}>
+                        <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest min-w-[90px] text-center shrink-0 ${getStatusColor(pedido.estado)}`}>
                           {pedido.estado}
                         </span>
                       </div>

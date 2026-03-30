@@ -55,10 +55,10 @@ const Promociones = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#1a0505] to-[#2d0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-white/20 border-t-amber-400 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/60 text-sm font-medium">Cargando promociones...</p>
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-patisserie-red rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500 text-sm font-medium">Cargando promociones...</p>
         </div>
       </div>
     );
@@ -66,28 +66,28 @@ const Promociones = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#1a0505] via-[#2d0a0a] to-[#1a0505] flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="max-w-lg w-full text-center">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-red-500/20 blur-3xl rounded-full"></div>
-            <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-12">
-              <div className="w-24 h-24 bg-gradient-to-br from-amber-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
+            <div className="absolute inset-0 bg-patisserie-red/10 blur-3xl rounded-full"></div>
+            <div className="relative bg-white border border-gray-100 rounded-[2rem] p-12 shadow-xl shadow-gray-200/50">
+              <div className="w-24 h-24 bg-patisserie-red rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <FiTag className="text-white text-4xl" />
               </div>
-              <h2 className="text-3xl font-serif font-bold text-white mb-4">Ofertas Exclusivas</h2>
-              <p className="text-white/60 mb-8 text-lg">
+              <h2 className="text-3xl font-serif font-black text-patisserie-dark mb-4">Ofertas Exclusivas</h2>
+              <p className="text-gray-500 mb-8 text-lg">
                 Inicia sesión para descubrir nuestras promociones especiales, combos del mes y descuentos exclusivos.
               </p>
               <div className="flex flex-col gap-3">
                 <Link 
                   to="/login" 
-                  className="w-full bg-gradient-to-r from-amber-500 to-red-600 text-white px-8 py-4 rounded-xl font-bold hover:from-amber-400 hover:to-red-500 transition-all shadow-xl shadow-red-900/30"
+                  className="w-full bg-patisserie-red text-white px-8 py-4 rounded-xl font-bold hover:bg-patisserie-red/90 transition-all shadow-lg shadow-patisserie-red/20"
                 >
                   Iniciar Sesión
                 </Link>
                 <Link 
                   to="/registro" 
-                  className="w-full bg-white/10 text-white border border-white/20 px-8 py-4 rounded-xl font-bold hover:bg-white/20 transition-all"
+                  className="w-full bg-gray-100 text-gray-700 border border-gray-200 px-8 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all"
                 >
                   Crear Cuenta
                 </Link>
@@ -100,19 +100,19 @@ const Promociones = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1a0505] via-[#2d0a0a] to-[#1a0505] pt-28 pb-16">
+    <div className="min-h-screen bg-gray-50 pt-24 pb-16">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-12 relative">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-patisserie-red/10 rounded-full blur-3xl"></div>
           <div className="relative z-10">
-            <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-amber-500 to-red-600 text-white text-xs font-bold uppercase tracking-[0.3em] rounded-full mb-4 shadow-lg">
+            <span className="inline-block px-4 py-1.5 bg-patisserie-red text-white text-xs font-black uppercase tracking-[0.3em] rounded-full mb-4 shadow-lg">
               Ofertas Limitadas
             </span>
-            <h1 className="text-5xl md:text-6xl font-serif font-bold text-white mb-4">
-              Promociones <span className="text-amber-500">Especiales</span>
+            <h1 className="text-5xl md:text-6xl font-serif font-black text-patisserie-dark mb-4">
+              Promociones <span className="text-patisserie-red">Especiales</span>
             </h1>
-            <p className="text-white/50 text-lg max-w-xl mx-auto">
+            <p className="text-gray-500 text-lg max-w-xl mx-auto">
               Descubre nuestros combos exclusivos y descuentos por tiempo limitado. 
               ¡No te los pierdas!
             </p>
@@ -132,12 +132,12 @@ const Promociones = () => {
             {promociones.map((promo, index) => (
               <div 
                 key={promo.id} 
-                className="group relative bg-gradient-to-br from-white to-white/95 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-red-900/20 transition-all duration-500 hover:-translate-y-1"
+                className="group relative bg-white rounded-[2rem] overflow-hidden hover:shadow-2xl hover:shadow-patisserie-red/10 transition-all duration-500 hover:-translate-y-1 border border-gray-100"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Badge de descuento */}
                 <div className="absolute top-4 left-4 z-20">
-                  <div className="bg-gradient-to-r from-amber-500 to-red-600 text-white px-4 py-2 rounded-xl font-black text-sm shadow-lg flex items-center gap-2">
+                  <div className="bg-patisserie-red text-white px-4 py-2 rounded-xl font-black text-sm shadow-lg flex items-center gap-2">
                     <FiTag size={16} />
                     {promo.tipoDescuento === 'Porcentaje' ? `-${promo.valor}%` : `-${formatCurrency(promo.valor)}`}
                   </div>
@@ -154,7 +154,7 @@ const Promociones = () => {
                   
                   {/* Stock info overlay */}
                   {isAgotada(promo) && (
-                    <div className="absolute top-4 right-4 bg-gray-900/90 text-white px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider">
+                    <div className="absolute top-4 right-4 bg-gray-800 text-white px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider">
                       Agotado
                     </div>
                   )}
@@ -170,7 +170,7 @@ const Promociones = () => {
 
                 {/* Contenido */}
                 <div className="p-6">
-                  <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2 group-hover:text-red-700 transition-colors">
+                  <h3 className="text-2xl font-serif font-black text-patisserie-dark mb-2 group-hover:text-patisserie-red transition-colors">
                     {promo.nombre}
                   </h3>
                   <p className="text-gray-500 text-sm mb-4 line-clamp-2">
@@ -181,7 +181,7 @@ const Promociones = () => {
                   <div className="flex items-baseline gap-3 mb-6">
                     {promo.precioOriginal != null && promo.precioFinal != null ? (
                       <>
-                        <span className="text-3xl font-black text-gray-900">
+                        <span className="text-3xl font-black text-patisserie-dark">
                           {formatCurrency(promo.precioFinal)}
                         </span>
                         <span className="text-lg text-gray-400 line-through font-medium">
@@ -192,7 +192,7 @@ const Promociones = () => {
                         </span>
                       </>
                     ) : promo.tipoDescuento === 'MontoFijo' ? (
-                      <span className="text-3xl font-black text-gray-900">
+                      <span className="text-3xl font-black text-patisserie-dark">
                         -{formatCurrency(promo.valor)}
                       </span>
                     ) : null}
@@ -223,7 +223,7 @@ const Promociones = () => {
                       <button
                         onClick={() => addToCart(promo.productoId || null, 1, promo.id)}
                         disabled={isCartLoading}
-                        className="flex-1 bg-gradient-to-r from-amber-500 to-red-600 text-white px-6 py-3.5 rounded-xl font-bold text-sm hover:from-amber-400 hover:to-red-500 transition-all shadow-lg shadow-red-900/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="flex-1 bg-patisserie-red text-white px-6 py-3.5 rounded-xl font-bold text-sm hover:bg-patisserie-red/90 transition-all shadow-lg shadow-patisserie-red/20 flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         <FiShoppingCart size={18} /> 
                         {isCartLoading ? 'Agregando...' : 'Agregar al Carrito'}
@@ -232,7 +232,7 @@ const Promociones = () => {
                     {promo.productoId && (
                       <Link
                         to={`/productos/${promo.productoId}`}
-                        className="px-4 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:border-gray-300 hover:bg-gray-50 transition-all"
+                        className="px-4 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:border-patisserie-red hover:text-patisserie-red transition-all"
                       >
                         Ver
                       </Link>
@@ -246,18 +246,18 @@ const Promociones = () => {
 
         {/* Footer CTA */}
         <div className="mt-16 relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-red-500/20 blur-3xl rounded-3xl"></div>
-          <div className="relative bg-gradient-to-r from-[#3d1212] to-[#4d1818] rounded-3xl p-8 md:p-12 text-center border border-white/5">
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-white mb-3">
+          <div className="absolute inset-0 bg-patisserie-red/10 blur-3xl rounded-3xl"></div>
+          <div className="relative bg-patisserie-dark rounded-3xl p-8 md:p-12 text-center border border-gray-100">
+            <h2 className="text-2xl md:text-3xl font-serif font-black text-white mb-3">
               ¿Quieres ser el primero en ver nuestras ofertas?
             </h2>
-            <p className="text-white/50 mb-6 max-w-lg mx-auto">
+            <p className="text-gray-400 mb-6 max-w-lg mx-auto">
               Síguenos en redes sociales y activa las notificaciones para no perderte ninguna promoción.
             </p>
             <div className="flex justify-center gap-4">
               <Link 
                 to="/productos" 
-                className="bg-white text-gray-900 px-8 py-3.5 rounded-xl font-bold hover:bg-gray-100 transition-all"
+                className="bg-white text-patisserie-dark px-8 py-3.5 rounded-xl font-bold hover:bg-gray-100 transition-all"
               >
                 Ver Catálogo Completo
               </Link>

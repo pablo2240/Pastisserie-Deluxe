@@ -337,7 +337,19 @@ namespace PastisserieAPI.Services.Services
         {
             // Llama al repositorio que modificamos anteriormente (con los Includes de Usuario)
             var pedidos = await _unitOfWork.Pedidos.GetAllAsync();
-            return _mapper.Map<List<PedidoResponseDto>>(pedidos);
+            var pedidosDto = _mapper.Map<List<PedidoResponseDto>>(pedidos);
+            
+            // Transformar "Confirmado" a "Pendiente" para el admin
+            // (El cliente ve "Confirmado", el admin ve "Pendiente" para gestión operativa)
+            foreach (var pedido in pedidosDto)
+            {
+                if (pedido.Estado == "Confirmado")
+                {
+                    pedido.Estado = "Pendiente";
+                }
+            }
+            
+            return pedidosDto;
         }
 
         public async Task<PedidoResponseDto?> GetByIdAsync(int id)

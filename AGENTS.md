@@ -1,5 +1,12 @@
 # AGENTS.md - PastisserieDeluxe Developer Guide
 
+# Reglas del proyecto
+
+- Usar arquitectura limpia
+- No romper contratos existentes
+- Validar DTOs
+- Mantener consistencia en servicios
+
 ## Project Overview
 - **Backend**: ASP.NET Core 8.0 with Clean Architecture (Core → Infrastructure → Services → API)
 - **Frontend**: React 19 + Vite + TypeScript + Tailwind CSS v4

@@ -245,7 +245,7 @@ const Perfil = () => {
                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total</p>
                           <p className="font-bold text-patisserie-red text-xl">{formatCurrency(pedido.total)}</p>
                         </div>
-                        <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${getStatusColor(pedido.estado)}`}>
+                        <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest min-w-[90px] text-center ${getStatusColor(pedido.estado)}`}>
                           {pedido.estado}
                         </span>
                       </div>

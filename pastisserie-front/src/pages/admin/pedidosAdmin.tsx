@@ -133,7 +133,7 @@ const PedidosAdmin = () => {
   };
 
   // Filtrado de pestañas
-  const pedidosActivos = pedidos.filter(p => ['Pendiente', 'Confirmado', 'En Preparación', 'Enviado'].includes(p.estado));
+  const pedidosActivos = pedidos.filter(p => ['Pendiente', 'Confirmado', 'EnPreparacion', 'Enviado'].includes(p.estado));
   const pedidosHistorial = pedidos.filter(p => ['Entregado', 'Cancelado'].includes(p.estado));
   const listaAMostrar = activeTab === 'gestion' ? pedidosActivos : pedidosHistorial;
 
@@ -159,7 +159,7 @@ const PedidosAdmin = () => {
             : 'text-gray-400 hover:text-gray-600'
             }`}
         >
-          <Clock size={14} strokeWidth={3} /> En Preparación ({pedidosActivos.length})
+          <Clock size={14} strokeWidth={3} /> EnPreparacion ({pedidosActivos.length})
         </button>
         <button
           onClick={() => setActiveTab('historial')}
@@ -245,7 +245,7 @@ const PedidosAdmin = () => {
                               onChange={(e) => cambiarEstado(pedido.id, e.target.value)}
                             >
                               <option value="Pendiente">Pendiente</option>
-                              <option value="En Preparación">Preparando</option>
+                              <option value="EnPreparacion">Preparando</option>
                               <option value="Enviado">Enviado</option>
                               <option value="Entregado">Entregado</option>
                               <option value="Cancelado">Cancelar</option>

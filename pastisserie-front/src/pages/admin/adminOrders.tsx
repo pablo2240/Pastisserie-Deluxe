@@ -195,12 +195,12 @@ const PedidosAdmin = () => {
     ? pedidosFiltrados
     : pedidosFiltrados.filter(p => {
       if (activeTab === 'todos') return true;
-      const esActivo = ['Pendiente', 'Confirmado', 'En Preparación', 'Enviado'].includes(p.estado);
+      const esActivo = ['Pendiente', 'Confirmado', 'EnPreparacion', 'Enviado'].includes(p.estado);
       return activeTab === 'gestion' ? esActivo : !esActivo;
     });
 
-  const pedidosActivosCount = pedidos.filter(p => ['Pendiente', 'Confirmado', 'En Preparación', 'Enviado'].includes(p.estado)).length;
-  const pedidosHistorialCount = pedidos.filter(p => !['Pendiente', 'Confirmado', 'En Preparación', 'Enviado'].includes(p.estado)).length;
+  const pedidosActivosCount = pedidos.filter(p => ['Pendiente', 'Confirmado', 'EnPreparacion', 'Enviado'].includes(p.estado)).length;
+  const pedidosHistorialCount = pedidos.filter(p => !['Pendiente', 'Confirmado', 'EnPreparacion', 'Enviado'].includes(p.estado)).length;
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -367,7 +367,7 @@ const PedidosAdmin = () => {
                             onChange={(e) => cambiarEstado(pedido.id, e.target.value)}
                           >
                             <option value="Pendiente">Pendiente</option>
-                            <option value="En Preparación">Preparando</option>
+                            <option value="EnPreparacion">Preparando</option>
                             <option value="Enviado">Enviado</option>
                             <option value="Entregado">Entregado</option>
                             <option value="Cancelado">Cancelar</option>

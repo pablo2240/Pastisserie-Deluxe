@@ -89,6 +89,7 @@ const Perfil = () => {
     switch (estado) {
       case 'Entregado': return 'bg-green-100 text-green-700';
       case 'Pendiente': return 'bg-blue-100 text-blue-700';
+      case 'Confirmado': return 'bg-blue-100 text-blue-700';
       case 'PagoPendiente': return 'bg-yellow-100 text-yellow-700';
       case 'EnProceso': return 'bg-indigo-100 text-indigo-700';
       case 'EnCamino': return 'bg-purple-100 text-purple-700';

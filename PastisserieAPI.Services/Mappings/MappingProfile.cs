@@ -65,7 +65,9 @@ namespace PastisserieAPI.Services.Mappings
                 .ForMember(dest => dest.DireccionEnvio, opt => opt.MapFrom(src => src.DireccionEnvio));
 
             CreateMap<PedidoItem, PedidoItemResponseDto>()
-                .ForMember(dest => dest.NombreProducto, opt => opt.MapFrom(src => src.Producto != null ? src.Producto.Nombre : "Producto Desconocido"))
+                .ForMember(dest => dest.NombreProducto, opt => opt.MapFrom(src => 
+                    src.Producto != null ? src.Producto.Nombre :
+                    (src.Promocion != null ? src.Promocion.Nombre : "Producto Desconocido")))
                 .ForMember(dest => dest.PromocionId, opt => opt.MapFrom(src => src.PromocionId))
                 .ForMember(dest => dest.NombrePromocion, opt => opt.MapFrom(src =>
                     src.Promocion != null ? src.Promocion.Nombre : null))

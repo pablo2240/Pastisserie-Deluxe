@@ -107,5 +107,26 @@ export const orderService = {
   getHistorial: async (pedidoId: number) => {
     const response = await api.get(`/pedidos/${pedidoId}/historial`);
     return response.data.data || response.data;
+  },
+
+  // 11. Crear pedido y procesar pago en una sola operación
+  crearYPagar: async (orderData: {
+    direccion: string,
+    comuna: string,
+    telefono: string,
+    metodoPago: string,
+    notas?: string
+  }) => {
+    const payload = {
+      DireccionEnvioId: null,
+      MetodoPago: orderData.metodoPago,
+      Direccion: orderData.direccion,
+      Comuna: orderData.comuna,
+      NotasCliente: `Telefono: ${orderData.telefono}${orderData.notas ? ` | Notas: ${orderData.notas}` : ''}`,
+      Items: []
+    };
+
+    const response = await api.post('/pagos/crear-y-pagar', payload);
+    return response.data;
   }
 };

@@ -4,6 +4,7 @@ using PastisserieAPI.Core.Entities;
 using PastisserieAPI.Core.Interfaces;
 using PastisserieAPI.Infrastructure.Data;
 using PastisserieAPI.Services.DTOs.Common;
+using PastisserieAPI.Services.DTOs.Request;
 using PastisserieAPI.Services.Services.Interfaces;
 using System.Security.Claims;
 
@@ -19,6 +20,7 @@ namespace PastisserieAPI.API.Controllers
         private readonly IEmailService _emailService;
         private readonly IInvoiceService _invoiceService;
         private readonly ApplicationDbContext _context;
+        private readonly IPedidoService _pedidoService;
 
         public PagosController(
             IUnitOfWork unitOfWork,
@@ -26,7 +28,8 @@ namespace PastisserieAPI.API.Controllers
             INotificacionService notificacionService,
             IEmailService emailService,
             IInvoiceService invoiceService,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IPedidoService pedidoService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -34,6 +37,7 @@ namespace PastisserieAPI.API.Controllers
             _emailService = emailService;
             _invoiceService = invoiceService;
             _context = context;
+            _pedidoService = pedidoService;
         }
 
         private int? GetUserId()
@@ -386,6 +390,54 @@ namespace PastisserieAPI.API.Controllers
             {
                 _logger.LogError(ex, "Error al verificar pedido {PedidoId}", pedidoId);
                 return BadRequest(ApiResponse<string>.ErrorResponse($"Error al verificar pedido: {ex.Message}"));
+            }
+        }
+
+        /// <summary>
+        /// Crea el pedido y procesa el pago en una sola transacción
+        /// </summary>
+        [HttpPost("crear-y-pagar")]
+        [Authorize]
+        public async Task<IActionResult> CrearYProcesarPago([FromBody] CreatePedidoRequestDto request)
+        {
+            var userId = GetUserId();
+            if (!userId.HasValue)
+                return Unauthorized(ApiResponse<string>.ErrorResponse("Usuario no identificado"));
+
+            try
+            {
+                // 1. Crear el pedido (sin confirmar aún)
+                var pedido = await _pedidoService.CreateAsync(userId.Value, request);
+                
+                if ( pedido == null)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("No se pudo crear el pedido. Verifica que el carrito tenga productos."));
+
+                // 2. Simular pago (siempre exitoso para este endpoint)
+                // Nota: En producción, esto sería la integración con el procesador de pagos
+                var pedidoActualizado = await _pedidoService.UpdateEstadoAsync(pedido.Id, new UpdatePedidoEstadoRequestDto
+                {
+                    Estado = "Confirmado"
+                });
+
+                if (pedidoActualizado == null)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Error al confirmar el pago"));
+
+                // 3. Limpiar carrito
+                await _unitOfWork.Carritos.ClearCarritoAsync(userId.Value);
+                await _unitOfWork.SaveChangesAsync();
+
+                return Ok(ApiResponse<object>.SuccessResponse(new
+                {
+                    pedidoId = pedido.Id,
+                    estado = "Confirmado",
+                    aprobado = true,
+                    mensaje = "Pago procesado exitosamente"
+                }, "Pedido creado y pagado correctamente"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear pedido y procesar pago para usuario {UserId}", userId);
+                return BadRequest(ApiResponse<string>.ErrorResponse($"Error al procesar el pago: {ex.Message}"));
             }
         }
     }

@@ -80,12 +80,6 @@ const Checkout = () => {
             setTimeout(() => setShake(false), 500);
             return;
         }
-        setStep('summary');
-        window.scrollTo(0, 0);
-    };
-
-    const handleConfirmOrder = async () => {
-        if (isSubmitting) return;
         if (typeof compraMinima === 'number' && (total < compraMinima)) {
             toast.error(
                 `🚫 No puedes proceder al pago.\n\nLa compra mínima es de ${formatCurrency(compraMinima)}. Te faltan ${formatCurrency(compraMinima - total)}.\n\nPor favor, agrega más productos para completar tu pedido.`,
@@ -106,11 +100,18 @@ const Checkout = () => {
             );
             return;
         }
+        setStep('summary');
+        window.scrollTo(0, 0);
+    };
+
+    const handlePaymentAndCreateOrder = async () => {
+        if (isSubmitting) return;
         setIsSubmitting(true);
-        const loadingToast = toast.loading('Creando tu pedido...');
+        const loadingToast = toast.loading('Procesando pago...');
 
         try {
-            const orderResult = await orderService.createOrder({
+            // Crear pedido Y procesar pago en una sola operación
+            const orderResult = await orderService.crearYPagar({
                 direccion: formData.direccion,
                 comuna: formData.comuna,
                 telefono: formData.telefono,
@@ -118,18 +119,20 @@ const Checkout = () => {
                 notas: formData.notas
             });
 
-            if (orderResult.success && orderResult.data?.id) {
-                setPedidoId(orderResult.data.id);
-                setStep('payment');
-                toast.success('Pedido listo para pagar', { id: loadingToast });
+            if (orderResult.success && orderResult.data?.aprobado) {
+                setPedidoId(orderResult.data.pedidoId);
+                await clearCart();
+                setStep('success');
+                toast.success('Pago aprobado correctamente', { id: loadingToast });
                 window.scrollTo(0, 0);
             } else {
-                toast.error(orderResult.message || 'Error al crear el pedido', { id: loadingToast });
+                const errorMsg = orderResult.message || orderResult.data?.mensaje || 'Error al procesar el pago';
+                toast.error(errorMsg, { id: loadingToast });
             }
         } catch (error: unknown) {
-            console.error('Error al crear pedido:', error);
+            console.error('Error al procesar pago:', error);
             const err = error as { response?: { data?: { message?: string } } };
-            const errorMsg = err.response?.data?.message || 'Hubo un error al crear el pedido';
+            const errorMsg = err.response?.data?.message || 'Hubo un error al procesar el pago';
             toast.error(errorMsg, { id: loadingToast });
         } finally {
             setIsSubmitting(false);
@@ -151,17 +154,19 @@ const Checkout = () => {
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [paymentError, setPaymentError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (step === 'payment' && pedidoId) {
-            orderService.registrarIntentoPago(pedidoId).catch(console.error);
-        }
-
-        return () => {
-            if (step === 'payment' && pedidoId && !isProcessingPayment) {
-                orderService.abandonarPago(pedidoId).catch(console.error);
-            }
-        };
-    }, [step, pedidoId, isProcessingPayment]);
+    // Eliminamos el registro de intento de pago porque ahora el pedido
+    // se crea SOLO cuando el pago es exitoso
+    // useEffect(() => {
+    //     if (step === 'payment' && pedidoId) {
+    //         orderService.registrarIntentoPago(pedidoId).catch(console.error);
+    //     }
+    // 
+    //     return () => {
+    //         if (step === 'payment' && pedidoId && !isProcessingPayment) {
+    //             orderService.abandonarPago(pedidoId).catch(console.error);
+    //         }
+    //     };
+    // }, [step, pedidoId, isProcessingPayment]);
 
     const formatCardNumber = (value: string): string => {
         const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
@@ -615,11 +620,11 @@ const Checkout = () => {
                                         <FiChevronLeft /> Editar Datos
                                     </button>
                                     <button
-                                        onClick={handleConfirmOrder}
+                                        onClick={handlePaymentAndCreateOrder}
                                         disabled={isSubmitting}
                                         className="flex-1 bg-gray-900 text-white font-bold py-3 px-6 rounded-xl hover:bg-black transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {isSubmitting ? 'Creando pedido...' : 'Confirmar y Pagar'} <FiChevronRight />
+                                        {isSubmitting ? 'Procesando pago...' : 'Confirmar y Pagar'} <FiChevronRight />
                                     </button>
                                 </div>
                             </div>

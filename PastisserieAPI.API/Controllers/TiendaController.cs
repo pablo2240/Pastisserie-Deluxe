@@ -41,7 +41,8 @@ namespace PastisserieAPI.API.Controllers
                     horaApertura = h.HoraApertura.ToString(@"hh\:mm"),
                     horaCierre = h.HoraCierre.ToString(@"hh\:mm")
                 }).OrderBy(h => h.diaSemana).ToList(),
-                costoEnvio = config.CostoEnvio
+                costoEnvio = config.CostoEnvio,
+                costosEnvioPorComuna = config.CostosEnvioPorComuna
             }, "Estado de la tienda obtenido"));
         }
     }

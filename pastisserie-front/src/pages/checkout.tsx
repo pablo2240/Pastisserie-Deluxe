@@ -50,9 +50,23 @@ const Checkout = () => {
 
     const total = carrito?.total || 0;
 
-    const costoEnvio = formData.comuna && formData.comuna in ComunasDisponibles
-        ? ComunasDisponibles[formData.comuna as ComunaKey].costoEnvio
-        : 0;
+    // Obtener costos de envío desde la configuración de la tienda
+    const getCostoEnvio = (comuna: string): number => {
+        // Si hay costos por comuna configurados, usarlos
+        if (status?.costosEnvioPorComuna && typeof status.costosEnvioPorComuna === 'object') {
+            const costos = status.costosEnvioPorComuna as Record<string, number>;
+            if (comuna in costos) {
+                return costos[comuna];
+            }
+        }
+        //Fallback: usar valores por defecto
+        if (comuna && ComunasDisponibles[comuna as ComunaKey]) {
+            return ComunasDisponibles[comuna as ComunaKey].costoEnvio;
+        }
+        return status?.costoEnvio || 0;
+    };
+
+    const costoEnvio = formData.comuna ? getCostoEnvio(formData.comuna) : 0;
     const totalConEnvio = total + costoEnvio;
 
     const comunaLabel = formData.comuna && formData.comuna in ComunasDisponibles

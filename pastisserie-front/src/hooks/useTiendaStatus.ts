@@ -14,6 +14,7 @@ export interface TiendaStatus {
         horaCierre: string;
     }[];
     costoEnvio?: number;
+    costosEnvioPorComuna?: Record<string, number>;
 }
 
 export const useTiendaStatus = () => {

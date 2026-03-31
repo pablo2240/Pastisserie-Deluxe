@@ -454,9 +454,9 @@ const Checkout = () => {
                                                     </option>
                                                 ))}
                                             </select>
-                                            {formData.comuna && formData.comuna in ComunasDisponibles && (
+                                            {formData.comuna && (
                                                 <p className="text-xs text-gray-500 mt-1">
-                                                    Costo de envio: {formatCurrency(ComunasDisponibles[formData.comuna as ComunaKey].costoEnvio)}
+                                                    Costo de envio: {formatCurrency(getCostoEnvio(formData.comuna))}
                                                 </p>
                                             )}
                                         </div>

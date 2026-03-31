@@ -34,7 +34,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, tiendaStatus, status
             src={product.imagenUrl || 'https://via.placeholder.com/300x200?text=Sin+Imagen'}
             alt={product.nombre}
             loading="lazy"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center"
           />
           <div className="vignette-overlay" />
 

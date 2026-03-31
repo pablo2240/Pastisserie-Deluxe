@@ -85,7 +85,7 @@ const ProductDetail = () => {
               <img
                 src={mainImage || 'https://via.placeholder.com/600'}
                 alt={producto.nombre}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
               />
               {producto.stock < 5 && producto.stock > 0 && (
                 <span className="absolute top-4 right-4 bg-patisserie-red/10 text-patisserie-red px-3 py-1 rounded-full text-xs font-bold border border-patisserie-red/20">

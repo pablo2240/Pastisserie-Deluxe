@@ -65,6 +65,9 @@ namespace PastisserieAPI.API.Controllers
                 existingConfig.MaxUnidadesPorProducto = newConfig.MaxUnidadesPorProducto;
                 existingConfig.LimitarUnidadesPorProducto = newConfig.LimitarUnidadesPorProducto;
 
+                // Costos de envío por comuna
+                existingConfig.CostosEnvioPorComuna = newConfig.CostosEnvioPorComuna;
+
                 // Actualizar horarios
                 if (newConfig.HorariosPorDia != null && newConfig.HorariosPorDia.Any())
                 {

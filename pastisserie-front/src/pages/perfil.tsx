@@ -91,10 +91,10 @@ const Perfil = () => {
       case 'Pendiente': return 'bg-blue-100 text-blue-700';
       case 'Confirmado': return 'bg-blue-100 text-blue-700';
       case 'PagoPendiente': return 'bg-yellow-100 text-yellow-700';
-      case 'EnProceso': return 'bg-indigo-100 text-indigo-700';
+      case 'EnProceso': return 'bg-yellow-100 text-yellow-700';
       case 'EnCamino': return 'bg-purple-100 text-purple-700';
       case 'NoEntregado': return 'bg-orange-100 text-orange-700';
-      case 'Cancelado': return 'bg-gray-100 text-gray-500';
+      case 'Cancelado': return 'bg-red-100 text-red-700';
       default: return 'bg-gray-100 text-gray-600';
     }
   };

@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { formatCurrency } from '../utils/format';
 import { useTiendaStatus } from '../hooks/useTiendaStatus';
 import { FiClock } from 'react-icons/fi';
+import { swal } from '../utils/swal';
 
 const Carrito = () => {
     const { carrito, updateCartItem, removeFromCart, clearCart, totalItems, isLoading, compraMinima } = useCart();
@@ -136,8 +137,9 @@ const Carrito = () => {
                         ))}
 
                         <button
-                            onClick={() => {
-                                if (window.confirm('¿Vaciar todo el carrito?')) clearCart();
+                            onClick={async () => {
+                                const confirmed = await swal.deleteConfirm('todo el contenido del carrito');
+                                if (confirmed) clearCart();
                             }}
                             className="text-red-500 text-sm font-bold hover:underline flex items-center gap-2 mt-4"
                         >

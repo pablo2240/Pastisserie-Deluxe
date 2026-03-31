@@ -4,6 +4,7 @@ import { X, Plus, Trash2, Edit2, Check, Layers } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { categoriasService } from '../../api/categoriasService';
 import type { Categoria } from '../../api/categoriasService';
+import { swal } from '../../utils/swal';
 
 interface CategoriasModalProps {
     onClose: () => void;
@@ -66,7 +67,8 @@ const CategoriasModal: React.FC<CategoriasModalProps> = ({ onClose, onChange }) 
     };
 
     const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Eliminar categoría? Esto podría afectar a los productos asociados.')) return;
+        const confirmed = await swal.deleteConfirm('esta categoría');
+        if (!confirmed) return;
         try {
             await categoriasService.delete(id);
             toast.success('Categoría eliminada');

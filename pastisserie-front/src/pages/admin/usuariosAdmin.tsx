@@ -7,6 +7,7 @@ import {
     ShieldAlert
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { swal } from '../../utils/swal';
 
 interface User {
     id: number;
@@ -59,7 +60,14 @@ const UsuariosAdmin = () => {
     });
 
     const toggleUserStatus = async (id: number, currentStatus: boolean) => {
-        if (!window.confirm(`¿Estás seguro de que deseas ${currentStatus ? 'desactivar' : 'activar'} este usuario?`)) return;
+        const action = currentStatus ? 'desactivar' : 'activar';
+        const confirmed = await swal.confirm(
+            `¿Estás seguro de que deseas ${action} este usuario?`,
+            `El usuario <strong>${action === 'activar' ? 'podrá' : 'no podrá'}</strong> acceder al sistema después de esta acción.`,
+            `Sí, ${action}`,
+            'Cancelar'
+        );
+        if (!confirmed) return;
 
         try {
             await api.patch(`/users/${id}/status`, !currentStatus, {

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatCurrency, formatMedellinDate } from '../../utils/format';
+import { swal } from '../../utils/swal';
 
 // Tipos definidos localmente para asegurar compatibilidad
 interface PedidoItem {
@@ -99,7 +100,8 @@ const PedidosAdmin = () => {
   };
 
   const eliminarPedido = async (pedidoId: number) => {
-    if (!window.confirm(`¿Estás seguro de eliminar el pedido #${pedidoId}? Se restaurará el stock de los productos. Esta acción no se puede deshacer.`)) return;
+    const confirmed = await swal.deleteConfirm(`el pedido #${pedidoId}`);
+    if (!confirmed) return;
     try {
       await api.delete(`/pedidos/${pedidoId}`);
       toast.success(`Pedido #${pedidoId} eliminado`);

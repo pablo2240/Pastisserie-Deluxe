@@ -6,6 +6,7 @@ import {
 import { reviewService } from '../../services/reviewService';
 import type { Review } from '../../services/reviewService';
 import toast from 'react-hot-toast';
+import { swal } from '../../utils/swal';
 
 const ResenasAdmin = () => {
     const [reviews, setReviews] = useState<Review[]>([]);
@@ -56,14 +57,14 @@ const ResenasAdmin = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('¿Confirmar la eliminación definitiva de este registro?')) {
-            try {
-                await reviewService.delete(id);
-                toast.success('Registro eliminado del sistema');
-                loadReviews();
-            } catch (error) {
-                toast.error('Error al procesar la solicitud de eliminación');
-            }
+        const confirmed = await swal.deleteConfirm('esta reseña');
+        if (!confirmed) return;
+        try {
+            await reviewService.delete(id);
+            toast.success('Registro eliminado del sistema');
+            loadReviews();
+        } catch (error) {
+            toast.error('Error al procesar la solicitud de eliminación');
         }
     };
 

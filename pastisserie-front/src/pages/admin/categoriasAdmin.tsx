@@ -3,6 +3,7 @@ import api from '../../api/axios';
 import { categoriasService } from '../../api/categoriasService';
 import { FiEdit, FiTrash2, FiPlus, FiFolder, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { swal } from '../../utils/swal';
 
 interface Categoria {
   id: number;
@@ -58,7 +59,8 @@ const CategoriasAdmin = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('¿Seguro que deseas eliminar esta categoría?')) return;
+    const confirmed = await swal.deleteConfirm('esta categoría');
+    if (!confirmed) return;
     try {
       await api.delete(`/categorias/${id}`);
       toast.success('Categoría eliminada');

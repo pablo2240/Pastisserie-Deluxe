@@ -7,6 +7,7 @@ import { promocionesService, type Promocion } from '../../services/promocionesSe
 import { productService } from '../../services/productService';
 import type { Producto } from '../../types';
 import api from '../../api/axios';
+import { swal } from '../../utils/swal';
 
 const getLocalDateString = () => new Date().toLocaleDateString('sv-SE');
 
@@ -279,7 +280,8 @@ const PromocionesAdmin = () => {
     };
 
     const handleDelete = async (id: number, nombre: string) => {
-        if (!window.confirm(`¿Estás seguro de eliminar la promoción "${nombre}"? Esta acción no se puede deshacer.`)) return;
+        const confirmed = await swal.deleteConfirm(`la promoción "${nombre}"`);
+        if (!confirmed) return;
         try {
             await promocionesService.delete(id);
             toast.success('Promoción eliminada correctamente');

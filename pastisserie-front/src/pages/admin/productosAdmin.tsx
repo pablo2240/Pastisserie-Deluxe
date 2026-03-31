@@ -16,6 +16,7 @@ import type { Categoria } from '../../api/categoriasService';
 import CategoriasModal from '../../components/admin/CategoriasModal';
 import { formatCurrency } from '../../utils/format';
 import { productService } from '../../services/productService';
+import { swal } from '../../utils/swal';
 
 // El tipo Producto ya viene importado desde ../../types
 
@@ -225,7 +226,8 @@ const ProductosAdmin = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('¿Estás seguro de eliminar este producto?')) return;
+    const confirmed = await swal.deleteConfirm(`el producto #${id}`);
+    if (!confirmed) return;
     try {
       await productService.delete(id);
       toast.success('Producto eliminado');

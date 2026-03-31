@@ -145,6 +145,24 @@ const Configuracion: React.FC = () => {
     const handleSubmit = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
 
+        // Validar JSON de costos de envío antes de guardar
+        if (storeData.costosEnvioPorComuna && storeData.costosEnvioPorComuna.trim()) {
+            try {
+                const parsed = JSON.parse(storeData.costosEnvioPorComuna);
+                
+                // Verificar que todos los valores sean números positivos
+                for (const [comuna, costo] of Object.entries(parsed)) {
+                    if (typeof costo !== 'number' || costo < 0) {
+                        toast.error(`El costo de "${comuna}" debe ser un número positivo`);
+                        return;
+                    }
+                }
+            } catch (e) {
+                toast.error('El JSON de costos de envío es inválido. Verifique el formato.');
+                return;
+            }
+        }
+
         const saveToast = toast.loading('Sincronizando cambios con la nube...');
 
         try {

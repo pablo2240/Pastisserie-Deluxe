@@ -10,43 +10,55 @@ Al comprar una promoción, el sistema muestra "Producto Desconocido" en lugar de
 
 ## Análisis
 
-### Causa raíz
+Se identificaron dos problemas:
 
-En el backend (`MappingProfile.cs` línea 68), el mapeo de `PedidoItem` a `PedidoItemResponseDto`:
+### Problema 1: Mapeo en MappingProfile
+
+El mapeo de `PedidoItem` a `PedidoItemResponseDto` no consideraba la promoción:
 
 ```csharp
+// Antes
 .ForMember(dest => dest.NombreProducto, opt => opt.MapFrom(src => 
     src.Producto != null ? src.Producto.Nombre : "Producto Desconocido"))
 ```
 
-Esto pone "Producto Desconocido" cuando NO hay producto, aunque SÍ haya promoción.
+### Problema 2: Repositorio no incluía Promocion
 
-### Campo disponible
-
-El DTO `PedidoItemResponseDto` tiene el campo `NombrePromocion` que se mapea correctamente:
-```csharp
-.ForMember(dest => dest.NombrePromocion, opt => opt.MapFrom(src =>
-    src.Promocion != null ? src.Promocion.Nombre : null))
-```
-
-### Frontend
-
-El frontend usa `nombreProducto` en todas las vistas, sin considerar `nombrePromocion`.
+El repositorio `PedidoRepository` no incluía la relación `Promocion` en los Include, por lo que siempre era null al mapear.
 
 ## Solución
 
-### Backend
+### Fix 1: MappingProfile.cs
+
 Modificar el mapeo para priorizar el nombre de la promoción:
 
 ```csharp
-.ForMember(dest => dest.NombreProducto, opt => opt.MapFrom(src =>
+// Después
+.ForMember(dest => dest.NombreProducto, opt => opt.MapFrom(src => 
     src.Producto != null ? src.Producto.Nombre :
     (src.Promocion != null ? src.Promocion.Nombre : "Producto Desconocido")))
 ```
 
+### Fix 2: PedidoRepository.cs
+
+Agregar `.Include(i => i.Promocion)` en todos los métodos de consulta de pedidos:
+
+- `GetAllAsync()`
+- `GetByUsuarioIdAsync()`
+- `GetByEstadoAsync()`
+- `GetByIdWithDetailsAsync()`
+- `GetPedidosPendientesAsync()`
+- `GetPedidosEnPreparacionAsync()`
+
+## Archivos modificados
+
+1. `PastisserieAPI.Services/Mappings/MappingProfile.cs` - Fix del mapeo
+2. `PastisserieAPI.Infrastructure/Repositories/PedidoRepository.cs` - Include de Promocion
+
 ## Tareas
 
 1. ✅ Fix mapeo en MappingProfile.cs
-2. ✅ Verificar que compile
-3. ⬜ Commit y push
-4. ⬜ Testing
+2. ✅ Fix repositorio - incluir Promocion en todas las consultas
+3. ✅ Verificar que compile
+4. ✅ Commit y push
+5. ⬜ Testing

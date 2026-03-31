@@ -18,9 +18,16 @@ const Checkout = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState<'shipping' | 'summary' | 'payment' | 'success'>('shipping');
     const [pedidoId, setPedidoId] = useState<number | null>(null);
-    const { status } = useTiendaStatus();
+    const { status, refresh: refreshStatus } = useTiendaStatus();
 
     const isClosed = status && !status.estaAbierto;
+
+    // Refrescar estado al cambiar de step para obtener costos actualizados
+    useEffect(() => {
+        if (step === 'shipping') {
+            refreshStatus();
+        }
+    }, [step]);
 
     const [formData, setFormData] = useState({
         direccion: '',
@@ -47,6 +54,13 @@ const Checkout = () => {
             }
         }
     }, [user, step]);
+
+    // Refrescar estado al cambiar de step para obtener costos actualizados
+    useEffect(() => {
+        if (step === 'shipping') {
+            refreshStatus();
+        }
+    }, [step]);
 
     const total = carrito?.total || 0;
 
@@ -118,6 +132,11 @@ const Checkout = () => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        
+        // Refrescar costos cuando cambia la comuna
+        if (e.target.name === 'comuna') {
+            refreshStatus();
+        }
     };
 
     const [cardData, setCardData] = useState({

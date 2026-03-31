@@ -2,58 +2,63 @@
 
 ## Problema
 
-Actualmente, cuando el usuario entra al checkout y hace clic en "Continuar", se crea un pedido con estado "Pendiente" en la base de datos ANTES de que se procese el pago. Esto genera pedidos "basura" cuando el usuario abandona el proceso.
+Cuando el usuario entra al checkout y hace clic en "Continuar", se creaba un pedido con estado "Pendiente" en la base de datos ANTES de que se procese el pago. Esto generaba pedidos "basura" cuando el usuario abandonaba el proceso.
 
-## Flujo Actual (INCORRECTO)
+## Flujo Anterior (INCORRECTO)
 
 1. Usuario llena datos de envío → `createOrder()` → se crea pedido "Pendiente" ❌
 2. Usuario pasa a payment
 3. Si abandona → queda un pedido "Pendiente" en la base de datos ❌
 4. Si paga → se cambia a "Confirmado"
 
-## Flujo Correcto (REQUERIDO)
+## Flujo Implementado
 
-1. Usuario llena datos de envío → NO crear pedido, solo guardar en estado
-2. Usuario pasa a payment
-3. Si usuario abandona → NO se crea ningún pedido ✅
-4. Si pago exitoso → crear pedido como "Confirmado" ✅
-5. Si pago falla → crear pedido como "PagoFallido" (tuvo intento real) ✅
+1. **Datos de envío** → **Resumen** → **Payment** (simular tarjeta)
+2. Usuario hace clic en **"Pagar"** en la pantalla de payment
+3. **Solo ahí** se crea el pedido y se procesa el pago
+4. Si abandona antes de hacer clic en "Pagar" → **NO se crea ningún pedido** ✅
 
-## Solución
+## Solución Implementada
 
 ### Frontend (checkout.tsx)
 
-1. **No llamar a `createOrder()` al ir a payment**
-   - En lugar de eso, guardar los datos del formulario en estado
-   - Pasar al step 'payment' sin crear pedido
+1. **No crear pedido al pasar de paso**
+   - `handleShippingSubmit`: pasa al summary sin crear pedido
+   - Botón "Ir a Pagar": solo pasa al step 'payment' sin crear pedido
 
-2. **Crear pedido solo al procesar pago**
-   - En `handlePayment()`, llamar a un nuevo endpoint que cree el pedido Y procese el pago en una sola transacción
-   - O modificar `simularPago` para que cree el pedido si no existe
+2. **Crear pedido al confirmar pago**
+   - `handleProcesarPago`: llama a `crearYPagar()` que crea el pedido + procesa el pago
 
 ### Backend (PagosController.cs)
 
-1. **Nuevo endpoint o modificar existente**
-   - Crear un endpoint que reciba los datos del pedido Y procese el pago
-   - O modificar `SimularPago` para que cree el pedido si no existe
+1. **Nuevo endpoint: `POST /pagos/crear-y-pagar`**
+   - Recibe los datos del pedido
+   - Crea el pedido
+   - Procesa el pago (simulado)
+   - Limpia el carrito
 
-2. **Manejar casos:**
-   - Pago exitoso → crear como "Confirmado"
-   - Pago fallido → crear como "PagoFallido"
+### orderService.ts
 
-### Estados a manejar
+1. **Nuevo método: `crearYPagar()`**
+   - Envía los datos del pedido al nuevo endpoint
+
+## Archivos Modificados
+
+1. `PastisserieAPI.API/Controllers/PagosController.cs` - Nuevo endpoint
+2. `pastisserie-front/src/services/orderService.ts` - Nuevo método
+3. `pastisserie-front/src/pages/checkout.tsx` - Flujo corregido
+
+## Estados Manejados
 
 | Escenario | Estado en DB |
 |-----------|--------------|
 | Pago exitoso | Confirmado |
-| Pago fallido | PagoFallido |
-| Abandono sin pagar | NO crear pedido |
+| Abandono sin pagar | NO se crea pedido |
 
 ## Tareas
 
-1. ⬜ Analizar y diseñar cambios en frontend
-2. ⬜ Modificar checkout.tsx para no crear pedido al avanzar
-3. ⬜ Crear nuevo endpoint o modificar existente en backend
-4. ⬜ Manejar el caso de pago fallido
-5. ⬜ Verificar que compile
-6. ⬜ Testing
+1. ✅ Analizar y diseñar cambios en frontend
+2. ✅ Modificar checkout.tsx para no crear pedido al avanzar
+3. ✅ Crear nuevo endpoint en backend
+4. ✅ Verificar que compile
+5. ⬜ Testing

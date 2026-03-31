@@ -408,7 +408,7 @@ const Perfil = () => {
                           })()}
                           <div className="flex justify-between">
                             <span className="font-bold text-gray-400 uppercase text-[9px]">Teléfono:</span>
-                            <span className="font-medium text-right">{(selectedPedido.direccionEnvio as any)?.telefono || user?.telefono || '-'}</span>
+                            <span className="font-medium text-right">{(selectedPedido.direccionEnvio as any)?.telefono || 'No disponible'}</span>
                           </div>
                         </>
                       ) : (
@@ -416,12 +416,12 @@ const Perfil = () => {
                           <div className="flex justify-between items-start">
                             <span className="font-bold text-gray-400 uppercase text-[9px] mt-1">Dirección:</span>
                             <span className="font-medium text-right ml-4 text-right">
-                              {(user as any)?.direccion || 'No disponible'}
+                              No disponible
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="font-bold text-gray-400 uppercase text-[9px]">Teléfono:</span>
-                            <span className="font-medium text-right">{user?.telefono || '-'}</span>
+                            <span className="font-medium text-right">No disponible</span>
                           </div>
                         </>
                       )}

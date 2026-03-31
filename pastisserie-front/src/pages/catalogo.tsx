@@ -6,11 +6,19 @@ import { type Producto } from '../types';
 import { ProductListSkeleton, CategorySkeleton } from '../components/common/Skeletons';
 import { useTiendaStatus } from '../hooks/useTiendaStatus';
 
+// Tipo para categoría del sistema
+interface CategoriaSistema {
+    id: number;
+    nombre: string;
+    descripcion?: string;
+    activa: boolean;
+}
+
 const Catalogo = () => {
     const { status: tiendaStatus, loading: statusLoading } = useTiendaStatus();
 
-
     const [productos, setProductos] = useState<Producto[]>([]);
+    const [categoriasSistema, setCategoriasSistema] = useState<CategoriaSistema[]>([]);
     const [loading, setLoading] = useState(true);
     const [categoriaFiltro, setCategoriaFiltro] = useState('Todos');
     const [busqueda, setBusqueda] = useState('');
@@ -20,8 +28,22 @@ const Catalogo = () => {
 
     useEffect(() => {
         fetchProductos();
-         
+        fetchCategoriasSistema();
     }, []);
+
+    // Fetch de categorías desde el sistema (no solo desde productos)
+    const fetchCategoriasSistema = async () => {
+        try {
+            const response = await api.get('/categorias');
+            const data = response?.data?.data || response?.data || [];
+            // Filtrar solo categorías activas
+            const activas = Array.isArray(data) ? data.filter((c: CategoriaSistema) => c.activa !== false) : [];
+            setCategoriasSistema(activas);
+        } catch (error) {
+            console.error("Error cargando categorías del sistema:", error);
+            // Si falla, caemos al comportamiento original (extraer de productos)
+        }
+    };
 
     const fetchProductos = async () => {
         setLoading(true);
@@ -62,7 +84,11 @@ const Catalogo = () => {
             return (a.nombre || '').localeCompare(b.nombre || '');
         });
 
-    const categorias = ['Todos', ...new Set(productos.map(p => p.categoriaNombre).filter(Boolean) as string[])];
+    // Combinar categorías del sistema con las de productos (para productos sin categoría asignada)
+    const categorias = ['Todos', ...new Set([
+        ...categoriasSistema.map(c => c.nombre),
+        ...productos.map(p => p.categoriaNombre).filter(Boolean) as string[]
+    ])];
 
     return (
         <div className="min-h-screen bg-gray-50 pt-24 pb-20 animate-fade-in transition-all duration-500">

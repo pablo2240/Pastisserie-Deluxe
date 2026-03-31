@@ -149,13 +149,14 @@ const ProductosAdmin = () => {
     const { name, value, type } = e.target;
     const finalValue = type === 'number' ? Number(value) : value;
     
-    // Cuando cambia la categoría, actualizar both categoria string y categoriaId
+    // Cuando cambia la categoría, actualizar both categoria string y categoriaId (para el backend)
     if (name === 'categoria') {
       const selectedCat = categorias.find(c => c.nombre === value);
       setFormData(prev => ({ 
         ...prev, 
         categoria: value,
-        categoriaId: selectedCat?.id || null
+        categoriaId: selectedCat?.id || null,
+        categoriaProductoId: selectedCat?.id || null  // También actualizar para el tipo Producto
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: finalValue }));

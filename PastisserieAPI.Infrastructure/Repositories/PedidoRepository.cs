@@ -18,6 +18,8 @@ namespace PastisserieAPI.Infrastructure.Repositories
                 .Include(p => p.Usuario)
                 .Include(p => p.Items)
                     .ThenInclude(i => i.Producto)
+                .Include(p => p.Items)
+                    .ThenInclude(i => i.Promocion)
                 .OrderByDescending(p => p.FechaPedido)
                 .ToListAsync();
         }
@@ -28,6 +30,8 @@ namespace PastisserieAPI.Infrastructure.Repositories
                 .Where(p => p.UsuarioId == usuarioId)
                 .Include(p => p.Items)
                     .ThenInclude(i => i.Producto)
+                .Include(p => p.Items)
+                    .ThenInclude(i => i.Promocion)
                 .Include(p => p.DireccionEnvio)
                 .OrderByDescending(p => p.FechaPedido)
                 .ToListAsync();
@@ -40,6 +44,8 @@ namespace PastisserieAPI.Infrastructure.Repositories
                 .Include(p => p.Usuario)
                 .Include(p => p.Items)
                     .ThenInclude(i => i.Producto)
+                .Include(p => p.Items)
+                    .ThenInclude(i => i.Promocion)
                 .OrderBy(p => p.FechaPedido)
                 .ToListAsync();
         }
@@ -49,6 +55,8 @@ namespace PastisserieAPI.Infrastructure.Repositories
             return await _dbSet
                 .Include(p => p.Items)
                     .ThenInclude(i => i.Producto)
+                .Include(p => p.Items)
+                    .ThenInclude(i => i.Promocion)
                 .Include(p => p.Usuario)
                 .Include(p => p.DireccionEnvio)
                 .Include(p => p.Envio)
@@ -63,6 +71,8 @@ namespace PastisserieAPI.Infrastructure.Repositories
                 .Include(p => p.Usuario)
                 .Include(p => p.Items)
                     .ThenInclude(i => i.Producto)
+                .Include(p => p.Items)
+                    .ThenInclude(i => i.Promocion)
                 .OrderBy(p => p.FechaPedido)
                 .ToListAsync();
         }
@@ -74,6 +84,8 @@ namespace PastisserieAPI.Infrastructure.Repositories
                 .Include(p => p.Usuario)
                 .Include(p => p.Items)
                     .ThenInclude(i => i.Producto)
+                .Include(p => p.Items)
+                    .ThenInclude(i => i.Promocion)
                 .ToListAsync();
         }
     }

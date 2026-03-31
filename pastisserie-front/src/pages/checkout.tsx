@@ -18,7 +18,7 @@ const Checkout = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState<'shipping' | 'summary' | 'payment' | 'success'>('shipping');
     const [pedidoId, setPedidoId] = useState<number | null>(null);
-    const { status, refresh: refreshStatus } = useTiendaStatus();
+    const { status, loading: statusLoading, refresh: refreshStatus } = useTiendaStatus();
 
     const isClosed = status && !status.estaAbierto;
 

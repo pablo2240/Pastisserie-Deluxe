@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PastisserieAPI.Services.Services.Interfaces;
 using PastisserieAPI.Services.DTOs.Common;
+using System.Text.Json;
 
 namespace PastisserieAPI.API.Controllers
 {
@@ -26,6 +27,21 @@ namespace PastisserieAPI.API.Controllers
 
             var estaAbierto = _tiendaService.EstaAbierto(config);
             
+            // Parsear el JSON de costos de envío por comuna
+            Dictionary<string, decimal>? costosEnvioPorComuna = null;
+            if (!string.IsNullOrEmpty(config.CostosEnvioPorComuna))
+            {
+                try
+                {
+                    costosEnvioPorComuna = JsonSerializer.Deserialize<Dictionary<string, decimal>>(config.CostosEnvioPorComuna);
+                }
+                catch
+                {
+                    // Si falla el parseo, usar null
+                    costosEnvioPorComuna = null;
+                }
+            }
+            
             return Ok(ApiResponse<object>.SuccessResponse(new 
             { 
                 estaAbierto = estaAbierto,
@@ -42,7 +58,7 @@ namespace PastisserieAPI.API.Controllers
                     horaCierre = h.HoraCierre.ToString(@"hh\:mm")
                 }).OrderBy(h => h.diaSemana).ToList(),
                 costoEnvio = config.CostoEnvio,
-                costosEnvioPorComuna = config.CostosEnvioPorComuna
+                costosEnvioPorComuna = costosEnvioPorComuna
             }, "Estado de la tienda obtenido"));
         }
     }

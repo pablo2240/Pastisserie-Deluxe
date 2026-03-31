@@ -71,8 +71,6 @@ const Checkout = () => {
         return true;
     };
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
     const handleShippingSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) {
@@ -102,41 +100,6 @@ const Checkout = () => {
         }
         setStep('summary');
         window.scrollTo(0, 0);
-    };
-
-    const handlePaymentAndCreateOrder = async () => {
-        if (isSubmitting) return;
-        setIsSubmitting(true);
-        const loadingToast = toast.loading('Procesando pago...');
-
-        try {
-            // Crear pedido Y procesar pago en una sola operación
-            const orderResult = await orderService.crearYPagar({
-                direccion: formData.direccion,
-                comuna: formData.comuna,
-                telefono: formData.telefono,
-                metodoPago: 'Tarjeta Crédito',
-                notas: formData.notas
-            });
-
-            if (orderResult.success && orderResult.data?.aprobado) {
-                setPedidoId(orderResult.data.pedidoId);
-                await clearCart();
-                setStep('success');
-                toast.success('Pago aprobado correctamente', { id: loadingToast });
-                window.scrollTo(0, 0);
-            } else {
-                const errorMsg = orderResult.message || orderResult.data?.mensaje || 'Error al procesar el pago';
-                toast.error(errorMsg, { id: loadingToast });
-            }
-        } catch (error: unknown) {
-            console.error('Error al procesar pago:', error);
-            const err = error as { response?: { data?: { message?: string } } };
-            const errorMsg = err.response?.data?.message || 'Hubo un error al procesar el pago';
-            toast.error(errorMsg, { id: loadingToast });
-        } finally {
-            setIsSubmitting(false);
-        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -256,7 +219,7 @@ const Checkout = () => {
     const handleProcesarPago = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!pedidoId || isProcessingPayment) return;
+        if (isProcessingPayment) return;
 
         if (!validateCard()) {
             return;
@@ -266,9 +229,17 @@ const Checkout = () => {
         setPaymentError(null);
 
         try {
-            const result = await orderService.simularPago(pedidoId);
+            // Crear pedido Y procesar pago en una sola operación
+            const result = await orderService.crearYPagar({
+                direccion: formData.direccion,
+                comuna: formData.comuna,
+                telefono: formData.telefono,
+                metodoPago: 'Tarjeta Crédito',
+                notas: formData.notas
+            });
 
             if (result.success && result.data?.aprobado) {
+                setPedidoId(result.data.pedidoId);
                 await clearCart();
                 setStep('success');
                 toast.success('Pago aprobado correctamente');
@@ -288,14 +259,8 @@ const Checkout = () => {
         }
     };
 
-    const handleVolverAlResumen = async () => {
-        if (pedidoId) {
-            try {
-                await orderService.abandonarPago(pedidoId);
-            } catch (e) {
-                console.error('Error al marcar abandono:', e);
-            }
-        }
+    const handleVolverAlResumen = () => {
+        // Ya no hay pedido que abandonar porque solo se crea cuando el pago es exitoso
         setStep('summary');
     };
 
@@ -620,11 +585,10 @@ const Checkout = () => {
                                         <FiChevronLeft /> Editar Datos
                                     </button>
                                     <button
-                                        onClick={handlePaymentAndCreateOrder}
-                                        disabled={isSubmitting}
-                                        className="flex-1 bg-gray-900 text-white font-bold py-3 px-6 rounded-xl hover:bg-black transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={() => setStep('payment')}
+                                        className="flex-1 bg-gray-900 text-white font-bold py-3 px-6 rounded-xl hover:bg-black transition-all shadow-lg flex items-center justify-center gap-2"
                                     >
-                                        {isSubmitting ? 'Procesando pago...' : 'Confirmar y Pagar'} <FiChevronRight />
+                                        Ir a Pagar <FiChevronRight />
                                     </button>
                                 </div>
                             </div>

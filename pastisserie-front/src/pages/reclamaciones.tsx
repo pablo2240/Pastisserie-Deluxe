@@ -221,10 +221,8 @@ const Reclamaciones = () => {
                             {myClaims.sort((a, b) => b.id - a.id).map((claim) => (
                                 <div key={claim.id} className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:border-patisserie-red/10 transition-all group">
                                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-patisserie-red font-black group-hover:bg-patisserie-red group-hover:text-white transition-all shadow-inner">
-                                                #{claim.id}
-                                            </div>
+<div className="flex items-center gap-4">
+                                            <div></div>
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-widest ${getStatusStyle(claim.estado)}`}>

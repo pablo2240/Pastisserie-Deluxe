@@ -75,8 +75,7 @@ const ReportesAdmin = () => {
           <table className="w-full text-left text-sm text-gray-600">
             <thead className="bg-gray-50 text-gray-500 uppercase font-bold text-xs">
               <tr>
-                <th className="px-6 py-4">ID</th>
-                <th className="px-6 py-4">Usuario</th>
+<th className="px-6 py-4">Usuario</th>
                 <th className="px-6 py-4">Pedido</th>
                 <th className="px-6 py-4">Detalle</th>
                 <th className="px-6 py-4">Fecha</th>
@@ -86,13 +85,12 @@ const ReportesAdmin = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loadingReclamos ? (
-                <tr><td colSpan={7} className="text-center py-10">Cargando...</td></tr>
+                <tr><td colSpan={6} className="text-center py-10">Cargando...</td></tr>
               ) : reclamaciones.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-10 text-gray-400">No hay solicitudes de reporte.</td></tr>
+                <tr><td colSpan={6} className="text-center py-10 text-gray-400">No hay solicitudes de reporte.</td></tr>
               ) : (
                 reclamaciones.sort((a, b) => b.id - a.id).map((r) => (
                   <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-[#7D2121]">#{r.id}</td>
                     <td className="px-6 py-4 flex items-center gap-2">
                       <div className="p-1 bg-gray-100 rounded text-gray-500"><FiUser /></div>
                       {r.nombreUsuario || `Usuario #${r.usuarioId}`}
@@ -127,7 +125,7 @@ const ReportesAdmin = () => {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[85vh] overflow-hidden animate-scale-in">
             <div className="bg-[#7D2121] text-white px-6 py-5 flex justify-between items-center shrink-0">
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2"><FiAlertCircle /> Solicitud de Reporte #{selectedReclamo.id}</h2>
+                <h2 className="text-xl font-bold flex items-center gap-2"><FiAlertCircle /> Solicitud de Reporte</h2>
                 <p className="text-white/70 text-xs mt-1">{formatMedellinDateTime(selectedReclamo.fecha)}</p>
               </div>
               <button onClick={() => setSelectedReclamo(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors">

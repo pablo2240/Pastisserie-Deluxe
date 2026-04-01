@@ -508,28 +508,28 @@ const Dashboard = () => {
               No hay registros disponibles en el periodo seleccionado.
             </p>
           ) : (
-            reclamaciones.slice(0, 5).map((rec, idx) => (
-              <div key={idx} className="flex items-center justify-between p-5 bg-gray-50 rounded-3xl hover:bg-white border border-transparent hover:border-amber-100 transition-all group shadow-sm hover:shadow-md">
-                <div className="flex items-center gap-5">
-                  <span className="text-[11px] font-black text-amber-600 font-serif">#{rec.pedidoId}</span>
-                  <div className="flex flex-col">
-                    <p className="font-black text-gray-900 text-[11px] uppercase tracking-tight truncate max-w-[140px]">{rec.motivo}</p>
-                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Reporte: {new Date(rec.fecha).toLocaleDateString()}</p>
-                  </div>
-                </div>
-                <span className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border-2 transition-all ${rec.estado === 'Pendiente' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                  rec.estado === 'EnRevision' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                    'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  }`}>
-                  {rec.estado}
-                </span>
-              </div>
-            ))
+reclamaciones.slice(0, 3).map((rec, idx) => (
+               <div key={idx} className="flex items-center justify-between p-5 bg-gray-50 rounded-3xl hover:bg-white border border-transparent hover:border-amber-100 transition-all group shadow-sm hover:shadow-md">
+                 <div className="flex items-center gap-5">
+                   {/* Eliminado pedidoId */}
+                   <div className="flex flex-col">
+                     <p className="font-black text-gray-900 text-[11px] uppercase tracking-tight truncate max-w-[140px]">{rec.motivo}</p>
+                     <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Reporte: {new Date(rec.fecha).toLocaleDateString()}</p>
+                   </div>
+                 </div>
+                 <span className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border-2 transition-all ${rec.estado === 'Pendiente' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                   rec.estado === 'EnRevision' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                     'bg-emerald-50 text-emerald-700 border-emerald-200'
+                   }`}>
+                   {rec.estado}
+                 </span>
+               </div>
+             ))
           )}
         </div>
         {reclamaciones.length > 0 && (
           <button
-            onClick={() => navigate('/admin/pedidos')}
+            onClick={() => navigate('/admin/reportes')}
             className="w-full mt-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-amber-600 transition-colors flex items-center justify-center gap-2"
           >
             Acceder al Registro Completo <ArrowRight size={14} />

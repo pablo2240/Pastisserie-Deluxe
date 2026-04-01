@@ -7,6 +7,13 @@ namespace PastisserieAPI.Infrastructure.Data
 {
     public static class DbInitializer
     {
+        // Método expuesto públicamente para la limpieza exclusiva (usado con el subcomando)
+        public static void RunOnlyCleanOrphanData(ApplicationDbContext context, ILogger logger)
+        {
+            logger.LogInformation("🚨 Modo limpieza: ejecutando CleanOrphanData...");
+            CleanOrphanData(context, logger);
+            logger.LogInformation("✅ CleanOrphanData completado y control devuelto a Program.cs");
+        }
         public static void Initialize(ApplicationDbContext context, ILogger logger)
         {
             try
@@ -18,8 +25,8 @@ namespace PastisserieAPI.Infrastructure.Data
 
                 logger.LogInformation("✅ Base de datos verificada y migrada.");
 
-                // Limpiar datos huérfanos antes de sembrar
-                CleanOrphanData(context, logger);
+                // Limpiar datos huérfanos antes de sembrar (manual ahora, no se ejecuta en inicialización)
+                // CleanOrphanData(context, logger);
 
                 // Orden de ejecución de seeds (manteniendo integridad referencial)
                 SeedRoles(context, logger);

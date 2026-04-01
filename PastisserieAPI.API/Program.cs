@@ -79,6 +79,28 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// ============ SUBCOMANDO 'limpiar-db' ============
+if (args.Contains("limpiar-db", StringComparer.OrdinalIgnoreCase))
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<ApplicationDbContext>();
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            PastisserieAPI.Infrastructure.Data.DbInitializer.RunOnlyCleanOrphanData(context, logger);
+            app.Logger.LogInformation("🎉 Limpieza ejecutada. Fin del proceso (sin iniciar API HTTP). Puedes correr luego 'dotnet run' normal.");
+            return; // Sale: NO inicia la API
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogCritical(ex, "Error fatal durante la limpieza con 'limpiar-db'.");
+            Environment.Exit(-1);
+        }
+    }
+}
+
 // ============ INICIALIZACIÓN DE BASE DE DATOS ============
 using (var scope = app.Services.CreateScope())
 {

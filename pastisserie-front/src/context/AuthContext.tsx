@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (data: LoginRequest) => Promise<boolean>;
   register: (data: RegisterRequest) => Promise<boolean>;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
+  refreshUser: () => Promise<boolean>;
   logout: () => void;
 }
 
@@ -166,17 +167,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Refresca datos del usuario desde el backend
+  const refreshUser = async () => {
+    setIsLoading(true);
+    try {
+      const response = await authService.getProfile();
+      if (response.success && response.data) {
+        const userData = response.data;
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setIsAuthenticated(true);
+        return true;
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+        toast.error(response.message || 'No se pudo recuperar el perfil');
+        return false;
+      }
+    } catch (error) {
+      setUser(null);
+      setIsAuthenticated(false);
+      toast.error('Error al refrescar datos del usuario');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = () => {
     localStorage.clear();
     setUser(null);
     setToken(null);
     setIsAuthenticated(false);
-    toast.success('Sesión cerrada');
+    toast.success('Sesi3n cerrada');
     window.location.href = '/login';
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated, isLoading, login, register, updateProfile, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, isLoading, login, register, updateProfile, refreshUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

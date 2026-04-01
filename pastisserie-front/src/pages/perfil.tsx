@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
+
+// --- Garantizar refrescado de perfil tras reload duro ---
 import { FiUser, FiPhone, FiMapPin, FiSave, FiPackage, FiClock, FiCheckCircle, FiX, FiAlertCircle, FiEye } from 'react-icons/fi';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -13,7 +15,7 @@ import { orderService } from '../services/orderService';
 
 const Perfil = () => {
   const navigate = useNavigate();
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, refreshUser, isLoading } = useAuth();
   const [formData, setFormData] = useState({
     nombre: user?.nombre || '',
     telefono: user?.telefono || '',
@@ -45,11 +47,23 @@ const Perfil = () => {
     }
   };
 
+  // Cargar datos de perfil si no hay usuario (ej. después de reload)
   useEffect(() => {
+    if (!user) {
+      refreshUser().then(success => {
+        // Si no hay sesión se sigue mostrando el mensaje restringido automáticamente
+      });
+    }
+    // Si ya hay usuario (de contexto o después de refrescar), cargar pedidos
     if (user) {
       fetchMisPedidos();
+      setFormData({
+        nombre: user.nombre || '',
+        telefono: user.telefono || '',
+        direccion: (user as any)?.direccion || '',
+      });
     }
-  }, [user]);
+  }, [user, refreshUser]);
 
   const fetchMisPedidos = async () => {
     try {
@@ -109,6 +123,12 @@ const Perfil = () => {
       default: return <FiClock />;
     }
   };
+
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-patisserie-red/10 border-t-patisserie-red rounded-full animate-spin"></div>
+    </div>
+  );
 
   if (!user) return (
     <div className="min-h-screen pt-24 pb-12 bg-patisserie-cream/30">

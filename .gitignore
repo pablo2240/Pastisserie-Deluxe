@@ -68,7 +68,7 @@ gentle-ai/
 .windsurf/
 .agents/
 .kilocode/
-.kilocodemodes/
+.kilocodemodes
 
 # ---- Documentación local ----
 changes/
@@ -78,6 +78,7 @@ docs/
 .DS_Store
 Thumbs.db
 Desktop.ini
+scripts/
 
 # ==== Fin PATCH =====
 

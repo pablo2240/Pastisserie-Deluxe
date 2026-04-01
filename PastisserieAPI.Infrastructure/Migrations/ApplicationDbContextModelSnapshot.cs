@@ -264,48 +264,6 @@ namespace PastisserieAPI.Infrastructure.Migrations
                     b.ToTable("DireccionesEnvio");
                 });
 
-            modelBuilder.Entity("PastisserieAPI.Core.Entities.Envio", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("FechaActualizacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("FechaDespacho")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaEntrega")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NumeroGuia")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("PedidoId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RepartidorId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PedidoId")
-                        .IsUnique();
-
-                    b.HasIndex("RepartidorId");
-
-                    b.ToTable("Envios");
-                });
-
             modelBuilder.Entity("PastisserieAPI.Core.Entities.Factura", b =>
                 {
                     b.Property<int>("Id")
@@ -987,24 +945,6 @@ namespace PastisserieAPI.Infrastructure.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("PastisserieAPI.Core.Entities.Envio", b =>
-                {
-                    b.HasOne("PastisserieAPI.Core.Entities.Pedido", "Pedido")
-                        .WithOne("Envio")
-                        .HasForeignKey("PastisserieAPI.Core.Entities.Envio", "PedidoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PastisserieAPI.Core.Entities.User", "Repartidor")
-                        .WithMany("EnviosAsignados")
-                        .HasForeignKey("RepartidorId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Pedido");
-
-                    b.Navigation("Repartidor");
-                });
-
             modelBuilder.Entity("PastisserieAPI.Core.Entities.Factura", b =>
                 {
                     b.HasOne("PastisserieAPI.Core.Entities.Pedido", "Pedido")
@@ -1212,8 +1152,6 @@ namespace PastisserieAPI.Infrastructure.Migrations
 
             modelBuilder.Entity("PastisserieAPI.Core.Entities.Pedido", b =>
                 {
-                    b.Navigation("Envio");
-
                     b.Navigation("Factura");
 
                     b.Navigation("Historial");
@@ -1240,8 +1178,6 @@ namespace PastisserieAPI.Infrastructure.Migrations
                     b.Navigation("CarritoCompra");
 
                     b.Navigation("Direcciones");
-
-                    b.Navigation("EnviosAsignados");
 
                     b.Navigation("Notificaciones");
 

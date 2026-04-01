@@ -18,6 +18,9 @@ namespace PastisserieAPI.Infrastructure.Data
 
                 logger.LogInformation("✅ Base de datos verificada y migrada.");
 
+                // Limpiar datos huérfanos antes de sembrar
+                CleanOrphanData(context, logger);
+
                 // Orden de ejecución de seeds (manteniendo integridad referencial)
                 SeedRoles(context, logger);
                 SeedCategorias(context, logger);
@@ -31,6 +34,108 @@ namespace PastisserieAPI.Infrastructure.Data
             {
                 logger.LogError(ex, "Ocurrió un error al inicializar la base de datos.");
                 throw;
+            }
+        }
+
+        private static void CleanOrphanData(ApplicationDbContext context, ILogger logger)
+        {
+            try
+            {
+                // Orden correcto para evitar errores de FK:
+                // 1. Eliminar productos con categoría huérfana (CategoriaProductoId > 7)
+                // 2. Eliminar productos huérfanos (Id > 21)
+                // 3. Eliminar categorías huérfanas (Id > 7)
+                // 4. Eliminar roles huérfanos (Id > 4)
+                // 5. Eliminar usuarios huérfanos (excepto admin)
+                // 6. Resetear contadores
+                
+                // Paso 1: Productos con categorías huérfanas
+                var productosConCatOrfana = context.Productos
+                    .Where(p => p.CategoriaProductoId != null && p.CategoriaProductoId > 7)
+                    .ToList();
+                
+                if (productosConCatOrfana.Any())
+                {
+                    logger.LogInformation($"🧹 Eliminando {productosConCatOrfana.Count} productos con categoría huérfana...");
+                    context.Database.ExecuteSqlRaw("DELETE FROM Productos WHERE CategoriaProductoId > 7");
+                }
+
+                // Paso 2: Productos huérfanos (ID > 21)
+                var productosOrfanos = context.Productos.Where(p => p.Id > 21).ToList();
+                if (productosOrfanos.Any())
+                {
+                    logger.LogInformation($"🧹 Eliminando {productosOrfanos.Count} productos huérfanos...");
+                    context.Database.ExecuteSqlRaw("DELETE FROM Productos WHERE Id > 21");
+                }
+
+                // Paso 3: Categorías huérfanas
+                var categoriasOrfanas = context.CategoriasProducto.Where(c => c.Id > 7).ToList();
+                if (categoriasOrfanas.Any())
+                {
+                    logger.LogInformation($"🧹 Eliminando {categoriasOrfanas.Count} categorías huérfanas...");
+                    context.Database.ExecuteSqlRaw("DELETE FROM CategoriasProducto WHERE Id > 7");
+                }
+
+                // Paso 4: Roles huérfanos (solo mantener IDs 1-4)
+                var rolesOrfanos = context.Roles.Where(r => r.Id > 4).ToList();
+                if (rolesOrfanos.Any())
+                {
+                    logger.LogInformation($"🧹 Eliminando {rolesOrfanos.Count} roles huérfanos...");
+                    context.Database.ExecuteSqlRaw("DELETE FROM Roles WHERE Id > 4");
+                }
+
+                // Paso 5: Usuarios huérfanos (solo mantener admin con email 'administrador123@gmail.com')
+                var adminEmail = "administrador123@gmail.com";
+                var usuariosOrfanos = context.Users.Where(u => u.Email != adminEmail).ToList();
+                if (usuariosOrfanos.Any())
+                {
+                    logger.LogInformation($"🧹 Eliminando {usuariosOrfanos.Count} usuarios huérfanos...");
+                    
+                    // Obtener IDs de usuarios no-admin
+                    // Primero limpiar TODAS las tablas dependientes (orden correcto para evitar FK)
+                    
+                    // 1. Tablas que dependen de Pedidos (que depende de Users)
+                    context.Database.ExecuteSqlRaw($@"
+                        DECLARE @UserIds TABLE (Id INT);
+                        INSERT INTO @UserIds SELECT Id FROM Users WHERE Email != '{adminEmail}';
+                        
+                        DELETE FROM PedidoItems WHERE PedidoId IN (SELECT Id FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds));
+                        DELETE FROM PedidoHistoriales WHERE PedidoId IN (SELECT Id FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds));
+                        DELETE FROM Facturas WHERE PedidoId IN (SELECT Id FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds));
+                        DELETE FROM RegistrosPago WHERE PedidoId IN (SELECT Id FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds));
+                        DELETE FROM Envios WHERE PedidoId IN (SELECT Id FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds));
+                        DELETE FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds);
+                    ");
+                    
+                    // 2. Reclamaciones (depende directamente de Users)
+                    context.Database.ExecuteSqlRaw($"DELETE FROM Reclamaciones WHERE UsuarioId NOT IN (SELECT Id FROM Users WHERE Email = '{adminEmail}')");
+                    
+                    // 3. Otras tablas que dependen de Users
+                    context.Database.ExecuteSqlRaw($"DELETE FROM UserRoles WHERE UsuarioId NOT IN (SELECT Id FROM Users WHERE Email = '{adminEmail}')");
+                    context.Database.ExecuteSqlRaw($"DELETE FROM CarritoItems WHERE CarritoId IN (SELECT Id FROM Carritos WHERE UsuarioId NOT IN (SELECT Id FROM Users WHERE Email = '{adminEmail}'))");
+                    context.Database.ExecuteSqlRaw($"DELETE FROM Carritos WHERE UsuarioId NOT IN (SELECT Id FROM Users WHERE Email = '{adminEmail}')");
+                    context.Database.ExecuteSqlRaw($"DELETE FROM DireccionesEnvio WHERE UsuarioId NOT IN (SELECT Id FROM Users WHERE Email = '{adminEmail}')");
+                    context.Database.ExecuteSqlRaw($"DELETE FROM Notificaciones WHERE UsuarioId NOT IN (SELECT Id FROM Users WHERE Email = '{adminEmail}')");
+                    context.Database.ExecuteSqlRaw($"DELETE FROM Reviews WHERE UsuarioId NOT IN (SELECT Id FROM Users WHERE Email = '{adminEmail}')");
+                    
+                    // 4. Repartidores en Envíos (si algún usuario huérfano era repartidor)
+                    context.Database.ExecuteSqlRaw($"DELETE FROM Envios WHERE RepartidorId NOT IN (SELECT Id FROM Users WHERE Email = '{adminEmail}')");
+                    
+                    // 5. Finalmente eliminar usuarios
+                    context.Database.ExecuteSqlRaw($"DELETE FROM Users WHERE Email != '{adminEmail}'");
+                }
+
+                // Paso 6: Resetear contadores
+                context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Productos', RESEED, 21)");
+                context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('CategoriasProducto', RESEED, 7)");
+                context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Roles', RESEED, 4)");
+                context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Users', RESEED, 1)");
+                
+                logger.LogInformation("✅ Limpieza de datos huérfanos completada.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Warning durante limpieza de huérfanos - continuando...");
             }
         }
 

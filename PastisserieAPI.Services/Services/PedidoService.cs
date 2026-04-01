@@ -662,7 +662,7 @@ namespace PastisserieAPI.Services.Services
                 }
             }
 
-            // EF cascade will handle PedidoItem, PedidoHistorial, Factura, Envio, PersonalizadoConfig
+            // EF cascade will handle PedidoItem, PedidoHistorial, Factura, PersonalizadoConfig
             await _unitOfWork.Pedidos.DeleteAsync(pedido);
             await _unitOfWork.SaveChangesAsync();
 

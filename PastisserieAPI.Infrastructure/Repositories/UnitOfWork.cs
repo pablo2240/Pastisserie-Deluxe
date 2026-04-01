@@ -16,9 +16,6 @@ namespace PastisserieAPI.Infrastructure.Repositories
         public ICarritoRepository Carritos { get; private set; }
         public IReviewRepository Reviews { get; private set; }
 
-        // 👇 AGREGADO: Repositorio de Envíos que faltaba
-        public IEnvioRepository Envios { get; private set; }
-
         // Repositorios Genéricos
         public IRepository<UserRol> UserRoles { get; private set; }
         public IRepository<Rol> Roles { get; private set; }
@@ -42,10 +39,6 @@ namespace PastisserieAPI.Infrastructure.Repositories
             Pedidos = new PedidoRepository(_context);
             Carritos = new CarritoRepository(_context);
             Reviews = new ReviewRepository(_context);
-
-            // 👇 INICIALIZAMOS ENVÍOS
-            // Nota: Asumo que tienes la clase EnvioRepository. Si te da error aquí, avísame.
-            Envios = new EnvioRepository(_context);
 
             // Inicializamos Genéricos
             UserRoles = new Repository<UserRol>(_context);

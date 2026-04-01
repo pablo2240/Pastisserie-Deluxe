@@ -59,7 +59,6 @@ namespace PastisserieAPI.Infrastructure.Repositories
                     .ThenInclude(i => i.Promocion)
                 .Include(p => p.Usuario)
                 .Include(p => p.DireccionEnvio)
-                .Include(p => p.Envio)
                 .Include(p => p.Factura)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }

@@ -67,7 +67,6 @@ namespace PastisserieAPI.Core.Entities
 
         public virtual ICollection<PedidoItem> Items { get; set; } = new List<PedidoItem>();
         public virtual Factura? Factura { get; set; }
-        public virtual Envio? Envio { get; set; }
         public virtual ICollection<PedidoHistorial> Historial { get; set; } = new List<PedidoHistorial>();
     }
 }

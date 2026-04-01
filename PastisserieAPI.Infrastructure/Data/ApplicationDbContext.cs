@@ -38,7 +38,6 @@ namespace PastisserieAPI.Infrastructure.Data
 
         // ============ DIRECCIONES Y ENVÍOS ============
         public DbSet<DireccionEnvio> DireccionesEnvio { get; set; }
-        public DbSet<Envio> Envios { get; set; }
 
         // ============ NOTIFICACIONES ============
         public DbSet<Notificacion> Notificaciones { get; set; }
@@ -77,13 +76,6 @@ namespace PastisserieAPI.Infrastructure.Data
 
         private void ConfigureRelationships(ModelBuilder modelBuilder)
         {
-            // ============ USER - ENVIO (Repartidor) ============
-            modelBuilder.Entity<Envio>()
-                .HasOne(e => e.Repartidor)
-                .WithMany(u => u.EnviosAsignados)
-                .HasForeignKey(e => e.RepartidorId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             // ============ PEDIDO - USER ============
             modelBuilder.Entity<Pedido>()
                 .HasOne(p => p.Usuario)

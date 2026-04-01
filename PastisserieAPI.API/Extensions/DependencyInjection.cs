@@ -33,7 +33,6 @@ namespace PastisserieAPI.API.Extensions
             services.AddScoped<INotificacionService, NotificacionService>();
             services.AddScoped<IInvoiceService, InvoiceService>();
             services.AddScoped<IReclamacionService, ReclamacionService>();
-            services.AddScoped<IEnvioService, EnvioService>();
             services.AddScoped<ITiendaService, TiendaService>();
 
             // JWT Helper
@@ -57,7 +56,6 @@ namespace PastisserieAPI.API.Extensions
             services.AddScoped<IProductoRepository, ProductoRepository>();
             services.AddScoped<IPedidoRepository, PedidoRepository>();
             services.AddScoped<ICarritoRepository, CarritoRepository>();
-            services.AddScoped<IEnvioRepository, EnvioRepository>();
             services.AddScoped<IReviewRepository, ReviewRepository>();
 
             return services;

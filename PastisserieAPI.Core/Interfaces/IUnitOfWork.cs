@@ -8,7 +8,6 @@
         Repositories.IProductoRepository Productos { get; }
         Repositories.IPedidoRepository Pedidos { get; }
         Repositories.ICarritoRepository Carritos { get; }
-        Repositories.IEnvioRepository Envios { get; }
         Repositories.IReviewRepository Reviews { get; }
         Repositories.IRepository<Entities.UserRol> UserRoles { get; }
         Repositories.IRepository<Entities.Rol> Roles { get; }

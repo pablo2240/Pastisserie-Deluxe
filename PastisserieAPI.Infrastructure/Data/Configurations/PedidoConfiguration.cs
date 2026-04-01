@@ -36,12 +36,6 @@ namespace PastisserieAPI.Infrastructure.Data.Configurations
                 .HasForeignKey<Factura>(f => f.PedidoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Relación con Envio (1:0..1)
-            builder.HasOne(p => p.Envio)
-                .WithOne(e => e.Pedido)
-                .HasForeignKey<Envio>(e => e.PedidoId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             // Índices
             builder.HasIndex(p => p.Estado)
                 .HasDatabaseName("IX_Pedidos_Estado");

@@ -45,7 +45,7 @@ namespace PastisserieAPI.Infrastructure.Data
                 // 1. Eliminar productos con categoría huérfana (CategoriaProductoId > 7)
                 // 2. Eliminar productos huérfanos (Id > 21)
                 // 3. Eliminar categorías huérfanas (Id > 7)
-                // 4. Eliminar roles huérfanos (Id > 4)
+                // 4. Eliminar roles huérfanos (Id > 3)
                 // 5. Eliminar usuarios huérfanos (excepto admin)
                 // 6. Resetear contadores
                 
@@ -76,12 +76,12 @@ namespace PastisserieAPI.Infrastructure.Data
                     context.Database.ExecuteSqlRaw("DELETE FROM CategoriasProducto WHERE Id > 7");
                 }
 
-                // Paso 4: Roles huérfanos (solo mantener IDs 1-4)
-                var rolesOrfanos = context.Roles.Where(r => r.Id > 4).ToList();
+                // Paso 4: Roles huérfanos (solo mantener IDs 1-3: Usuario, Admin, Repartidor)
+                var rolesOrfanos = context.Roles.Where(r => r.Id > 3).ToList();
                 if (rolesOrfanos.Any())
                 {
                     logger.LogInformation($"🧹 Eliminando {rolesOrfanos.Count} roles huérfanos...");
-                    context.Database.ExecuteSqlRaw("DELETE FROM Roles WHERE Id > 4");
+                    context.Database.ExecuteSqlRaw("DELETE FROM Roles WHERE Id > 3");
                 }
 
                 // Paso 5: Usuarios huérfanos (solo mantener admin con email 'administrador123@gmail.com')
@@ -128,7 +128,7 @@ namespace PastisserieAPI.Infrastructure.Data
                 // Paso 6: Resetear contadores
                 context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Productos', RESEED, 21)");
                 context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('CategoriasProducto', RESEED, 7)");
-                context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Roles', RESEED, 4)");
+                context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Roles', RESEED, 3)");
                 context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Users', RESEED, 1)");
                 
                 logger.LogInformation("✅ Limpieza de datos huérfanos completada.");
@@ -147,8 +147,7 @@ namespace PastisserieAPI.Infrastructure.Data
             {
                 new() { Id = 1, Nombre = "Usuario", Activo = true },
                 new() { Id = 2, Nombre = "Admin", Activo = true },
-                new() { Id = 3, Nombre = "Repartidor", Activo = true },
-                new() { Id = 4, Nombre = "Gerente", Activo = true }
+                new() { Id = 3, Nombre = "Repartidor", Activo = true }
             };
 
             var strategy = context.Database.CreateExecutionStrategy();

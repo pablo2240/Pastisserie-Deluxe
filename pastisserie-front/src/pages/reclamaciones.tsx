@@ -85,8 +85,10 @@ const Reclamaciones = () => {
             setPedidoId('');
             setFormErrors({});
             fetchMyClaims();
-        } catch (error: any) {
-            const errorMsg = error.response?.data?.message || 'Error al enviar reclamación. Verifica que el pedido no haya sido entregado.';
+        } catch (error: unknown) {
+            const errorMsg = error instanceof Error 
+                ? error.message 
+                : 'Error al enviar reclamación. Verifica que el pedido no haya sido entregado.';
             toast.error(errorMsg);
         } finally {
             setSubmitting(false);
@@ -179,7 +181,9 @@ const Reclamaciones = () => {
                             <FiClock className="text-patisserie-red shrink-0 mt-0.5" />
                             <p className="text-[10px] font-bold text-patisserie-red leading-relaxed">
                                 <span className="uppercase font-black block mb-1">Nota Importante:</span>
-                                Solo puedes crear reclamaciones para pedidos que <span className="underline italic">no han sido entregados</span>. Una vez marcado como entregado, no se podrán generar reclamos.
+                                Solo puedes crear reclamaciones para pedidos <span className="underline italic">no entregados</span>. 
+                                Tienes <span className="font-black">3 días hábiles</span> desde la fecha de no entrega para realizar tu reclamación. 
+                                Pasado ese plazo, perderás el derecho a reclamar.
                             </p>
                         </div>
 

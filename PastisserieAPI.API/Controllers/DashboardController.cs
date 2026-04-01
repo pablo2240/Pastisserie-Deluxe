@@ -33,9 +33,10 @@ namespace PastisserieAPI.API.Controllers
             var inicioMes  = new DateTime(ahora.Year, ahora.Month, 1, 0, 0, 0, DateTimeKind.Unspecified);
             var inicioAnio = new DateTime(ahora.Year, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
 
-            // Base Filter: Pedidos válidos (No Cancelados, Rechazados ni NoEntregados)
+            // Base Filter: Pedidos válidos (Solo se excluyen Cancelados y Rechazados)
+            // NOTA: NoEntregado CUENTA como ingreso porque la compra ya fue confirmada y pagada
             var pedidosVentas = await _context.Pedidos
-                .Where(p => p.Estado != "Cancelado" && p.Estado != "Rechazado" && p.Estado != "NoEntregado")
+                .Where(p => p.Estado != "Cancelado" && p.Estado != "Rechazado")
                 .Include(p => p.Items)
                 .ToListAsync();
 
@@ -65,7 +66,7 @@ namespace PastisserieAPI.API.Controllers
             // Top 5 más y menos vendidos (Incluye los que tienen 0 ventas)
             var todosProductos = await _context.Productos.Select(p => new { p.Id, p.Nombre }).ToListAsync();
             var itemsVendidos = await _context.PedidoItems
-                .Where(i => _context.Pedidos.Any(p => p.Id == i.PedidoId && p.Estado != "Cancelado" && p.Estado != "Rechazado" && p.Estado != "NoEntregado"))
+                .Where(i => _context.Pedidos.Any(p => p.Id == i.PedidoId && p.Estado != "Cancelado" && p.Estado != "Rechazado"))
                 .GroupBy(i => i.ProductoId)
                 .Select(g => new { ProductoId = g.Key, TotalCantidad = g.Sum(i => i.Cantidad) })
                 .ToListAsync();
@@ -156,7 +157,8 @@ namespace PastisserieAPI.API.Controllers
                 : fechaFin.AddDays(-7);
 
             var pedidos = await _context.Pedidos
-                .Where(p => p.Estado != "Cancelado" && p.Estado != "Rechazado" && p.Estado != "NoEntregado" && (p.FechaEntrega ?? p.FechaPedido) >= fechaInicio && (p.FechaEntrega ?? p.FechaPedido) <= fechaFin)
+                // NoEntregado CUENTA como ingreso (la compra ya fue pagada)
+                .Where(p => p.Estado != "Cancelado" && p.Estado != "Rechazado" && (p.FechaEntrega ?? p.FechaPedido) >= fechaInicio && (p.FechaEntrega ?? p.FechaPedido) <= fechaFin)
                 .ToListAsync();
 
             var diasDiff = (fechaFin.Date - fechaInicio.Date).Days;

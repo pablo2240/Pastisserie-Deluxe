@@ -438,27 +438,9 @@ namespace PastisserieAPI.Services.Services
                 Notas = request.MotivoNoEntrega
             };
             _context.PedidoHistoriales.Add(historial);
-            
-            // Crear reclamación automáticamente cuando se marca como NoEntregado
-            if (request.Estado == "NoEntregado")
-            {
-                var domiciliarios = await _unitOfWork.Users.GetAllAsync();
-                var domiciliario = domiciliarios.FirstOrDefault(u => u.Id == pedido.RepartidorId);
-                
-                var reclamacion = new Reclamacion
-                {
-                    PedidoId = pedido.Id,
-                    UsuarioId = pedido.UsuarioId,
-                    Fecha = GetBogotaTime(),
-                    Motivo = $"El domiciliario reportó que no se pudo entregar el pedido. Motivo: {request.MotivoNoEntrega}",
-                    Estado = "Pendiente",
-                    MotivoDomiciliario = request.MotivoNoEntrega,
-                    FechaNoEntrega = pedido.FechaNoEntrega,
-                    DomiciliarioId = pedido.RepartidorId,
-                    NombreDomiciliario = domiciliario?.Nombre ?? "Domiciliario"
-                };
-                _context.Reclamaciones.Add(reclamacion);
-            }
+
+            // NOTA: Ya NO se crea automáticamente una reclamación cuando el pedido se marca como "NoEntregado"
+            // El cliente deberá crear la reclamación manualmente desde su perfil
             
             await _unitOfWork.SaveChangesAsync();
 
@@ -521,6 +503,17 @@ namespace PastisserieAPI.Services.Services
                         var pedidoCompleto = await _unitOfWork.Pedidos.GetByIdWithDetailsAsync(pedido.Id) ?? pedido;
                         var pdfBytes = _invoiceService.GenerateInvoicePdf(pedidoCompleto, user);
                         await _emailService.SendInvoiceEmailAsync(user.Email, user.Nombre, pedido.Id, pdfBytes);
+                    }
+                    else if (request.Estado == "NoEntregado")
+                    {
+                        // Correo especial de no entrega con motivo y plazo para reclamar
+                        await _emailService.SendDeliveryFailedEmailAsync(
+                            user.Email, 
+                            user.Nombre, 
+                            pedido.Id, 
+                            request.MotivoNoEntrega ?? "Motivo no registrado",
+                            pedido.FechaNoEntrega ?? GetBogotaTime()
+                        );
                     }
                     else
                     {

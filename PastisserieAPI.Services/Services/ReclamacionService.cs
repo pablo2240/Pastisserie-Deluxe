@@ -31,23 +31,57 @@ namespace PastisserieAPI.Services.Services
             if (pedido.UsuarioId != usuarioId)
                 throw new Exception("No tienes permiso para reclamar este pedido.");
 
-            // 3. Verificar que el pedido NO ha sido entregado
-            if (pedido.Estado == "Entregado")
-                throw new Exception("No puedes reclamar pedidos que ya fueron entregados.");
+            // 3. Verificar que el pedido está en estado "NoEntregado"
+            if (pedido.Estado != "NoEntregado")
+                throw new Exception("Solo puedes reclamar pedidos que no fueron entregados. Si tu pedido fue entregado exitosamente, no puedes generar una reclamación.");
 
-            // 4. Verificar que no haya ya una reclamación pendiente para el mismo pedido
+            // 4. Verificar plazo de 3 días hábiles desde la fecha de no entrega
+            if (pedido.FechaNoEntrega.HasValue)
+            {
+                var fechaNoEntrega = pedido.FechaNoEntrega.Value;
+                var fechaActual = DateTime.UtcNow.AddHours(-5); // Hora de Colombia
+                
+                // Calcular días hábiles transcurridos
+                var diasHabiles = 0;
+                var fechaTemporal = fechaNoEntrega.Date;
+                
+                while (fechaTemporal <= fechaActual.Date)
+                {
+                    // No contar domingos (DayOfWeek.Sunday = 0)
+                    if (fechaTemporal.DayOfWeek != DayOfWeek.Sunday)
+                    {
+                        diasHabiles++;
+                    }
+                    fechaTemporal = fechaTemporal.AddDays(1);
+                }
+                
+                // DiasHabiles-1 porque el día de no entrega cuenta como día 1
+                var diasTranscurridos = diasHabiles - 1;
+                
+                if (diasTranscurridos > 3)
+                {
+                    throw new Exception($"El plazo para reclamar ha vencido. Tienes 3 días hábiles desde la fecha de no entrega ({fechaNoEntrega:dd/MM/yyyy}) para crear una reclamación.");
+                }
+            }
+
+            // 5. Verificar que no haya ya una reclamación pendiente para el mismo pedido
             var existente = await _unitOfWork.Reclamaciones.FindAsync(r => r.PedidoId == pedidoId && r.UsuarioId == usuarioId && r.Estado == "Pendiente");
             if (existente.Any())
                 throw new Exception("Ya tienes una reclamación pendiente para este pedido.");
 
-            // 6. Crear la reclamación
+            // 6. Crear la reclamación (incluir datos del domiciliario si existen)
             var reclamacion = new Reclamacion
             {
                 PedidoId = pedidoId,
                 UsuarioId = usuarioId,
-                Fecha = DateTime.UtcNow,
+                Fecha = DateTime.UtcNow.AddHours(-5),
                 Motivo = motivo,
-                Estado = "Pendiente"
+                Estado = "Pendiente",
+                // Datos del domiciliario (registrados cuando se marcó como NoEntregado)
+                MotivoDomiciliario = pedido.MotivoNoEntrega,
+                FechaNoEntrega = pedido.FechaNoEntrega,
+                DomiciliarioId = pedido.RepartidorId,
+                NombreDomiciliario = pedido.Repartidor?.Nombre
             };
 
             await _unitOfWork.Reclamaciones.AddAsync(reclamacion);

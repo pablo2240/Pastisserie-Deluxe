@@ -248,5 +248,42 @@ namespace PastisserieAPI.Services.Services
                 </div>";
             await SendEmailAsync(to, $"Nueva Asignación - Pedido #{orderId}", body);
         }
+
+        public async Task SendDeliveryFailedEmailAsync(string to, string userName, int orderId, string motivoNoEntrega, DateTime fechaNoEntrega)
+        {
+            var fechaLimite = fechaNoEntrega.AddDays(3).ToString("dd/MM/yyyy");
+            string body = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;'>
+                    <h2 style='color: #7D2121;'>⚠️ Pedido No Entregado</h2>
+                    <p>Hola <strong>{userName}</strong>, lamentamos informarte que tu pedido <strong>#{orderId}</strong> no pudo ser entregado.</p>
+                    
+                    <div style='background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;'>
+                        <p style='margin: 0;'><strong>Motivo registrado:</strong></p>
+                        <p style='margin: 5px 0 0 0;'>{motivoNoEntrega}</p>
+                    </div>
+                    
+                    <p><strong>Fecha del incidente:</strong> {fechaNoEntrega:dd/MM/yyyy HH:mm}</p>
+                    
+                    <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;' />
+                    
+                    <h3 style='color: #333;'>¿Qué puedes hacer?</h3>
+                    <p>Si deseas realizar una reclamación por este pedido, tienes <strong>3 días hábiles</strong> ({fechaLimite}) para hacerlo.</p>
+                    
+                    <div style='text-align: center; margin-top: 30px;'>
+                        <a href='https://pastisserie-deluxe.com/profile/reclamaciones?pedidoId={orderId}' style='background-color: #7D2121; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                            Crear Reclamación
+                        </a>
+                    </div>
+                    
+                    <p style='margin-top: 20px; font-size: 12px; color: #777;'>
+                        También puedes acceder desde tu perfil: <strong>Mis Reclamaciones → Nueva Reclamación</strong>
+                    </p>
+                    
+                    <p style='font-size: 12px; color: #999; margin-top: 30px;'>
+                        Si no realizas la reclamación dentro del plazo establecido, perderás el derecho a hacerlo.
+                    </p>
+                </div>";
+            await SendEmailAsync(to, $"⚠️ Tu Pedido #{orderId} No Pudo Ser Entregado", body);
+        }
     }
 }

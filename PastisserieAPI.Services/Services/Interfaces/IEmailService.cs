@@ -9,5 +9,6 @@ namespace PastisserieAPI.Services.Services.Interfaces
         Task SendPasswordResetEmailAsync(string to, string resetLink);
         Task SendInvoiceEmailAsync(string to, string userName, int orderId, byte[] pdfBytes);
         Task SendRepartidorAssignmentEmailAsync(string to, string repartidorName, int orderId, string clienteNombre, string direccion);
+        Task SendDeliveryFailedEmailAsync(string to, string userName, int orderId, string motivoNoEntrega, DateTime fechaNoEntrega);
     }
 }

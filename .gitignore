@@ -66,7 +66,13 @@ gentle-ai/
 .cursor/
 .codex/
 .windsurf/
-# Si gentle-ai/ contiene código fuente importante (ej: skills originales necesarias para deploy), ajustá la regla
+.agents/
+.kilocode/
+.kilocodemodes/
+
+# ---- Documentación local ----
+changes/
+docs/
 
 # ---- Misc/OS ----
 .DS_Store

@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 
 // Servicios
 import { dashboardService } from '../../services/dashboardService';
+import { getGoogleMapsUrl } from '../../utils/format';
 import api from '../../api/axios';
 import { formatMedellinDate, formatMedellinDateTime } from '../../utils/format';
 
@@ -223,9 +224,6 @@ const RepartidorDashboard = () => {
                                     <div className="flex-1">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Dirección de Entrega</p>
 {(() => {
-    // Importo la función utilitaria
-    // (Verificar que esté importada arriba)
-    import { getGoogleMapsUrl } from '../../utils/format';
     const dir = pedido.direccionEnvio?.direccion || '';
     const comuna = pedido.direccionEnvio?.comuna || '';
     const googleMapsUrl = getGoogleMapsUrl(dir, comuna);

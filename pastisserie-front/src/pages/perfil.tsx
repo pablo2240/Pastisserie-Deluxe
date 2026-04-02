@@ -50,7 +50,7 @@ const Perfil = () => {
   // Cargar datos de perfil si no hay usuario (ej. después de reload)
   useEffect(() => {
     if (!user) {
-      refreshUser().then(success => {
+      refreshUser().then(() => {
         // Si no hay sesión se sigue mostrando el mensaje restringido automáticamente
       });
     }

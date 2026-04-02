@@ -349,8 +349,8 @@ namespace PastisserieAPI.API.Controllers
             var enCamino      = pedidos.Where(p => p.Estado == "EnCamino" || p.Estado == "Pendiente" || p.Estado == "Confirmado").ToList();
             var historial     = pedidos.Where(p => p.Estado == "Entregado" || p.Estado == "NoEntregado").ToList();
             
-            // EL REPARTIDOR GANA 5,000 POR DOMICILIO COMPLETADO
-            var ganancias     = entregados.Count * 5000;
+            // EL REPARTIDOR GANA EL COSTO DE ENVÍO DE CADA PEDIDO ENTREGADO
+            var ganancias = entregados.Sum(p => p.CostoEnvio);
 
             var mapPedido = (Core.Entities.Pedido p) => new
             {
@@ -384,7 +384,7 @@ namespace PastisserieAPI.API.Controllers
                     totalEntregados   = entregados.Count,
                     totalNoEntregados = fallidos.Count,
                     totalEnCamino     = enCamino.Count,
-                    gananciasTotales  = ganancias // Ganancias fijas 5mil
+                    gananciasTotales  = ganancias // Ganancias = suma de CostoEnvio de entregados
                 },
                 enCamino    = enCamino.Select(mapPedido).ToList(),
                 entregados  = entregados.Select(mapPedido).ToList(),

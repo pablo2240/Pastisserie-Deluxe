@@ -25,11 +25,42 @@ const Catalogo = () => {
     const [ordenarPor, setOrdenarPor] = useState('nombre'); // 'nombre', 'precio-asc', 'precio-desc'
     const [precioRango] = useState<[number, number]>([0, 10000000]);
     const productosRef = useRef<HTMLDivElement>(null);
+    const filtroActualRef = useRef(categoriaFiltro);
+    const isMounted = useRef(false);
 
     useEffect(() => {
         fetchProductos();
         fetchCategoriasSistema();
+        isMounted.current = true;
     }, []);
+
+    // Actualizar la referencia del filtro actual
+    useEffect(() => {
+        filtroActualRef.current = categoriaFiltro;
+    }, [categoriaFiltro]);
+
+    // Scroll suave al primer producto visible cuando cambia el filtro
+    useEffect(() => {
+        // Solo ejecutar el scroll si es un cambio de filtro (no en mount inicial)
+        if (!isMounted.current || loading || !productosRef.current) return;
+        
+        // Pequeño delay para permitir que el DOM se actualice
+        const timeoutId = setTimeout(() => {
+            const container = productosRef.current;
+            if (container) {
+                // Calcular la posición correcta considerando elementos sticky
+                const stickyOffset = 200; // Offset por el header sticky
+                const targetPosition = container.getBoundingClientRect().top + window.scrollY - stickyOffset;
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }, 100);
+        
+        return () => clearTimeout(timeoutId);
+    }, [categoriaFiltro, loading]);
 
     // Fetch de categorías desde el sistema (no solo desde productos)
     const fetchCategoriasSistema = async () => {
@@ -128,7 +159,7 @@ const Catalogo = () => {
                             categorias.map(cat => (
                                 <button
                                     key={cat}
-                                    onClick={() => { setCategoriaFiltro(cat); productosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                                    onClick={() => { setCategoriaFiltro(cat); }}
                                     className={`px-6 py-2.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-[0.2em] border-2 ${categoriaFiltro === cat
                                         ? 'bg-patisserie-red border-patisserie-red text-white shadow-[0_10px_20px_rgba(125,33,33,0.2)]'
                                         : 'bg-white border-transparent text-gray-400 hover:text-patisserie-red hover:bg-red-50'

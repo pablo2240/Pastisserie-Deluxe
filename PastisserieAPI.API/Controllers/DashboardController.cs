@@ -62,6 +62,7 @@ namespace PastisserieAPI.API.Controllers
             if (!pedidosPorEstado.ContainsKey("Cancelado")) pedidosPorEstado["Cancelado"] = 0;
             if (!pedidosPorEstado.ContainsKey("Rechazado")) pedidosPorEstado["Rechazado"] = 0;
             if (!pedidosPorEstado.ContainsKey("Pendiente")) pedidosPorEstado["Pendiente"] = 0;
+            if (!pedidosPorEstado.ContainsKey("Confirmado")) pedidosPorEstado["Confirmado"] = 0;
 
             // Top 5 más y menos vendidos (Incluye los que tienen 0 ventas)
             var todosProductos = await _context.Productos.Select(p => new { p.Id, p.Nombre }).ToListAsync();
@@ -117,7 +118,7 @@ namespace PastisserieAPI.API.Controllers
                 pedidosPorEstado,
                 ventasPorDia,
                 totalPedidos = todosPedidos.Count,
-                pedidosPendientes = pedidosPorEstado.GetValueOrDefault("Pendiente", 0),
+                pedidosPendientes = (pedidosPorEstado.GetValueOrDefault("Pendiente", 0)) + (pedidosPorEstado.GetValueOrDefault("Confirmado", 0)),
                 alertasCriticas = new {
                     conteoRetrasados = pedidosRetrasados.Count,
                     pedidosRetrasados = pedidosRetrasados,

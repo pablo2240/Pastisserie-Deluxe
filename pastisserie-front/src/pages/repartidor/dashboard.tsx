@@ -222,29 +222,42 @@ const RepartidorDashboard = () => {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Dirección de Entrega</p>
-                                        {(() => {
-                                            const dir = pedido.direccionEnvio?.direccion || '';
-                                            const comuna = pedido.direccionEnvio?.comuna || '';
-                                            const ciudad = pedido.direccionEnvio?.ciudad || 'Medellín';
-                                            const direccionFormateada = `${dir}, ${comuna}, ${ciudad}, Colombia`.replace(/^, |, $/g, '');
-                                            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(direccionFormateada)}`;
-                                            
-                                            return (
-                                                <>
-                                                    <a 
-                                                        href={googleMapsUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-lg font-black text-gray-800 leading-snug hover:text-patisserie-red transition-colors cursor-pointer block"
-                                                    >
-                                                        {dir || 'S/D'}
-                                                    </a>
-                                                    <p className="text-sm font-bold text-gray-400 mt-1 capitalize">
-                                                        {comuna || ciudad || 'Medellín'}
-                                                    </p>
-                                                </>
-                                            );
-                                        })()}
+{(() => {
+    // Importo la función utilitaria
+    // (Verificar que esté importada arriba)
+    import { getGoogleMapsUrl } from '../../utils/format';
+    const dir = pedido.direccionEnvio?.direccion || '';
+    const comuna = pedido.direccionEnvio?.comuna || '';
+    const googleMapsUrl = getGoogleMapsUrl(dir, comuna);
+    const showMapWarning = () => {
+        toast.error('Dirección o comuna incompleta. Por favor revisá los datos.');
+    };
+    return (
+        <>
+            {googleMapsUrl ? (
+                <a
+                    href={googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-lg font-black text-gray-800 leading-snug hover:text-patisserie-red transition-colors cursor-pointer block"
+                >
+                    {dir || 'S/D'}
+                </a>
+            ) : (
+                <span
+                    onClick={showMapWarning}
+                    className="text-lg font-black text-gray-300 leading-snug cursor-not-allowed block opacity-50"
+                    title="Dirección o comuna incompleta: no se puede abrir mapa."
+                >
+                    {dir || 'Sin dirección'}
+                </span>
+            )}
+            <p className="text-sm font-bold text-gray-400 mt-1 capitalize">
+                {comuna || 'Sin comuna'}
+            </p>
+        </>
+    );
+})()}
 
                                         {pedido.direccionEnvio?.notas && (
                                             <div className="mt-4 bg-patisserie-red/5 p-4 rounded-2xl text-[11px] font-bold text-patisserie-red border border-patisserie-red/10 flex gap-3 italic">

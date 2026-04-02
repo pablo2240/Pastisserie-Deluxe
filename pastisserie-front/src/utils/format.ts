@@ -43,3 +43,20 @@ export const formatMedellinDateTime = (dateStr: string): string => {
         return new Date(dateStr).toLocaleString();
     }
 };
+
+/**
+ * Devuelve un enlace robusto a Google Maps para una dirección en Medellín.
+ * Limpia el string y alerta si hay un error obvio.
+ */
+export function getGoogleMapsUrl(direccion: string, comuna: string): string | null {
+    const dirty = `${direccion || ''}`.trim();
+    const cleanDireccion = dirty.replace(/\s+/g, ' ').replace(/,{2,}/g, ',').replace(/^,|,$/g, '');
+    const cleanComuna = (comuna || '').trim();
+
+    // Validar campos mínimos
+    if (!cleanDireccion || cleanDireccion.length < 4) return null;
+    if (!cleanComuna || cleanComuna.length < 2) return null;
+
+    const full = `${cleanDireccion}, ${cleanComuna}, Medellín, Colombia`.replace(/,{2,}/g, ',').replace(/^,|,$/g, '');
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(full)}`;
+}

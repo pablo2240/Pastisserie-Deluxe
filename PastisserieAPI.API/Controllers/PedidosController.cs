@@ -89,6 +89,14 @@ namespace PastisserieAPI.API.Controllers
         [HttpPut("{id}/estado")]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdatePedidoEstadoRequestDto request)
         {
+            // Extraer el ID del usuario actual del token JWT
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int currentUserId))
+            {
+                // Si no se especificó un usuario en el request, usar el actual
+                request.UsuarioId ??= currentUserId;
+            }
+            
             var result = await _pedidoService.UpdateEstadoAsync(id, request);
             if (result == null) return NotFound(ApiResponse<string>.ErrorResponse("Pedido no encontrado"));
             return Ok(ApiResponse<PedidoResponseDto>.SuccessResponse(result, "Estado actualizado"));

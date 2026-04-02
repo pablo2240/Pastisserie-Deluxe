@@ -9,12 +9,16 @@ import { dashboardService } from '../../services/dashboardService';
 import { getGoogleMapsUrl } from '../../utils/format';
 import api from '../../api/axios';
 import { formatMedellinDate, formatMedellinDateTime } from '../../utils/format';
+import { useAuth } from '../../context/AuthContext';
 
 const RepartidorDashboard = () => {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'pendientes' | 'entregados' | 'noEntregados' | 'historial'>('pendientes');
     const [selectedPedido, setSelectedPedido] = useState<any>(null);
+    
+    // Obtener el usuario actual (repartidor logueado)
+    const { user } = useAuth();
 
 
     const fetchStats = async () => {
@@ -50,7 +54,8 @@ const RepartidorDashboard = () => {
         try {
             await api.put(`/pedidos/${id}/estado`, {
                 estado: nuevoEstado,
-                motivoNoEntrega: motivoProvisto || ""
+                motivoNoEntrega: motivoProvisto || "",
+                usuarioId: user?.id // Enviar el ID del repartidor actual
             });
             toast.success(`Pedido #${id} marcado como ${nuevoEstado === 'Entregado' ? 'Entregado' : 'No Entregado'}`);
             fetchStats();

@@ -435,7 +435,8 @@ namespace PastisserieAPI.Services.Services
                 EstadoAnterior = estadoAnterior,
                 EstadoNuevo = request.Estado,
                 FechaCambio = GetBogotaTime(),
-                Notas = request.MotivoNoEntrega
+                Notas = request.MotivoNoEntrega,
+                CambiadoPor = request.UsuarioId
             };
             _context.PedidoHistoriales.Add(historial);
 

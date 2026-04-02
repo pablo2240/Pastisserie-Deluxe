@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import ShopStatusWidget from '../../components/admin/ShopStatusWidget';
 import { formatMedellinDate, formatMedellinDateTime } from '../../utils/format';
 import { orderService } from '../../services/orderService';
+import { useAuth } from '../../context/AuthContext';
 
 
 // Tipos definidos localmente para asegurar compatibilidad
@@ -42,7 +43,14 @@ interface PedidoAdmin {
   total: number;
   estado: string;
   items: PedidoItem[];
-  direccionEnvio?: string;
+  direccionEnvio?: {
+    direccion: string;
+    comuna: string;
+    barrio: string;
+    referencia: string;
+    nombreCompleto: string;
+    telefono: string;
+  };
   repartidorId?: number;
 }
 
@@ -57,6 +65,9 @@ const PedidosAdmin = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [repartidores, setRepartidores] = useState<{ id: number, nombre: string }[]>([]);
+  
+  // Obtener el usuario actual (admin logueado)
+  const { user } = useAuth();
 
   const location = useLocation();
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
@@ -144,7 +155,10 @@ const PedidosAdmin = () => {
 
   const cambiarEstado = async (id: number, nuevoEstado: string) => {
     try {
-      await api.put(`/pedidos/${id}/estado`, { estado: nuevoEstado });
+      await api.put(`/pedidos/${id}/estado`, { 
+        estado: nuevoEstado,
+        usuarioId: user?.id // Enviar el ID del admin actual
+      });
       toast.success(`Pedido #${id} actualizado`);
       fetchPedidos();
     } catch (error) {
@@ -416,15 +430,6 @@ const PedidosAdmin = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-500 text-xs">Email:</span>
                       <span className="text-sm">{selectedPedido.usuario?.email || 'N/A'}</span>
-                    </div>
-                    <div className="pt-2 border-t border-gray-200">
-                      <div className="flex items-start gap-2">
-                        <FiMapPin className="text-[#7D2121] mt-1 shrink-0" />
-                        <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase">Dirección de Envío</p>
-                          <p className="text-sm font-medium">{selectedPedido.direccionEnvio || 'Recogida en tienda'}</p>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>

@@ -36,6 +36,10 @@ namespace PastisserieAPI.Core.Entities
 
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
+        // Coordenadas geográficas para Google Maps
+        public double? Latitud { get; set; }
+        public double? Longitud { get; set; }
+
         // Relaciones
         [ForeignKey("UsuarioId")]
         public virtual User Usuario { get; set; } = null!;

@@ -46,17 +46,46 @@ export const formatMedellinDateTime = (dateStr: string): string => {
 
 /**
  * Devuelve un enlace robusto a Google Maps para una dirección en Medellín.
- * Limpia el string y alerta si hay un error obvio.
+ * Soporta coordenadas (lat/lng) o fallback a texto.
+ * 
+ * @param direccion - Dirección textual
+ * @param comuna - Comuna/barrio
+ * @param latitud - Coordenada de latitud (opcional)
+ * @param longitud - Coordenada de longitud (opcional)
+ * @param ciudad - Ciudad por defecto
+ * @param pais - País por defecto
  */
-export function getGoogleMapsUrl(direccion: string, comuna: string): string | null {
-    const dirty = `${direccion || ''}`.trim();
-    const cleanDireccion = dirty.replace(/\s+/g, ' ').replace(/,{2,}/g, ',').replace(/^,|,$/g, '');
-    const cleanComuna = (comuna || '').trim();
+export function getGoogleMapsUrl(
+  direccion: string,
+  comuna: string,
+  latitud?: number | null,
+  longitud?: number | null,
+  ciudad = 'Medellín',
+  pais = 'Colombia'
+): string | null {
+  const normalize = (value: string) =>
+    (value || '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .replace(/,{2,}/g, ',')
+      .replace(/^,|,$/g, '');
 
-    // Validar campos mínimos
-    if (!cleanDireccion || cleanDireccion.length < 4) return null;
-    if (!cleanComuna || cleanComuna.length < 2) return null;
+  // PRIORIDAD 1: Si tenemos coordenadas, usar URL directa de Google Maps
+  if (latitud != null && longitud != null && !isNaN(latitud) && !isNaN(longitud)) {
+    return `https://www.google.com/maps/search/?api=1&query=${latitud},${longitud}`;
+  }
 
-    const full = `${cleanDireccion}, ${cleanComuna}, Medellín, Colombia`.replace(/,{2,}/g, ',').replace(/^,|,$/g, '');
-    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(full)}`;
+  // PRIORIDAD 2: Fallback a dirección textual
+  const cleanDireccion = normalize(direccion);
+  const cleanComuna = normalize(comuna);
+
+  // Validación más razonable
+  if (!cleanDireccion || cleanDireccion.length < 6) return null;
+
+  // Construcción inteligente (evita duplicados)
+  const parts = [cleanDireccion, cleanComuna, ciudad, pais]
+    .filter(Boolean)
+    .join(', ');
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(parts)}`;
 }

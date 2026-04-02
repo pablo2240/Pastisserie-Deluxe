@@ -10,6 +10,10 @@
         public string? Telefono { get; set; }
         public string? NotasCliente { get; set; }
         public List<PedidoItemRequestDto> Items { get; set; } = new();
+        
+        // Coordenadas geográficas opcionales
+        public double? Latitud { get; set; }
+        public double? Longitud { get; set; }
     }
 
     public class PedidoItemRequestDto

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import api from '../../api/axios';
 import {
-  FiEye, FiCheckCircle, FiPackage, FiUser, FiMapPin, FiX, FiClock, FiActivity
+  FiEye, FiCheckCircle, FiPackage, FiUser, FiX, FiClock, FiActivity
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import ShopStatusWidget from '../../components/admin/ShopStatusWidget';

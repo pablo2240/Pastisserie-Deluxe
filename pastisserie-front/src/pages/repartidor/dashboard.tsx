@@ -228,10 +228,12 @@ const RepartidorDashboard = () => {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Dirección de Entrega</p>
-{(() => {
+                                    {(() => {
     const dir = pedido.direccionEnvio?.direccion || '';
     const comuna = pedido.direccionEnvio?.comuna || '';
-    const googleMapsUrl = getGoogleMapsUrl(dir, comuna);
+    const latitud = pedido.direccionEnvio?.latitud;
+    const longitud = pedido.direccionEnvio?.longitud;
+    const googleMapsUrl = getGoogleMapsUrl(dir, comuna, latitud, longitud);
     const showMapWarning = () => {
         toast.error('Dirección o comuna incompleta. Por favor revisá los datos.');
     };

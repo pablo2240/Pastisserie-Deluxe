@@ -159,7 +159,10 @@ namespace PastisserieAPI.Services.Services
                     Referencia = request.NotasCliente,
                     Telefono = request.Telefono ?? usuario?.Telefono ?? string.Empty,
                     EsPredeterminada = false,
-                    FechaCreacion = GetBogotaTime()
+                    FechaCreacion = GetBogotaTime(),
+                    // Guardar coordenadas si vienen en el request
+                    Latitud = request.Latitud,
+                    Longitud = request.Longitud
                 };
 
                 await _unitOfWork.DireccionesEnvio.AddAsync(direccionEnvio);

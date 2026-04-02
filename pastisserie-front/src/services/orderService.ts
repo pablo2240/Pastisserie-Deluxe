@@ -38,7 +38,9 @@ export const orderService = {
     comuna: string,
     telefono: string,
     metodoPago: string,
-    notas?: string
+    notas?: string,
+    latitud?: number | null,
+    longitud?: number | null
   }) => {
     const payload = {
       DireccionEnvioId: null,
@@ -46,7 +48,10 @@ export const orderService = {
       Direccion: orderData.direccion,
       Comuna: orderData.comuna,
       NotasCliente: `Telefono: ${orderData.telefono}${orderData.notas ? ` | Notas: ${orderData.notas}` : ''}`,
-      Items: []
+      Items: [],
+      // Enviar coordenadas si están disponibles
+      Latitud: orderData.latitud ?? null,
+      Longitud: orderData.longitud ?? null
     };
 
     const response = await api.post('/pedidos', payload);

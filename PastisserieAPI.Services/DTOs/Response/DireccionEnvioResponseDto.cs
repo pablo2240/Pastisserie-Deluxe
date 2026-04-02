@@ -10,5 +10,9 @@
         public string? Comuna { get; set; }
         public string Telefono { get; set; } = string.Empty;
         public bool EsPredeterminada { get; set; }
+        
+        // Coordenadas geográficas
+        public double? Latitud { get; set; }
+        public double? Longitud { get; set; }
     }
 }

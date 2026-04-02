@@ -183,7 +183,8 @@ namespace PastisserieAPI.Services.Services
                     if (producto == null)
                         throw new Exception("Producto no encontrado en el carrito");
 
-                    if (producto.Stock < itemCart.Cantidad)
+                    // Validar stock solo si el producto NO tiene inventario ilimitado
+                    if (!producto.StockIlimitado && producto.Stock < itemCart.Cantidad)
                     {
                         throw new Exception($"No hay suficiente stock para {producto.Nombre}. Disponible: {producto.Stock}, Solicitado: {itemCart.Cantidad}");
                     }
@@ -635,11 +636,11 @@ namespace PastisserieAPI.Services.Services
             {
                 foreach (var item in pedido.Items)
                 {
-                    // Solo restaurar stock si el item tiene ProductoId (no es promoción independiente)
+                    // Solo restaurar stock si el item tiene ProductoId Y el producto NO tiene inventario ilimitado
                     if (item.ProductoId.HasValue)
                     {
                         var producto = await _unitOfWork.Productos.GetByIdAsync(item.ProductoId.Value);
-                        if (producto != null)
+                        if (producto != null && !producto.StockIlimitado)
                         {
                             producto.Stock += item.Cantidad;
                             await _unitOfWork.Productos.UpdateAsync(producto);

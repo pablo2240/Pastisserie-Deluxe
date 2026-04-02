@@ -44,7 +44,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, tiendaStatus, status
               {product.categoriaNombre}
             </span>
 
-            {product.stock === 0 && (
+            {product.stockIlimitado ? (
+              <span className="bg-emerald-600 text-white px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-[0.2em] shadow-lg">
+                Ilimitado
+              </span>
+            ) : product.stock === 0 && (
               <span className="bg-red-600 text-white px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-[0.2em] shadow-lg animate-pulse">
                 Sin Stock
               </span>
@@ -78,14 +82,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, tiendaStatus, status
                   setShowHoursModal(true);
                   return;
                 }
-                if (product.stock === 0) return;
+                // No permitir agregar si stock es 0 (para productos con stock limitado)
+                if (!product.stockIlimitado && product.stock === 0) return;
 
                 addToCart(product.id);
                 const btn = e.currentTarget;
                 btn.classList.add('success-pop');
                 setTimeout(() => btn.classList.remove('success-pop'), 400);
               }}
-              disabled={(product.stock === 0 && !isClosed && !isMaintenance && !isConnectionError) || statusLoading}
+              disabled={(statusLoading) || (product.stock === 0 && !isClosed && !isMaintenance && !isConnectionError && !product.stockIlimitado)}
               className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 btn-premium uppercase tracking-widest 
                 ${(isClosed || isMaintenance || isConnectionError)
                   ? 'bg-patisserie-red text-white hover:bg-patisserie-dark cursor-pointer'
@@ -93,6 +98,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, tiendaStatus, status
             >
               {statusLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : product.stockIlimitado ? (
+                'Agregar al Carrito'
               ) : product.stock === 0 && !isClosed && !isMaintenance && !isConnectionError ? (
                 'Agotado'
               ) : isClosed || isMaintenance ? (

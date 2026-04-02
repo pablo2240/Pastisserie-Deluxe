@@ -7,6 +7,10 @@
         public string? Descripcion { get; set; }
         public decimal Precio { get; set; }
         public int Stock { get; set; }
+        /// <summary>
+        /// Indica si el producto tiene inventario ilimitado (no se valida contra Stock)
+        /// </summary>
+        public bool StockIlimitado { get; set; }
         public int? StockMinimo { get; set; }
         public int? CategoriaProductoId { get; set; }
         public string? CategoriaNombre { get; set; }

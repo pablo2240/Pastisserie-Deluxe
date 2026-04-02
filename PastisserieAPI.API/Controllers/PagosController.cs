@@ -327,9 +327,13 @@ namespace PastisserieAPI.API.Controllers
                         throw new Exception($"Stock insuficiente para {producto.Nombre}. Disponible: {producto.Stock}, requerido: {item.Cantidad}");
                     }
 
-                    producto.Stock -= item.Cantidad;
-                    await _unitOfWork.Productos.UpdateAsync(producto);
-                    _logger.LogInformation("Stock actualizado para {ProductoNombre}: {NuevoStock}", producto.Nombre, producto.Stock);
+                    // Solo descontar stock si el producto NO tiene inventario ilimitado
+                    if (!producto.StockIlimitado)
+                    {
+                        producto.Stock -= item.Cantidad;
+                        await _unitOfWork.Productos.UpdateAsync(producto);
+                        _logger.LogInformation("Stock actualizado para {ProductoNombre}: {NuevoStock}", producto.Nombre, producto.Stock);
+                    }
                 }
 
                 if (item.PromocionId.HasValue && !item.ProductoId.HasValue)

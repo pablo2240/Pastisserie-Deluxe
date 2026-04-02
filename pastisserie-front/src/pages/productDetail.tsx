@@ -15,6 +15,7 @@ interface Producto {
   precio: number;
   imagenUrl: string;
   stock: number;
+  stockIlimitado?: boolean;
   categoria: string;
 }
 
@@ -87,9 +88,14 @@ const ProductDetail = () => {
                 alt={producto.nombre}
                 className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
               />
-              {producto.stock < 5 && producto.stock > 0 && (
+              {!producto.stockIlimitado && producto.stock < 5 && producto.stock > 0 && (
                 <span className="absolute top-4 right-4 bg-patisserie-red/10 text-patisserie-red px-3 py-1 rounded-full text-xs font-bold border border-patisserie-red/20">
                   ¡Quedan pocos!
+                </span>
+              )}
+              {producto.stockIlimitado && (
+                <span className="absolute top-4 right-4 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-lg">
+                  Ilimitado
                 </span>
               )}
             </div>
@@ -106,7 +112,11 @@ const ProductDetail = () => {
 
             <div className="flex items-center gap-4 mb-6">
               <span className="text-3xl font-bold text-gray-900">{formatCurrency(producto.precio)}</span>
-              {producto.stock > 0 ? (
+              {producto.stockIlimitado ? (
+                <span className="flex items-center gap-1 text-emerald-600 text-sm font-medium bg-emerald-50 px-2 py-1 rounded">
+                  <FiCheck size={14} /> Disponible
+                </span>
+              ) : producto.stock > 0 ? (
                 <span className="flex items-center gap-1 text-green-600 text-sm font-medium bg-green-50 px-2 py-1 rounded">
                   <FiCheck size={14} /> Disponible
                 </span>
@@ -133,9 +143,9 @@ const ProductDetail = () => {
                   </button>
                   <span className="font-bold text-lg w-8 text-center">{cantidad}</span>
                   <button
-                    onClick={() => setCantidad(Math.min(producto.stock, cantidad + 1))}
-                    className="text-gray-400 hover:text-patisserie-red disabled:opacity-50"
-                    disabled={cantidad >= producto.stock}
+                    onClick={() => setCantidad(cantidad + 1)}
+                    className="text-gray-400 hover:text-patisserie-red"
+                    disabled={!producto.stockIlimitado && cantidad >= producto.stock}
                   >
                     <FiPlus />
                   </button>
@@ -144,11 +154,11 @@ const ProductDetail = () => {
                 {/* Botón Agregar */}
                 <button
                   onClick={handleAddToCart}
-                  disabled={producto.stock === 0}
+                  disabled={!producto.stockIlimitado && producto.stock === 0}
                   className="flex-1 bg-patisserie-dark text-white hover:bg-patisserie-red transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 disabled:bg-gray-300 disabled:cursor-not-allowed py-3 px-6 rounded-xl font-bold uppercase tracking-widest text-sm"
                 >
                   <FiShoppingBag size={20} />
-                  {producto.stock === 0 ? 'Sin Stock' : 'Agregar al Carrito'}
+                  {!producto.stockIlimitado && producto.stock === 0 ? 'Sin Stock' : 'Agregar al Carrito'}
                 </button>
               </div>
 

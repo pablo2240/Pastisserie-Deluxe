@@ -167,7 +167,8 @@ namespace PastisserieAPI.Services.Services
             if (producto == null || !producto.Activo)
                 throw new Exception("Producto no encontrado o inactivo");
 
-            if (producto.Stock < request.Cantidad)
+            // Validar stock solo si el producto NO tiene inventario ilimitado
+            if (!producto.StockIlimitado && producto.Stock < request.Cantidad)
                 throw new Exception($"Stock insuficiente. Solo hay {producto.Stock} unidades disponibles");
 
             // Validar límite de unidades por producto (regla de negocio configurable)

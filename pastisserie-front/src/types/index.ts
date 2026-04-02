@@ -69,6 +69,8 @@ export interface Producto {
   descripcion?: string;
   precio: number;
   stock: number;
+  /// Indica si el producto tiene inventario ilimitado
+  stockIlimitado?: boolean;
   stockMinimo?: number;
   categoriaProductoId?: number;
   categoriaNombre?: string;

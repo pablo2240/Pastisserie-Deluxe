@@ -56,7 +56,7 @@ const ReportesAdmin = () => {
     switch (estado) {
       case 'Pendiente': return 'No entregado';
       case 'EnRevision': return 'En Revision';
-      case 'Resuelta': return 'Entregado';
+      case 'Resuelta': return 'Resuelto';
       case 'Rechazada': return 'Rechazada';
       default: return estado;
     }
@@ -197,7 +197,7 @@ const ReportesAdmin = () => {
                         : 'bg-white text-gray-600 border-gray-200 hover:border-[#7D2121] hover:text-[#7D2121]'
                         }`}
                     >
-                      {estado === 'Pendiente' ? 'No entregado' : estado === 'Resuelta' ? 'Entregado' : estado === 'EnRevision' ? 'En Revision' : estado}
+                      {estado === 'Pendiente' ? 'No entregado' : estado === 'Resuelta' ? 'Resuelto' : estado === 'EnRevision' ? 'En Revision' : estado}
                     </button>
                   ))}
                 </div>

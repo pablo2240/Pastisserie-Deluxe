@@ -1,18 +1,16 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*", "/assets/*", "/*.{css,js,png,jpg,svg,ico,woff,woff2}"]
+    "exclude": ["/assets/*"]
   },
   "routes": [
     {
       "route": "/api/*",
-      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-      "allowedRoles": ["anonymous"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
+      "rewrite": "/api/*"
+    },
+    {
+      "route": "/images/*",
+      "rewrite": "/images/*"
     }
   ],
   "globalHeaders": {

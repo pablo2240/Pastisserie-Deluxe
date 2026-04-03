@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { FiPlus, FiClock, FiX } from 'react-icons/fi';
 import { formatCurrency } from '../utils/format';
 import { type TiendaStatus } from '../hooks/useTiendaStatus';
+import { resolveImageUrl } from '../api/axios';
 
 interface ProductCardProps {
   product: Producto;
@@ -31,7 +32,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, tiendaStatus, status
         {/* Imagen (Ahora con Link) */}
         <Link to={`/productos/${product.id}`} className="h-48 overflow-hidden relative block img-premium">
           <img
-            src={product.imagenUrl || 'https://via.placeholder.com/300x200?text=Sin+Imagen'}
+            src={resolveImageUrl(product.imagenUrl)}
             alt={product.nombre}
             loading="lazy"
             className="w-full h-full object-cover object-center"

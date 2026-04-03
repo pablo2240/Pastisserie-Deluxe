@@ -72,14 +72,12 @@ var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
+// Swagger disponible en todos los entornos
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Pastisserie API V1");
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Pastisserie API V1");
+});
 
 // ============ SUBCOMANDO 'limpiar-db' ============
 if (args.Contains("limpiar-db", StringComparer.OrdinalIgnoreCase))

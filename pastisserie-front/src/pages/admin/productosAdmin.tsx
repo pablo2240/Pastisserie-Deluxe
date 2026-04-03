@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 import type { Producto } from '../../types';
-import api from '../../api/axios';
+import api, { resolveImageUrl } from '../../api/axios';
 import {
   Edit3, Trash2, Plus, Search, X,
   Save, Image as ImageIcon,
@@ -400,7 +400,7 @@ const ProductosAdmin = () => {
                   <td className="px-8 py-5">
                     <div className="w-14 h-14 rounded-2xl bg-gray-50 overflow-hidden shadow-sm border border-gray-100 group-hover:scale-105 transition-transform duration-500">
                       <img
-                        src={prod.imagenUrl || 'https://via.placeholder.com/60'}
+                        src={resolveImageUrl(prod.imagenUrl)}
                         alt={prod.nombre}
                         className="w-full h-full object-cover"
                       />
@@ -488,7 +488,7 @@ const ProductosAdmin = () => {
                     >
                       {formData.imagenUrl ? (
                         <>
-                          <img src={formData.imagenUrl} className="w-full h-full object-cover" alt="preview" />
+                          <img src={resolveImageUrl(formData.imagenUrl)} className="w-full h-full object-cover" alt="preview" />
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
                             <span className="text-white text-xs font-black uppercase tracking-widest">Cambiar</span>
                           </div>

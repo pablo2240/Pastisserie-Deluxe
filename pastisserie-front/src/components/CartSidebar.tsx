@@ -1,6 +1,7 @@
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../utils/format';
+import { resolveImageUrl } from '../api/axios';
 
 interface Props {
   isOpen: boolean;
@@ -50,7 +51,7 @@ const CartSidebar = ({ isOpen, onClose }: Props) => {
                 <div key={item.id} className="flex gap-4 bg-gray-50 p-4 rounded-xl items-center shadow-sm border border-gray-100">
                   <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center text-2xl overflow-hidden border border-gray-200">
                     {item.imagenUrl ? (
-                      <img src={item.imagenUrl} alt={item.nombreProducto} className="w-full h-full object-cover" />
+                      <img src={resolveImageUrl(item.imagenUrl)} alt={item.nombreProducto} className="w-full h-full object-cover" />
                     ) : (
                       <span>🍰</span>
                     )}

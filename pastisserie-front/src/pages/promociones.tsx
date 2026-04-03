@@ -6,12 +6,13 @@ import type { Promocion } from '../services/promocionesService';
 import { formatCurrency } from '../utils/format';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { resolveImageUrl } from '../api/axios';
 
 const POLLING_INTERVAL_MS = 10000;
 
 const getPromoImage = (promo: Promocion): string => {
-  if (promo.productoId && promo.productoImagenUrl) return promo.productoImagenUrl;
-  if (promo.imagenUrl) return promo.imagenUrl;
+  if (promo.productoId && promo.productoImagenUrl) return resolveImageUrl(promo.productoImagenUrl);
+  if (promo.imagenUrl) return resolveImageUrl(promo.imagenUrl);
   return 'https://images.unsplash.com/photo-1551024601-bec0273fb832?auto=format&fit=crop&q=80&w=400';
 };
 

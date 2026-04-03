@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { FiMinus, FiPlus, FiShoppingBag, FiArrowLeft, FiClock, FiCheck } from 'react-icons/fi';
-import api from '../api/axios';
+import api, { resolveImageUrl } from '../api/axios';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -37,7 +37,7 @@ const ProductDetail = () => {
         // Manejo robusto de la respuesta (data.data o data directo)
         const data = response.data?.data || response.data || {};
         setProducto(data);
-        setMainImage(data.imagenUrl || '');
+        setMainImage(resolveImageUrl(data.imagenUrl));
       } catch (error) {
         console.error(error);
         toast.error('Error al cargar el producto');
@@ -84,7 +84,7 @@ const ProductDetail = () => {
           <div className="space-y-4">
             <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden shadow-sm relative group">
               <img
-                src={mainImage || 'https://via.placeholder.com/600'}
+                src={mainImage || resolveImageUrl(null)}
                 alt={producto.nombre}
                 className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
               />

@@ -7,6 +7,7 @@ import { formatCurrency } from '../utils/format';
 import { useTiendaStatus } from '../hooks/useTiendaStatus';
 import { FiClock } from 'react-icons/fi';
 import { swal } from '../utils/swal';
+import { resolveImageUrl } from '../api/axios';
 
 const Carrito = () => {
     const { carrito, updateCartItem, removeFromCart, clearCart, totalItems, isLoading, compraMinima } = useCart();
@@ -73,7 +74,7 @@ const Carrito = () => {
                                 {/* Imagen */}
                                 <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                                     <img
-                                        src={item.imagenUrl || 'https://via.placeholder.com/100'}
+                                        src={resolveImageUrl(item.imagenUrl)}
                                         alt={item.nombreProducto}
                                         className="w-full h-full object-cover"
                                     />

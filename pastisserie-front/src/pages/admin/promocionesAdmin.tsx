@@ -6,7 +6,7 @@ import { formatCurrency } from '../../utils/format';
 import { promocionesService, type Promocion } from '../../services/promocionesService';
 import { productService } from '../../services/productService';
 import type { Producto } from '../../types';
-import api from '../../api/axios';
+import api, { resolveImageUrl } from '../../api/axios';
 import { swal } from '../../utils/swal';
 
 const getLocalDateString = () => new Date().toLocaleDateString('sv-SE');
@@ -607,7 +607,7 @@ const PromocionesAdmin = () => {
                                                                     className="w-full flex items-center gap-4 p-3 hover:bg-gray-50 transition-colors text-left first:rounded-t-2xl last:rounded-b-2xl"
                                                                 >
                                                                     {prod.imagenUrl ? (
-                                                                        <img src={prod.imagenUrl} alt={prod.nombre} className="w-10 h-10 rounded-lg object-cover border border-gray-200 shrink-0" />
+                                                                        <img src={resolveImageUrl(prod.imagenUrl)} alt={prod.nombre} className="w-10 h-10 rounded-lg object-cover border border-gray-200 shrink-0" />
                                                                     ) : (
                                                                         <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300 shrink-0">
                                                                             <FiPackage size={16} />
@@ -628,7 +628,7 @@ const PromocionesAdmin = () => {
                                             {productoSeleccionado && (
                                                 <div className="flex items-center gap-4 bg-blue-50/60 border border-blue-100 rounded-2xl p-4">
                                                     {productoSeleccionado.imagenUrl ? (
-                                                        <img src={productoSeleccionado.imagenUrl} alt={productoSeleccionado.nombre} className="w-16 h-16 rounded-xl object-cover border border-blue-200 shadow-sm" />
+                                                        <img src={resolveImageUrl(productoSeleccionado.imagenUrl)} alt={productoSeleccionado.nombre} className="w-16 h-16 rounded-xl object-cover border border-blue-200 shadow-sm" />
                                                     ) : (
                                                         <div className="w-16 h-16 rounded-xl bg-blue-100 flex items-center justify-center text-blue-300">
                                                             <FiPackage size={24} />
@@ -653,7 +653,7 @@ const PromocionesAdmin = () => {
                                             {formData.imagenUrl ? (
                                                 <div className="relative group">
                                                     <img
-                                                        src={formData.imagenUrl}
+                                                        src={resolveImageUrl(formData.imagenUrl)}
                                                         alt="Preview"
                                                         className="w-full h-48 object-cover rounded-2xl border border-gray-200 shadow-sm"
                                                     />

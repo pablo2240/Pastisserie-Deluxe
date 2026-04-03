@@ -69,3 +69,24 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+/**
+ * Obtiene la URL base del API (sin /api al final).
+ * Útil para resolver URLs de imágenes y recursos estáticos.
+ */
+export const getApiBaseUrl = (): string => {
+  const baseURL = import.meta.env.VITE_API_URL || '';
+  // Remover /api del final si existe
+  return baseURL.endsWith('/api') ? baseURL.slice(0, -4) : baseURL;
+};
+
+/**
+ * Resuelve una URL de imagen.
+ * - Si ya es absoluta (http/https), la devuelve tal cual.
+ * - Si es relativa (/images/...), le antepone la base del API.
+ */
+export const resolveImageUrl = (url: string | null | undefined): string => {
+  if (!url) return 'https://via.placeholder.com/300x200?text=Sin+Imagen';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${getApiBaseUrl()}${url}`;
+};

@@ -19,7 +19,6 @@ namespace PastisserieAPI.API.Controllers
         private readonly INotificacionService _notificacionService;
         private readonly IEmailService _emailService;
         private readonly IInvoiceService _invoiceService;
-        private readonly ApplicationDbContext _context;
         private readonly IPedidoService _pedidoService;
 
         public PagosController(
@@ -28,7 +27,6 @@ namespace PastisserieAPI.API.Controllers
             INotificacionService notificacionService,
             IEmailService emailService,
             IInvoiceService invoiceService,
-            ApplicationDbContext context,
             IPedidoService pedidoService)
         {
             _unitOfWork = unitOfWork;
@@ -36,7 +34,6 @@ namespace PastisserieAPI.API.Controllers
             _notificacionService = notificacionService;
             _emailService = emailService;
             _invoiceService = invoiceService;
-            _context = context;
             _pedidoService = pedidoService;
         }
 
@@ -221,18 +218,6 @@ namespace PastisserieAPI.API.Controllers
                         var usuario = await _unitOfWork.Users.GetByIdAsync(userId.Value);
                         if (usuario != null)
                         {
-                            var factura = new Factura
-                            {
-                                PedidoId = pedido.Id,
-                                NumeroFactura = $"FAC-{pedido.Id}-{DateTime.UtcNow:yyyyMMdd}",
-                                FechaEmision = DateTime.UtcNow,
-                                Subtotal = pedido.Subtotal,
-                                IVA = 0,
-                                Total = pedido.Total
-                            };
-                            _context.Facturas.Add(factura);
-                            await _unitOfWork.SaveChangesAsync();
-
                             byte[]? pdfBytes = _invoiceService.GenerateInvoicePdf(pedido, usuario);
                             await _emailService.SendOrderConfirmationEmailAsync(usuario.Email, usuario.Nombre, pedido.Id, pedido.Total, pdfBytes);
                         }

@@ -24,7 +24,6 @@ namespace PastisserieAPI.Infrastructure.Data
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<PedidoItem> PedidoItems { get; set; }
         public DbSet<PedidoHistorial> PedidoHistoriales { get; set; }
-        public DbSet<Factura> Facturas { get; set; }
 
         // ============ CARRITO ============
         public DbSet<CarritoCompra> Carritos { get; set; }
@@ -95,11 +94,7 @@ namespace PastisserieAPI.Infrastructure.Data
                 .HasIndex(u => u.Email)
                 .IsUnique();
 
-            modelBuilder.Entity<Factura>()
-                .HasIndex(f => f.NumeroFactura)
-                .IsUnique();
-
-            // ============ ÍNDICES DE RENDIMIENTO ============
+                // ============ ÍNDICES DE RENDIMIENTO ============
             modelBuilder.Entity<Producto>()
                 .HasIndex(p => p.CategoriaProductoId);
 

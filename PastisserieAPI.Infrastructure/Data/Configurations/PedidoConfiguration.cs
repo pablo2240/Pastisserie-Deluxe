@@ -30,12 +30,6 @@ namespace PastisserieAPI.Infrastructure.Data.Configurations
             builder.Property(p => p.NotasCliente)
                 .HasMaxLength(1000);
 
-            // Relación con Factura (1:1)
-            builder.HasOne(p => p.Factura)
-                .WithOne(f => f.Pedido)
-                .HasForeignKey<Factura>(f => f.PedidoId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             // Índices
             builder.HasIndex(p => p.Estado)
                 .HasDatabaseName("IX_Pedidos_Estado");

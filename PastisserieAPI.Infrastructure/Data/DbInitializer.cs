@@ -108,7 +108,6 @@ namespace PastisserieAPI.Infrastructure.Data
                         
                         DELETE FROM PedidoItems WHERE PedidoId IN (SELECT Id FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds));
                         DELETE FROM PedidoHistoriales WHERE PedidoId IN (SELECT Id FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds));
-                        DELETE FROM Facturas WHERE PedidoId IN (SELECT Id FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds));
                         DELETE FROM RegistrosPago WHERE PedidoId IN (SELECT Id FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds));
                         DELETE FROM Envios WHERE PedidoId IN (SELECT Id FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds));
                         DELETE FROM Pedidos WHERE UsuarioId IN (SELECT Id FROM @UserIds);

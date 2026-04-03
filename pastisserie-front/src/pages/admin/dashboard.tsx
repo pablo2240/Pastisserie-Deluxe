@@ -219,9 +219,9 @@ const Dashboard = () => {
         ].map((kpi, idx) => (
           <div
             key={idx}
-            onClick={() => navigate(kpi.route)}
+            {...(kpi.color !== 'master' && { onClick: () => navigate(kpi.route) })}
             style={{ animationDelay: `${idx * 100}ms` }}
-            className={`animate-slide-up bg-white p-8 rounded-[3rem] shadow-sm border flex flex-col justify-between hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group cursor-pointer relative overflow-hidden ${kpi.color === 'master' ? 'border-2 border-gray-900 !text-gray-900 bg-gray-50' :
+            className={`animate-slide-up bg-white p-8 rounded-[3rem] shadow-sm border flex flex-col justify-between hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden ${kpi.color !== 'master' ? 'cursor-pointer' : ''} ${kpi.color === 'master' ? 'border-2 border-gray-900 !text-gray-900 bg-gray-50' :
               (kpi.color === 'rose') ? 'bg-rose-50 border-rose-100 !text-rose-900 shadow-rose-100' : 'border-gray-100'
               }`}
           >

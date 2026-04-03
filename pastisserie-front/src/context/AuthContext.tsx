@@ -113,7 +113,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('user', JSON.stringify(userData));
 
         setIsAuthenticated(true);
-        toast.success(`Bienvenido ${rolReal === 'Admin' ? 'Administrador' : ''} ${userData.nombre}`);
+        
+        // Solo mostrar mensaje de bienvenida una vez por sesión
+        if (!sessionStorage.getItem('welcomeShown')) {
+          toast.success(`Bienvenido ${rolReal === 'Admin' ? 'Administrador' : ''} ${userData.nombre}`);
+          sessionStorage.setItem('welcomeShown', 'true');
+        }
+        
         return true;
       } else {
         toast.error(response.message || 'Credenciales incorrectas');
@@ -196,10 +202,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     localStorage.clear();
+    sessionStorage.clear(); // Limpiar flag de bienvenida
     setUser(null);
     setToken(null);
     setIsAuthenticated(false);
-    toast.success('Sesi3n cerrada');
+    toast.success('Sesión cerrada');
     window.location.href = '/login';
   };
 

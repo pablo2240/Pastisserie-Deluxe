@@ -6,7 +6,6 @@ import {
     Users, Settings, LogOut, Search,
     Menu, MessageSquare, Store, FileText
 } from 'lucide-react';
-import { Toaster } from 'react-hot-toast';
 import Notificaciones from '../components/common/Notificaciones';
 
 const AdminLayout = () => {
@@ -26,7 +25,6 @@ const AdminLayout = () => {
 
     return (
         <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
-            <Toaster position="top-right" reverseOrder={false} />
             {/* Overlay para móvil */}
             {isSidebarOpen && (
                 <div

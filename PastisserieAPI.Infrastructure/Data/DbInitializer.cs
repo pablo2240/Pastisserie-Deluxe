@@ -167,6 +167,10 @@ namespace PastisserieAPI.Infrastructure.Data
                     context.Roles.AddRange(roles);
                     context.SaveChanges();
                     context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Roles OFF");
+                    
+                    // Resetear contador de identidad al último ID insertado
+                    context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Roles', RESEED, 3)");
+                    
                     transaction.Commit();
                 }
                 catch
@@ -221,6 +225,8 @@ namespace PastisserieAPI.Infrastructure.Data
                     if (changed)
                     {
                         context.SaveChanges();
+                        // Reseed al último ID insertado (7)
+                        context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('CategoriasProducto', RESEED, 7)");
                         transaction.Commit();
                         logger.LogInformation("📦 Categorías actualizadas/creadas.");
                     }
@@ -271,6 +277,9 @@ namespace PastisserieAPI.Infrastructure.Data
                         context.Users.Add(admin);
                         context.SaveChanges();
                         context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Users OFF");
+                        
+                        // Reseed al último ID insertado (1)
+                        context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Users', RESEED, 1)");
 
                         // Asignar Rol Admin (Id=2)
                         var userRol = new UserRol
@@ -361,6 +370,10 @@ namespace PastisserieAPI.Infrastructure.Data
                     context.Productos.AddRange(productos);
                     context.SaveChanges();
                     context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Productos OFF");
+                    
+                    // Reseed al último ID insertado (21)
+                    context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Productos', RESEED, 21)");
+                    
                     transaction.Commit();
                 }
                 catch (Exception ex)
@@ -426,6 +439,10 @@ namespace PastisserieAPI.Infrastructure.Data
                     context.ConfiguracionTienda.Add(config);
                     context.SaveChanges();
                     context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT ConfiguracionTienda OFF");
+                    
+                    // Reseed al último ID insertado (1)
+                    context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('ConfiguracionTienda', RESEED, 1)");
+                    
                     transaction.Commit();
                 }
                 catch (Exception ex)

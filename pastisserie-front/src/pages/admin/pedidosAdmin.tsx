@@ -44,18 +44,32 @@ const PedidosAdmin = () => {
   // Inicializar filtro de fecha desde URL
   useEffect(() => {
     const filterParam = searchParams.get('filter');
-    if (filterParam === 'hoy') {
-      // Usar fecha local del navegador - formato YYYY-MM-DD
-      const hoy = new Date();
-      const anio = hoy.getFullYear();
-      const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-      const dia = String(hoy.getDate()).padStart(2, '0');
-      setFiltroFecha(`${anio}-${mes}-${dia}`);
-    } else if (filterParam === 'mes') {
-      const now = new Date();
-      const anio = now.getFullYear();
-      const mes = String(now.getMonth() + 1).padStart(2, '0');
-      setFiltroFecha(`${anio}-${mes}-01`);
+    if (filterParam === 'hoy' || filterParam === 'mes') {
+      // Obtener fecha del servidor (Bogotá)
+      api.get('/pedidos/fecha-actual')
+        .then(response => {
+          const fechaServer = response.data.data;
+          if (filterParam === 'hoy') {
+            setFiltroFecha(fechaServer.fecha);
+          } else if (filterParam === 'mes') {
+            // Primer día del mes actual
+            const fecha = new Date(fechaServer.fechaConHora);
+            const anio = fecha.getFullYear();
+            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            setFiltroFecha(`${anio}-${mes}-01`);
+          }
+        })
+        .catch(() => {
+          // Fallback: usar fecha local si el servidor falla
+          const hoy = new Date();
+          const anio = hoy.getFullYear();
+          const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+          if (filterParam === 'hoy') {
+            setFiltroFecha(`${anio}-${mes}-${String(hoy.getDate()).padStart(2, '0')}`);
+          } else {
+            setFiltroFecha(`${anio}-${mes}-01`);
+          }
+        });
     } else {
       setFiltroFecha('');
     }

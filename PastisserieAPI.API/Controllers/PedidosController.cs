@@ -212,5 +212,23 @@ namespace PastisserieAPI.API.Controllers
                 return BadRequest(ApiResponse<string>.ErrorResponse(ex.Message));
             }
         }
+
+        /// <summary>
+        /// Obtener la fecha actual del servidor (Bogotá) para filtros de fecha en el frontend
+        /// </summary>
+        [HttpGet("fecha-actual")]
+        [AllowAnonymous]
+        public IActionResult GetFechaActual()
+        {
+            // Obtener hora de Bogotá
+            var bogotaZone = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time");
+            var fechaBogota = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, bogotaZone);
+            
+            return Ok(new { 
+                fecha = fechaBogota.ToString("yyyy-MM-dd"),
+                fechaConHora = fechaBogota.ToString("yyyy-MM-dd HH:mm:ss"),
+                zona = "America/Bogota"
+            });
+        }
     }
 }

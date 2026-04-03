@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../../api/axios';
 import {
   Clock, CheckCircle, ChevronDown, ChevronUp,
@@ -32,11 +33,33 @@ interface PedidoAdmin {
 }
 
 const PedidosAdmin = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [pedidos, setPedidos] = useState<PedidoAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'gestion' | 'historial'>('gestion');
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const [repartidores, setRepartidores] = useState<{ id: number, nombre: string }[]>([]);
+  const [filtroFecha, setFiltroFecha] = useState<string>('');
+
+  // Inicializar filtro de fecha desde URL
+  useEffect(() => {
+    const filterParam = searchParams.get('filter');
+    if (filterParam === 'hoy') {
+      // Obtener fecha de hoy en zona horaria de Colombia (UTC-5)
+      const now = new Date();
+      const colombiaOffset = -5; // UTC-5 para Colombia
+      const colombiaDate = new Date(now.getTime() + (colombiaOffset - now.getTimezoneOffset()) * 60000);
+      setFiltroFecha(colombiaDate.toISOString().split('T')[0]);
+    } else if (filterParam === 'mes') {
+      const now = new Date();
+      const colombiaOffset = -5;
+      const colombiaDate = new Date(now.getTime() + (colombiaOffset - now.getTimezoneOffset()) * 60000);
+      const primerDiaMes = new Date(colombiaDate.getFullYear(), colombiaDate.getMonth(), 1);
+      setFiltroFecha(primerDiaMes.toISOString().split('T')[0]);
+    } else {
+      setFiltroFecha('');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchPedidos();
@@ -137,7 +160,24 @@ const PedidosAdmin = () => {
   // Filtrado de pestañas
   const pedidosActivos = pedidos.filter(p => ['Pendiente', 'Confirmado', 'EnPreparacion', 'Enviado'].includes(p.estado));
   const pedidosHistorial = pedidos.filter(p => ['Entregado', 'Cancelado'].includes(p.estado));
-  const listaAMostrar = activeTab === 'gestion' ? pedidosActivos : pedidosHistorial;
+  let listaAMostrar = activeTab === 'gestion' ? pedidosActivos : pedidosHistorial;
+
+  // Aplicar filtro de fecha si existe
+  if (filtroFecha) {
+    listaAMostrar = listaAMostrar.filter(pedido => {
+      // La fecha del pedido viene en formato ISO del backend
+      const fechaPedido = new Date(pedido.fechaPedido);
+      const fechaFiltro = new Date(filtroFecha + 'T00:00:00');
+      
+      // Comparar solo año, mes y día
+      return fechaPedido.toISOString().split('T')[0] === fechaFiltro.toISOString().split('T')[0];
+    });
+  }
+
+  const clearFiltroFecha = () => {
+    setFiltroFecha('');
+    setSearchParams({});
+  };
 
   return (
     <div className="animate-fade-in p-2 pb-20">
@@ -148,7 +188,19 @@ const PedidosAdmin = () => {
           <p className="text-gray-500 font-medium">Gestión integral de pedidos, despachos y trazabilidad de clientes</p>
         </div>
         <div className="flex gap-4">
-          {/* Podríamos añadir un botón de exportar o algo similar aquí en el futuro */}
+          {filtroFecha && (
+            <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-xl border border-amber-200">
+              <span className="text-xs font-bold text-amber-700">
+                📅 Mostrando: {new Date(filtroFecha + 'T00:00:00').toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </span>
+              <button
+                onClick={clearFiltroFecha}
+                className="text-amber-500 hover:text-amber-700 text-xs font-bold"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -30,8 +30,6 @@ namespace PastisserieAPI.Core.Entities
 
         public bool Leida { get; set; } = false;
 
-        public DateTime? FechaLeida { get; set; }
-
         // Relaciones
         [ForeignKey("UsuarioId")]
         public virtual User Usuario { get; set; } = null!;

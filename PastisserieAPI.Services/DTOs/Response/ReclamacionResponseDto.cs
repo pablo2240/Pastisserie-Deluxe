@@ -9,5 +9,9 @@ namespace PastisserieAPI.Services.DTOs.Response
         public DateTime Fecha { get; set; }
         public string Motivo { get; set; } = string.Empty;
         public string Estado { get; set; } = string.Empty;
+        public string? MotivoDomiciliario { get; set; }
+        public DateTime? FechaNoEntrega { get; set; }
+        public int? DomiciliarioId { get; set; }
+        public string? NombreDomiciliario { get; set; }
     }
 }

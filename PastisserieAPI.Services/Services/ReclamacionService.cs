@@ -80,8 +80,7 @@ namespace PastisserieAPI.Services.Services
                 // Datos del domiciliario (registrados cuando se marcó como NoEntregado)
                 MotivoDomiciliario = pedido.MotivoNoEntrega,
                 FechaNoEntrega = pedido.FechaNoEntrega,
-                DomiciliarioId = pedido.RepartidorId,
-                NombreDomiciliario = pedido.Repartidor?.Nombre
+                DomiciliarioId = pedido.RepartidorId
             };
 
             await _unitOfWork.Reclamaciones.AddAsync(reclamacion);
@@ -129,7 +128,8 @@ namespace PastisserieAPI.Services.Services
             foreach (var r in lista)
             {
                 var usuario = await _unitOfWork.Users.GetByIdAsync(r.UsuarioId);
-                dtos.Add(MapToDto(r, usuario?.Nombre ?? ""));
+                var domiciliario = r.DomiciliarioId.HasValue ? await _unitOfWork.Users.GetByIdAsync(r.DomiciliarioId.Value) : null;
+                dtos.Add(MapToDto(r, usuario?.Nombre ?? "", domiciliario?.Nombre));
             }
             return dtos;
         }
@@ -143,7 +143,8 @@ namespace PastisserieAPI.Services.Services
             foreach (var r in lista)
             {
                 var usuario = await _unitOfWork.Users.GetByIdAsync(r.UsuarioId);
-                dtos.Add(MapToDto(r, usuario?.Nombre ?? ""));
+                var domiciliario = r.DomiciliarioId.HasValue ? await _unitOfWork.Users.GetByIdAsync(r.DomiciliarioId.Value) : null;
+                dtos.Add(MapToDto(r, usuario?.Nombre ?? "", domiciliario?.Nombre));
             }
             return dtos;
         }
@@ -174,10 +175,11 @@ namespace PastisserieAPI.Services.Services
             }
 
             var usuario = await _unitOfWork.Users.GetByIdAsync(reclamacion.UsuarioId);
-            return MapToDto(reclamacion, usuario?.Nombre ?? "");
+            var domiciliario = reclamacion.DomiciliarioId.HasValue ? await _unitOfWork.Users.GetByIdAsync(reclamacion.DomiciliarioId.Value) : null;
+            return MapToDto(reclamacion, usuario?.Nombre ?? "", domiciliario?.Nombre);
         }
 
-        private ReclamacionResponseDto MapToDto(Reclamacion r, string nombreUsuario)
+        private ReclamacionResponseDto MapToDto(Reclamacion r, string nombreUsuario, string? nombreDomiciliario = null)
         {
             return new ReclamacionResponseDto
             {
@@ -187,7 +189,11 @@ namespace PastisserieAPI.Services.Services
                 NombreUsuario = nombreUsuario,
                 Fecha = r.Fecha,
                 Motivo = r.Motivo,
-                Estado = r.Estado
+                Estado = r.Estado,
+                MotivoDomiciliario = r.MotivoDomiciliario,
+                FechaNoEntrega = r.FechaNoEntrega,
+                DomiciliarioId = r.DomiciliarioId,
+                NombreDomiciliario = nombreDomiciliario
             };
         }
     }

@@ -25,8 +25,6 @@ namespace PastisserieAPI.Core.Entities
 
         public bool Aprobada { get; set; } = false;
 
-        public int? AprobadaPor { get; set; }
-
         // Relaciones
         [ForeignKey("UsuarioId")]
         public virtual User Usuario { get; set; } = null!;

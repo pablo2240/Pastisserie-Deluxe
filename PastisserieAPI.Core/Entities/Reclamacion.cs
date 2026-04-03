@@ -36,10 +36,6 @@ namespace PastisserieAPI.Core.Entities
         /// <summary>ID del domiciliario que marcó el pedido como NoEntregado.</summary>
         public int? DomiciliarioId { get; set; }
 
-        /// <summary>Nombre del domiciliario que marcó el pedido como NoEntregado.</summary>
-        [MaxLength(200)]
-        public string? NombreDomiciliario { get; set; }
-
         // ============ RELACIONES ============
         [ForeignKey("PedidoId")]
         public virtual Pedido Pedido { get; set; } = null!;

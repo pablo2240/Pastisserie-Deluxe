@@ -92,7 +92,7 @@ namespace PastisserieAPI.API.Extensions
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!)
                     ),
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.FromMinutes(5)
                 };
             });
 

@@ -14,6 +14,9 @@ build/
 coverage/
 .nyc_output/
 
+# ---- .NET Publish/Deploy Output ----
+publish/
+
 # ---- Logs, Temp, System ----
 *.log
 npm-debug.log*
@@ -33,6 +36,7 @@ pnpm-debug.log*
 appsettings.Development.json
 appsettings.Local.json
 appsettings.*.secrets.json
+appsettings.Production.json
 local.settings.json
 
 # ---- IDE / Editor ----

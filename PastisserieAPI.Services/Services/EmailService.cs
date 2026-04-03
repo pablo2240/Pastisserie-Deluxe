@@ -67,13 +67,14 @@ namespace PastisserieAPI.Services.Services
 
         public async Task SendWelcomeEmailAsync(string to, string userName)
         {
+            var frontendUrl = _config["FrontendUrl"] ?? "https://wonderful-rock-0c5d18610.2.azurestaticapps.net";
             string body = $@"
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;'>
                     <h2 style='color: #7D2121;'>¡Bienvenido a Pâtisserie Deluxe, {userName}!</h2>
                     <p>Gracias por unirte a nuestra comunidad de amantes de la pastelería artesanal.</p>
                     <p>Ahora puedes realizar tus pedidos y disfrutar de lo mejor en repostería.</p>
                     <div style='text-align: center; margin-top: 30px;'>
-                        <a href='https://pastisserie-deluxe.com' style='background-color: #7D2121; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Explorar Productos</a>
+                        <a href='{frontendUrl}/catalogo' style='background-color: #7D2121; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Explorar Productos</a>
                     </div>
                 </div>";
             await SendEmailAsync(to, "Bienvenido a Pâtisserie Deluxe", body);
@@ -251,6 +252,7 @@ namespace PastisserieAPI.Services.Services
 
         public async Task SendDeliveryFailedEmailAsync(string to, string userName, int orderId, string motivoNoEntrega, DateTime fechaNoEntrega)
         {
+            var frontendUrl = _config["FrontendUrl"] ?? "https://wonderful-rock-0c5d18610.2.azurestaticapps.net";
             var fechaLimite = fechaNoEntrega.AddDays(3).ToString("dd/MM/yyyy");
             string body = $@"
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;'>
@@ -270,7 +272,7 @@ namespace PastisserieAPI.Services.Services
                     <p>Si deseas realizar una reclamación por este pedido, tienes <strong>3 días hábiles</strong> ({fechaLimite}) para hacerlo.</p>
                     
                     <div style='text-align: center; margin-top: 30px;'>
-                        <a href='https://pastisserie-deluxe.com/profile/reclamaciones?pedidoId={orderId}' style='background-color: #7D2121; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                        <a href='{frontendUrl}/perfil/reclamaciones?pedidoId={orderId}' style='background-color: #7D2121; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>
                             Crear Reclamación
                         </a>
                     </div>

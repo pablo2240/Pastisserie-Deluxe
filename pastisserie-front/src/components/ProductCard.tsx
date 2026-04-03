@@ -110,21 +110,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, tiendaStatus, status
                 <><FiPlus className="text-lg" /> Agregar</>
               )}
             </button>
-
-            {/* Mensaje de advertencia de stock bajo */}
-            {!product.stockIlimitado && product.stock > 0 && product.stock < 10 && (
-              <div className={`mt-2 text-center py-2 px-3 rounded-lg animate-fade-in ${
-                product.stock <= 5 
-                  ? 'bg-red-50 text-red-600 border border-red-100' 
-                  : 'bg-amber-50 text-amber-600 border border-amber-100'
-              }`}>
-                <p className="text-[10px] font-black uppercase tracking-wider">
-                  {product.stock === 1 
-                    ? '¡Solo queda 1 unidad, compra ya!' 
-                    : `¡Solo quedan ${product.stock} unidades, compra ya!`}
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>

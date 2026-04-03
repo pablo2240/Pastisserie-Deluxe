@@ -162,7 +162,22 @@ const ProductDetail = () => {
                 </button>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-gray-500 justify-center">
+              {/* Mensaje de advertencia de stock bajo */}
+              {!producto.stockIlimitado && producto.stock > 0 && producto.stock < 10 && (
+                <div className={`mt-3 text-center py-2 px-3 rounded-lg animate-fade-in ${
+                  producto.stock <= 5 
+                    ? 'bg-red-50 text-red-600 border border-red-100' 
+                    : 'bg-amber-50 text-amber-600 border border-amber-100'
+                }`}>
+                  <p className="text-xs font-black uppercase tracking-wider">
+                    {producto.stock === 1 
+                      ? '¡Solo queda 1 unidad, compra ya!' 
+                      : `¡Solo quedan ${producto.stock} unidades, compra ya!`}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 text-sm text-gray-500 justify-center mt-2">
                 <FiClock /> Preparado fresco todos los días
               </div>
             </div>

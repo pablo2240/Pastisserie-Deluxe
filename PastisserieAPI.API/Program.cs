@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using PastisserieAPI.Core.Interfaces;
 using PastisserieAPI.Infrastructure.Data;
+using PastisserieAPI.Infrastructure.Services;
 using PastisserieAPI.API.Middleware;
 using PastisserieAPI.API.Extensions;
 

@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Models;
 using PastisserieAPI.Core.Interfaces;
 using PastisserieAPI.Core.Interfaces.Repositories;
 using PastisserieAPI.Infrastructure.Repositories;
+using PastisserieAPI.Infrastructure.Services;
 using PastisserieAPI.Services.Helpers;
 using PastisserieAPI.Services.Services;
 using PastisserieAPI.Services.Services.Interfaces;
@@ -22,6 +23,14 @@ namespace PastisserieAPI.API.Extensions
 
             // FluentValidation
             services.AddValidatorsFromAssembly(Assembly.Load("PastisserieAPI.Services"));
+
+            // Azure Blob Storage
+            var azureStorage = configuration.GetSection("AzureStorage");
+            services.AddSingleton<IBlobStorageService>(sp => new BlobStorageService(
+                azureStorage["ConnectionString"]!,
+                azureStorage["ContainerName"]!,
+                azureStorage["BaseUrl"]!
+            ));
 
             // Servicios de negocio
             services.AddScoped<IAuthService, AuthService>();

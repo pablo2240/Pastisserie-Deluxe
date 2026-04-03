@@ -1,20 +1,21 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PastisserieAPI.Core.Interfaces;
 using PastisserieAPI.Services.DTOs.Common;
 
 namespace PastisserieAPI.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Solo usuarios autenticados pueden subir archivos
+    [Authorize]
     public class UploadController : ControllerBase
     {
-        private readonly IWebHostEnvironment _environment;
+        private readonly IBlobStorageService _blobStorageService;
         private readonly ILogger<UploadController> _logger;
 
-        public UploadController(IWebHostEnvironment environment, ILogger<UploadController> logger)
+        public UploadController(IBlobStorageService blobStorageService, ILogger<UploadController> logger)
         {
-            _environment = environment;
+            _blobStorageService = blobStorageService;
             _logger = logger;
         }
 
@@ -37,43 +38,55 @@ namespace PastisserieAPI.API.Controllers
                     return BadRequest(ApiResponse.ErrorResponse("Tipo de archivo no permitido. Solo se permiten imágenes."));
                 }
 
-                // Crear directorio si no existe (wwwroot/images/products)
-                // Usamos _environment.WebRootPath que apunta a wwwroot
-                var webRoot = _environment.WebRootPath;
-                if (string.IsNullOrEmpty(webRoot))
+                // Validar tamaño (max 5MB)
+                if (file.Length > 5 * 1024 * 1024)
                 {
-                    // Fallback si WebRootPath es nulo (puede pasar en algunas configs)
-                    webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                }
-
-                var uploadsFolder = Path.Combine(webRoot, "images", "products");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
+                    return BadRequest(ApiResponse.ErrorResponse("La imagen no debe superar los 5MB."));
                 }
 
                 // Generar nombre único
-                var uniqueFileName = Guid.NewGuid().ToString() + extension;
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                var uniqueFileName = $"products/{Guid.NewGuid()}{extension}";
 
-                // Guardar archivo
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
+                // Subir a Blob Storage
+                using var stream = file.OpenReadStream();
+                var fileUrl = await _blobStorageService.UploadFileAsync(stream, uniqueFileName, file.ContentType);
 
-                // Retornar URL relativa para que sea accesible desde el navegador
-                var fileUrl = $"/images/products/{uniqueFileName}";
-                
-                // NOTA: No devolvemos la URL completa con dominio para evitar problemas de CORS/Proxy
-                // El frontend ya sabe concatenar la URL base si es necesario, o el navegador lo resuelve.
-                
                 return Ok(ApiResponse<object>.SuccessResponse(new { url = fileUrl }, "Imagen subida exitosamente"));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al subir archivo");
                 return StatusCode(500, ApiResponse.ErrorResponse("Error interno al subir la imagen: " + ex.Message));
+            }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete([FromQuery] string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                return BadRequest(ApiResponse.ErrorResponse("URL no proporcionada."));
+            }
+
+            try
+            {
+                // Extraer el nombre del blob de la URL
+                // URL formato: https://patisserieimages.blob.core.windows.net/images/products/guid.jpg
+                var uri = new Uri(url);
+                var blobName = uri.AbsolutePath.TrimStart('/');
+                // Remover "images/" del path si existe
+                if (blobName.StartsWith("images/"))
+                {
+                    blobName = blobName.Substring("images/".Length);
+                }
+
+                await _blobStorageService.DeleteFileAsync(blobName);
+                return Ok(ApiResponse<object>.SuccessResponse(null, "Imagen eliminada exitosamente"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al eliminar archivo");
+                return StatusCode(500, ApiResponse.ErrorResponse("Error interno al eliminar la imagen: " + ex.Message));
             }
         }
     }

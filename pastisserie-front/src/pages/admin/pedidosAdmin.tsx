@@ -196,7 +196,13 @@ const PedidosAdmin = () => {
           {filtroFecha && (
             <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-xl border border-amber-200">
               <span className="text-xs font-bold text-amber-700">
-                📅 Mostrando: {new Date(filtroFecha + 'T00:00:00').toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                📅 Mostrando: {(() => {
+                  const [anio, mes, dia] = filtroFecha.split('-').map(Number);
+                  const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                  const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+                  const fechaObj = new Date(anio, mes - 1, dia);
+                  return `${diasSemana[fechaObj.getDay()]} ${dia} de ${meses[mes - 1]}`;
+                })()}
               </span>
               <button
                 onClick={clearFiltroFecha}

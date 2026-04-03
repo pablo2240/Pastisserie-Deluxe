@@ -12,7 +12,8 @@ namespace PastisserieAPI.Infrastructure.Services
         public BlobStorageService(string connectionString, string containerName, string baseUrl)
         {
             _containerClient = new BlobContainerClient(connectionString, containerName);
-            _baseUrl = baseUrl.TrimEnd('/');
+            // La URL completa del blob incluye el contenedor: baseUrl/containerName/blobName
+            _baseUrl = $"{baseUrl.TrimEnd('/')}/{containerName}";
         }
 
         public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType)

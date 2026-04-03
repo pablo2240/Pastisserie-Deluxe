@@ -45,17 +45,17 @@ const PedidosAdmin = () => {
   useEffect(() => {
     const filterParam = searchParams.get('filter');
     if (filterParam === 'hoy') {
-      // Obtener fecha de hoy en zona horaria de Colombia (UTC-5)
-      const now = new Date();
-      const colombiaOffset = -5; // UTC-5 para Colombia
-      const colombiaDate = new Date(now.getTime() + (colombiaOffset - now.getTimezoneOffset()) * 60000);
-      setFiltroFecha(colombiaDate.toISOString().split('T')[0]);
+      // Usar fecha local del navegador - formato YYYY-MM-DD
+      const hoy = new Date();
+      const anio = hoy.getFullYear();
+      const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dia = String(hoy.getDate()).padStart(2, '0');
+      setFiltroFecha(`${anio}-${mes}-${dia}`);
     } else if (filterParam === 'mes') {
       const now = new Date();
-      const colombiaOffset = -5;
-      const colombiaDate = new Date(now.getTime() + (colombiaOffset - now.getTimezoneOffset()) * 60000);
-      const primerDiaMes = new Date(colombiaDate.getFullYear(), colombiaDate.getMonth(), 1);
-      setFiltroFecha(primerDiaMes.toISOString().split('T')[0]);
+      const anio = now.getFullYear();
+      const mes = String(now.getMonth() + 1).padStart(2, '0');
+      setFiltroFecha(`${anio}-${mes}-01`);
     } else {
       setFiltroFecha('');
     }
@@ -165,12 +165,17 @@ const PedidosAdmin = () => {
   // Aplicar filtro de fecha si existe
   if (filtroFecha) {
     listaAMostrar = listaAMostrar.filter(pedido => {
-      // La fecha del pedido viene en formato ISO del backend
-      const fechaPedido = new Date(pedido.fechaPedido);
-      const fechaFiltro = new Date(filtroFecha + 'T00:00:00');
+      // Extraer fecha del pedido sin usar toISOString (evita problemas de timezone)
+      const fechaPedidoDate = new Date(pedido.fechaPedido);
+      const anioPedido = fechaPedidoDate.getFullYear();
+      const mesPedido = fechaPedidoDate.getMonth() + 1;
+      const diaPedido = fechaPedidoDate.getDate();
       
-      // Comparar solo año, mes y día
-      return fechaPedido.toISOString().split('T')[0] === fechaFiltro.toISOString().split('T')[0];
+      // Extraer fecha del filtro
+      const [anioFiltro, mesFiltro, diaFiltro] = filtroFecha.split('-').map(Number);
+      
+      // Comparar año, mes y día
+      return anioPedido === anioFiltro && mesPedido === mesFiltro && diaPedido === diaFiltro;
     });
   }
 

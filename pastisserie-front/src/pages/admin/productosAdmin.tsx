@@ -26,7 +26,6 @@ const initialFormState = {
   descripcion: '',
   precio: 0,
   stock: 0,
-  stockIlimitado: false,
   categoria: '',
   imagenUrl: '',
   activo: true,
@@ -179,7 +178,6 @@ const ProductosAdmin = () => {
       descripcion: producto.descripcion || '',
       precio: producto.precio,
       stock: producto.stock,
-      stockIlimitado: producto.stockIlimitado || false,
       categoria: producto.categoriaNombre || '',
       imagenUrl: producto.imagenUrl || '',
       activo: producto.activo,
@@ -252,13 +250,8 @@ const ProductosAdmin = () => {
     const matchesCategoria = !filtroCategoria || p.categoriaNombre === filtroCategoria;
 
     let matchesStock = true;
-    if (filtroStock === 'bajo') matchesStock = !p.stockIlimitado && p.stock > 0 && p.stock < 10;
-    else if (filtroStock === 'agotado') matchesStock = !p.stockIlimitado && p.stock <= 0;
-
-    // Si el producto tiene stock ilimitado, nunca coincide con filtros de stock
-    if (p.stockIlimitado && (filtroStock === 'bajo' || filtroStock === 'agotado')) {
-      matchesStock = false;
-    }
+    if (filtroStock === 'bajo') matchesStock = p.stock > 0 && p.stock < 10;
+    else if (filtroStock === 'agotado') matchesStock = p.stock <= 0;
 
     return matchesBusqueda && matchesCategoria && matchesStock;
   });
@@ -424,22 +417,14 @@ const ProductosAdmin = () => {
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex flex-col gap-1">
-                      {prod.stockIlimitado ? (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest w-fit border bg-emerald-50 text-emerald-600 border-emerald-100">
-                          Ilimitado
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest w-fit border ${prod.stock < 10 ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                      }`}>
+                        {prod.stock} unidades
+                      </span>
+                      {prod.stock < 10 && (
+                        <span className="flex items-center gap-1 text-[9px] font-black text-rose-500 uppercase tracking-tighter ml-1">
+                          <AlertCircle size={10} /> {prod.stock === 0 ? 'Agotado' : 'Stock Crítico'}
                         </span>
-                      ) : (
-                        <>
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest w-fit border ${prod.stock < 10 ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                          }`}>
-                            {prod.stock} unidades
-                          </span>
-                          {prod.stock < 10 && (
-                            <span className="flex items-center gap-1 text-[9px] font-black text-rose-500 uppercase tracking-tighter ml-1">
-                              <AlertCircle size={10} /> {prod.stock === 0 ? 'Agotado' : 'Stock Crítico'}
-                            </span>
-                          )}
-                        </>
                       )}
                     </div>
                   </td>
@@ -628,38 +613,20 @@ const ProductosAdmin = () => {
                             value={formData.stock}
                             onChange={handleInputChange}
                             onFocus={(e) => e.target.select()}
-                            disabled={formData.stockIlimitado}
-                            className={`w-full bg-gray-50 border px-4 py-3.5 rounded-xl outline-none focus:ring-4 font-semibold disabled:bg-gray-100 disabled:text-gray-400 ${
+                            className={`w-full bg-gray-50 border px-4 py-3.5 rounded-xl outline-none focus:ring-4 font-semibold ${
                               errors.stock 
                                 ? 'border-rose-400 focus:ring-rose-100' 
                                 : 'border-gray-200 focus:ring-[#5D1919]/10 focus:border-[#5D1919]'
                             }`}
                           />
-                          {formData.stockIlimitado && (
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-lg">ILIMITADO</span>
-                          )}
-                          {!formData.stockIlimitado && formData.stock === 0 && (
+                          {formData.stock === 0 && (
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-rose-500 bg-rose-100 px-2 py-1 rounded-lg">AGOTADO</span>
                           )}
-                          {!formData.stockIlimitado && formData.stock > 0 && formData.stock < 10 && (
+                          {formData.stock > 0 && formData.stock < 10 && (
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-lg">BAJO</span>
                           )}
                         </div>
                         {errors.stock && <p className="text-xs text-rose-500 font-semibold ml-1"><AlertCircle size={10} /> {errors.stock}</p>}
-                      </div>
-
-                      <div className="flex items-center gap-3 py-2">
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            name="stockIlimitado"
-                            checked={formData.stockIlimitado}
-                            onChange={(e) => setFormData(prev => ({ ...prev, stockIlimitado: e.target.checked, stock: e.target.checked ? 0 : prev.stock }))}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#5D1919]/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                          <span className="ml-3 text-sm font-bold text-gray-600">Stock Ilimitado</span>
-                        </label>
                       </div>
 
                       <div className="space-y-2">

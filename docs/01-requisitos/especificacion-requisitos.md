@@ -82,7 +82,7 @@
 | RF-05.05 | El sistema debe calcular el costo de envío según la comuna (Guayabal: 5000, Belén: 6000) | Alta | ✅ |
 | RF-05.06 | El sistema debe validar el stock antes de crear el pedido | Alta | ✅ |
 | RF-05.07 | El sistema debe guardar la dirección de envío en DireccionEnvio | Alta | ✅ |
-| RF-05.08 | El sistema debe permitir seleccionar método de pago (Tarjeta, Efectivo, Nequi) | Alta | ✅ |
+| RF-05.08 | El sistema debe permitir seleccionar método de pago simulado (Tarjeta simulada, Efectivo, Nequi simulado) | Alta | ✅ |
 
 ### RF-06: Sistema de Pago (Simulado)
 

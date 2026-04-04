@@ -1,4 +1,4 @@
-# Cumplimiento de Criterios Académicos - Backend
+# Cumplimiento de Criterios Académicos - PastisserieDeluxe
 
 **Proyecto**: PASTISSERIE'S DELUXE  
 **Código**: SENA Ficha 3035528  
@@ -8,7 +8,7 @@ Este documento mapea cada criterio académico evaluado con su evidencia en el c�
 
 ---
 
-## Tabla de Cumplimiento
+## A. Backend y Desarrollo (Criterios Técnicos)
 
 | # | Criterio | Cumple | Ubicación en Código | Documentación | Link GitHub |
 |---|----------|:------:|---------------------|---------------|-------------|
@@ -23,7 +23,76 @@ Este documento mapea cada criterio académico evaluado con su evidencia en el c�
 
 ---
 
-## Detalle por Criterio
+## B. Documentación y Diseño (Criterios Académicos)
+
+### B.1 Informe de Especificación de Requisitos (5%)
+
+| Sub-Criterio | Cumple | Evidencia | Documentación | Link |
+|--------------|:------:|-----------|---------------|------|
+| **Redactar Requisitos F - NF - RN - RI** | ✅ Sí | 33 RF, 5 RNF, 9 RN, 2 RI documentados | `docs/01-requisitos/especificacion-requisitos.md` | [Ver Requisitos](01-requisitos/especificacion-requisitos.md) |
+| **Presentar Informe de Requisitos** | ✅ Sí | Documento completo con trazabilidad y resumen | `docs/01-requisitos/especificacion-requisitos.md` | [Ver Informe](01-requisitos/especificacion-requisitos.md) |
+
+### B.2 Informes de Análisis y Diseño del Software (10%)
+
+| Sub-Criterio | Cumple | Evidencia | Documentación | Link |
+|--------------|:------:|-----------|---------------|------|
+| **Presenta los Diagramas UML** | ✅ Sí | 6 diagramas UML en formato Mermaid | `docs/02-diagramas/` | [Ver Diagramas](02-diagramas/) |
+
+**Diagramas incluidos:**
+| # | Diagrama | Archivo | Descripción |
+|---|----------|---------|-------------|
+| 1 | Casos de Uso | `casos-de-uso.md` | 54 casos de uso, 3 actores |
+| 2 | Clases | `clases.md` | 18 entidades con relaciones |
+| 3 | Secuencia | `secuencia.md` | 7 flujos principales |
+| 4 | Componentes | `componentes.md` | Clean Architecture layers |
+| 5 | Base de Datos (E-R) | `base-de-datos.md` | 18 tablas con relaciones |
+| 6 | Despliegue | `despliegue.md` | Azure + Local deployment |
+
+### B.3 Propuestas Técnicas de Servicios TI (5%)
+
+| Sub-Criterio | Cumple | Evidencia | Documentación | Link |
+|--------------|:------:|-----------|---------------|------|
+| **Propuesta Técnica con Arquitectura** | ✅ Sí | Clean Architecture + Azure Cloud + React 19 + ASP.NET Core 8.0 | `docs/03-arquitectura/arquitectura-software.md` | [Ver Arquitectura](03-arquitectura/arquitectura-software.md) |
+
+**Componentes de la propuesta técnica:**
+- **Arquitectura**: Clean Architecture (4 capas)
+- **Backend**: ASP.NET Core 8.0 + EF Core 8.0
+- **Frontend**: React 19 + TypeScript + Vite + Tailwind CSS v4
+- **Base de Datos**: SQL Server 2022
+- **Despliegue**: Azure App Service + Azure SQL + Azure Blob Storage
+- **Seguridad**: JWT, BCrypt, FluentValidation, CORS
+
+### B.4 Base de Datos del Software (15%)
+
+| Sub-Criterio | Cumple | Evidencia | Documentación | Link |
+|--------------|:------:|-----------|---------------|------|
+| **Presenta Modelo E-R** | ✅ Sí | Diagrama E-R en Mermaid con 18 tablas | `docs/02-diagramas/base-de-datos.md` | [Ver E-R](02-diagramas/base-de-datos.md) |
+| **Modelo Relacional (SQL)** | ✅ Sí | 18 tablas con PK, FK, índices y constraints | `docs/07-base-datos/diccionario-datos.md` | [Ver Diccionario](07-base-datos/diccionario-datos.md) |
+| **Base de Datos Normalizada** | ✅ Sí | 3FN (Tercera Forma Normal) | `docs/07-base-datos/diccionario-datos.md` | [Ver Normalización](07-base-datos/diccionario-datos.md) |
+| **Presenta el Script de la BD** | ✅ Sí | Script completo con 18 tablas + seed data | `docs/07-base-datos/schema-actual.sql` | [Ver Script](07-base-datos/schema-actual.sql) |
+
+**Estado de la Base de Datos:**
+- **Total de tablas**: 18 activas
+- **Migraciones**: 33 aplicadas
+- **Normalización**: 3FN (sin redundancias, sin dependencias transitivas)
+- **Índices**: PK, FK, UNIQUE, IX (búsqueda) en todas las tablas
+- **Constraints**: CHECK, FK con ON DELETE CASCADE/SET NULL/NO ACTION
+
+---
+
+## Resumen de Cumplimiento General
+
+| Categoría | Peso | Cumplimiento |
+|-----------|:----:|:------------:|
+| Backend y Desarrollo | - | 87.5% (7/8 completos, 1 parcial) |
+| Especificación de Requisitos | 5% | ✅ 100% |
+| Análisis y Diseño (UML) | 10% | ✅ 100% |
+| Propuestas Técnicas TI | 5% | ✅ 100% |
+| Base de Datos | 15% | ✅ 100% |
+
+---
+
+## Detalle por Criterio (Backend)
 
 ### 1. Arquitectura de Software
 - **Tipo**: Clean Architecture (Arquitectura Limpia)
@@ -93,6 +162,10 @@ Este documento mapea cada criterio académico evaluado con su evidencia en el c�
 | 📄 Arquitectura | [docs/03-arquitectura/arquitectura-software.md](03-arquitectura/arquitectura-software.md) |
 | 📄 Reglas de Negocio | [docs/06-negocio/reglas-negocio.md](06-negocio/reglas-negocio.md) |
 | 📄 Auditoría CRUD | [docs/Actual/CRUD.md](Actual/CRUD.md) |
+| 📄 Requisitos | [docs/01-requisitos/especificacion-requisitos.md](01-requisitos/especificacion-requisitos.md) |
+| 📄 Diagramas UML | [docs/02-diagramas/](02-diagramas/) |
+| 📄 Schema SQL | [docs/07-base-datos/schema-actual.sql](07-base-datos/schema-actual.sql) |
+| 📄 Diccionario de Datos | [docs/07-base-datos/diccionario-datos.md](07-base-datos/diccionario-datos.md) |
 
 ---
 

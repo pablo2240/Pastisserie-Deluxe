@@ -76,7 +76,7 @@ gentle-ai/
 
 # ---- Documentación local ----
 changes/
-docs/
+# docs/  # Habilitado para documentación del proyecto
 
 # ---- Misc/OS ----
 .DS_Store

@@ -6,32 +6,32 @@ Este diagrama representa el modelo de base de datos SQL Server con las 18 tablas
 erDiagram
     Users ||--o{ UserRoles : "tiene"
     Roles ||--o{ UserRoles : "asignado_a"
-    Users ||--o| CarritoCompras : "posee"
+    Users ||--o| CarritoCompra : "posee"
     Users ||--o{ Pedidos : "realiza"
     Users ||--o{ Pedidos : "reparte_como_repartidor"
     Users ||--o{ Reviews : "escribe"
     Users ||--o{ Notificaciones : "recibe"
-    Users ||--o{ DireccionesEnvio : "tiene"
+    Users ||--o{ DireccionEnvio : "tiene"
     
-    CategoriasProducto ||--o{ Productos : "contiene"
+    CategoriaProducto ||--o{ Productos : "contiene"
     Productos ||--o{ Reviews : "tiene_reviews"
     Productos ||--o{ PedidoItems : "incluido_en"
     Productos ||--o{ CarritoItems : "agregado_a"
     Productos ||--o{ Promociones : "tiene_promocion"
     
-    CarritoCompras ||--o{ CarritoItems : "contiene"
+    CarritoCompra ||--o{ CarritoItems : "contiene"
     CarritoItems }o--o| Promociones : "aplica"
     
     Pedidos ||--o{ PedidoItems : "contiene"
     Pedidos ||--o{ PedidoHistorial : "registra_cambios"
-    Pedidos }o--o| DireccionesEnvio : "entrega_en"
+    Pedidos }o--o| DireccionEnvio : "entrega_en"
     Pedidos ||--o{ Reclamaciones : "genera"
-    Pedidos ||--o{ RegistrosPagos : "tiene_pagos"
+    Pedidos ||--o{ RegistroPago : "tiene_pagos"
     PedidoItems }o--o| Promociones : "aplica"
     
     Reclamaciones }o--o| Users : "gestionada_por_domiciliario"
     
-    ConfiguracionTienda ||--o{ HorariosDia : "tiene_horarios"
+    ConfiguracionTienda ||--o{ HorarioDia : "tiene_horarios"
     
     Users {
         int Id PK
@@ -39,9 +39,6 @@ erDiagram
         string Email UK
         string PasswordHash
         string Telefono
-        bool EmailVerificado
-        datetime FechaRegistro
-        datetime UltimoAcceso
         bool Activo
         datetime FechaCreacion
         datetime FechaActualizacion
@@ -50,12 +47,12 @@ erDiagram
     Roles {
         int Id PK
         string Nombre UK
-        bool Activo
+        string Descripcion
     }
     
     UserRoles {
         int Id PK
-        int UsuarioId FK
+        int UserId FK
         int RolId FK
         datetime FechaAsignacion
     }
@@ -67,7 +64,6 @@ erDiagram
         decimal Precio
         int Stock
         bool StockIlimitado
-        int StockMinimo
         int CategoriaProductoId FK
         string ImagenUrl
         bool EsPersonalizable
@@ -76,28 +72,28 @@ erDiagram
         datetime FechaActualizacion
     }
     
-    CategoriasProducto {
+    CategoriaProducto {
         int Id PK
-        string Nombre
+        string Nombre UK
         string Descripcion
         bool Activa
+        datetime FechaCreacion
     }
     
-    CarritoCompras {
+    CarritoCompra {
         int Id PK
-        int UsuarioId FK UK
+        int UsuarioId FK
         datetime FechaCreacion
         datetime FechaActualizacion
     }
     
     CarritoItems {
         int Id PK
-        int CarritoId FK
+        int CarritoCompraId FK
         int ProductoId FK
-        int Cantidad
-        datetime FechaAgregado
         int PromocionId FK
-        decimal PrecioOriginal
+        int Cantidad
+        decimal PrecioUnitario
     }
     
     Pedidos {
@@ -126,11 +122,10 @@ erDiagram
         int Id PK
         int PedidoId FK
         int ProductoId FK
+        int PromocionId FK
         int Cantidad
         decimal PrecioUnitario
         decimal Subtotal
-        int PromocionId FK
-        decimal PrecioOriginal
     }
     
     PedidoHistorial {
@@ -139,11 +134,10 @@ erDiagram
         string EstadoAnterior
         string EstadoNuevo
         datetime FechaCambio
-        int CambiadoPor
-        string Notas
+        int CambiadoPorId FK
     }
     
-    DireccionesEnvio {
+    DireccionEnvio {
         int Id PK
         int UsuarioId FK
         string NombreCompleto
@@ -164,51 +158,53 @@ erDiagram
         int ProductoId FK
         int Calificacion
         string Comentario
-        datetime Fecha
         bool Aprobada
+        datetime FechaCreacion
+        datetime FechaAprobacion
     }
     
     Promociones {
         int Id PK
-        string Nombre
+        string Titulo
         string Descripcion
+        int ProductoId FK
+        decimal PrecioOriginal
         string TipoDescuento
-        decimal Valor
+        decimal Descuento
         int Stock
+        string ImagenUrl
         datetime FechaInicio
         datetime FechaFin
-        bool Activo
-        decimal PrecioOriginal
-        string ImagenUrl
-        int ProductoId FK
+        bool Activa
         datetime FechaCreacion
-        datetime FechaActualizacion
     }
     
     Notificaciones {
         int Id PK
         int UsuarioId FK
         string Titulo
-        string Tipo
         string Mensaje
+        string Tipo
         string Enlace
-        datetime FechaCreacion
         bool Leida
+        datetime FechaCreacion
     }
     
     Reclamaciones {
         int Id PK
-        int PedidoId FK
         int UsuarioId FK
-        datetime Fecha
-        string Motivo
+        int PedidoId FK
+        string NumeroTicket UK
+        string Asunto
+        string Descripcion
         string Estado
-        string MotivoDomiciliario
-        datetime FechaNoEntrega
+        string RespuestaAdmin
+        datetime FechaCreacion
+        datetime FechaActualizacion
         int DomiciliarioId FK
     }
     
-    RegistrosPagos {
+    RegistroPago {
         int Id PK
         int PedidoId FK
         int UsuarioId FK
@@ -222,32 +218,22 @@ erDiagram
     ConfiguracionTienda {
         int Id PK
         string NombreTienda
-        string Direccion
         string Telefono
-        string EmailContacto
-        decimal CostoEnvio
-        string CostosEnvioPorComuna
-        decimal CompraMinima
-        int MaxUnidadesPorProducto
-        bool LimitarUnidadesPorProducto
-        string Moneda
-        string MensajeBienvenida
-        datetime FechaActualizacion
+        string Email
+        string Direccion
         bool SistemaActivoManual
         bool UsarControlHorario
         time HoraApertura
         time HoraCierre
-        string DiasLaborales
-        string InstagramUrl
-        string FacebookUrl
-        string WhatsappUrl
+        int TiempoEntregaEstimadoHoras
+        decimal PedidoMinimoCompra
+        datetime FechaActualizacion
     }
     
-    HorariosDia {
+    HorarioDia {
         int Id PK
-        int ConfiguracionTiendaId FK
-        int DiaSemana
-        bool Abierto
+        string DiaSemana UK
+        bool Cerrado
         time HoraApertura
         time HoraCierre
     }
@@ -330,31 +316,30 @@ Clasificación de productos.
 
 ### Módulo de Carrito de Compras
 
-#### CarritoCompras
+#### CarritoCompra
 Carrito persistente por usuario (relación 1:1 con Users).
 
 **Constraints**:
-- `PK_CarritoCompras`: Clave primaria en `Id`
-- `FK_CarritoCompras_Users`: Clave foránea a `Users.Id` (ON DELETE CASCADE)
-- `UK_CarritoCompras_UsuarioId`: Índice único (un usuario solo puede tener un carrito)
+- `PK_CarritoCompra`: Clave primaria en `Id`
+- `FK_CarritoCompra_Users`: Clave foránea a `Users.Id` (ON DELETE CASCADE)
+- `UK_CarritoCompra_UsuarioId`: Índice único (un usuario solo puede tener un carrito)
 
 #### CarritoItems
 Ítems dentro del carrito.
 
 **Constraints**:
 - `PK_CarritoItems`: Clave primaria en `Id`
-- `FK_CarritoItems_CarritoCompras`: Clave foránea a `CarritoCompras.Id` (ON DELETE CASCADE)
-- `FK_CarritoItems_Productos`: Clave foránea a `Productos.Id` (ON DELETE CASCADE)
+- `FK_CarritoItems_CarritoCompra`: Clave foránea a `CarritoCompra.Id` (ON DELETE CASCADE)
+- `FK_CarritoItems_Productos`: Clave foránea a `Productos.Id` (ON DELETE SET NULL)
 - `FK_CarritoItems_Promociones`: Clave foránea a `Promociones.Id` (ON DELETE SET NULL)
 - `CHK_CarritoItems_Cantidad`: CHECK que valida `Cantidad > 0`
 
 **Índices**:
-- `IX_CarritoItems_CarritoId`: Búsquedas rápidas de items por carrito
+- `IX_CarritoItems_CarritoCompraId`: Búsquedas rápidas de items por carrito
 
 **Campos nullable**:
 - `ProductoId`: Puede ser NULL si el item es una promoción independiente
 - `PromocionId`: NULL si no tiene promoción aplicada
-- `PrecioOriginal`: NULL si no tiene descuento
 
 ### Módulo de Pedidos
 
@@ -391,7 +376,7 @@ Líneas de detalle del pedido.
 **Constraints**:
 - `PK_PedidoItems`: Clave primaria en `Id`
 - `FK_PedidoItems_Pedidos`: Clave foránea a `Pedidos.Id` (ON DELETE CASCADE)
-- `FK_PedidoItems_Productos`: Clave foránea a `Productos.Id` (ON DELETE NO ACTION)
+- `FK_PedidoItems_Productos`: Clave foránea a `Productos.Id` (ON DELETE SET NULL)
 - `FK_PedidoItems_Promociones`: Clave foránea a `Promociones.Id` (ON DELETE SET NULL)
 - `CHK_PedidoItems_Cantidad`: CHECK que valida `Cantidad > 0`
 - `CHK_PedidoItems_PrecioUnitario`: CHECK que valida `PrecioUnitario > 0`
@@ -402,7 +387,6 @@ Líneas de detalle del pedido.
 **Campos nullable**:
 - `ProductoId`: Puede ser NULL si es promoción independiente
 - `PromocionId`: NULL si no tiene promoción aplicada
-- `PrecioOriginal`: NULL si no tiene descuento
 
 **Snapshot de precio**:
 - `PrecioUnitario` se guarda al momento de crear el pedido (no cambia si el producto sube/baja de precio después)
@@ -420,19 +404,19 @@ Auditoría de cambios de estado del pedido.
 
 **Uso**:
 - Cada cambio de estado genera un registro automáticamente
-- `CambiadoPor` es opcional (NULL si fue automático)
+- `CambiadoPorId` es opcional (NULL si fue automático)
 
 ### Módulo de Entregas
 
-#### DireccionesEnvio
+#### DireccionEnvio
 Direcciones de envío de los usuarios.
 
 **Constraints**:
-- `PK_DireccionesEnvio`: Clave primaria en `Id`
-- `FK_DireccionesEnvio_Users`: Clave foránea a `Users.Id` (ON DELETE CASCADE)
+- `PK_DireccionEnvio`: Clave primaria en `Id`
+- `FK_DireccionEnvio_Users`: Clave foránea a `Users.Id` (ON DELETE CASCADE)
 
 **Índices**:
-- `IX_DireccionesEnvio_UsuarioId`: Búsquedas de direcciones por usuario
+- `IX_DireccionEnvio_UsuarioId`: Búsquedas de direcciones por usuario
 
 **Campos GPS** (agregados 02/04/2026):
 - `Latitud`: Coordenada GPS (float)
@@ -537,18 +521,18 @@ Quejas o reportes sobre pedidos.
 
 ### Módulo de Pagos
 
-#### RegistrosPagos
+#### RegistroPago
 Log de intentos de pago y confirmaciones.
 
 **Constraints**:
-- `PK_RegistrosPagos`: Clave primaria en `Id`
-- `FK_RegistrosPagos_Pedidos`: Clave foránea a `Pedidos.Id` (ON DELETE CASCADE)
-- `FK_RegistrosPagos_Users`: Clave foránea a `Users.Id` (ON DELETE NO ACTION)
-- `CHK_RegistrosPagos_Estado`: CHECK que valida estado en valores permitidos
+- `PK_RegistroPago`: Clave primaria en `Id`
+- `FK_RegistroPago_Pedidos`: Clave foránea a `Pedidos.Id` (ON DELETE CASCADE)
+- `FK_RegistroPago_Users`: Clave foránea a `Users.Id` (ON DELETE NO ACTION)
+- `CHK_RegistroPago_Estado`: CHECK que valida estado en valores permitidos
 
 **Índices**:
-- `IX_RegistrosPagos_PedidoId`: Búsquedas de pagos por pedido
-- `IX_RegistrosPagos_Estado`: Filtrar pagos por estado
+- `IX_RegistroPago_PedidoId`: Búsquedas de pagos por pedido
+- `IX_RegistroPago_Estado`: Filtrar pagos por estado
 
 **Estados permitidos**:
 - Espera, Exitoso, Fallido
@@ -565,47 +549,36 @@ Configuración global del sistema (tabla singleton - solo 1 registro con Id = 1)
 
 **Constraints**:
 - `PK_ConfiguracionTienda`: Clave primaria en `Id`
-- `CHK_ConfiguracionTienda_CostoEnvio`: CHECK que valida `CostoEnvio >= 0`
-- `CHK_ConfiguracionTienda_CompraMinima`: CHECK que valida `CompraMinima > 0`
+- `CHK_ConfiguracionTienda_PedidoMinimo`: CHECK que valida `PedidoMinimoCompra > 0`
 
 **Datos semilla**:
 ```sql
-INSERT INTO ConfiguracionTienda (Id, NombreTienda, CostoEnvio, CompraMinima, Moneda, ...) VALUES
-(1, 'PASTISSERIE''S DELUXE', 5000.00, 15000.00, 'COP', ...);
+INSERT INTO ConfiguracionTienda (Id, NombreTienda, PedidoMinimoCompra) VALUES
+(1, 'PASTISSERIE''S DELUXE', 15000.00);
 ```
-
-**Campos JSON**:
-- `CostosEnvioPorComuna`: JSON con formato `{"Guayabal": 5000, "Belén": 6000}`
 
 **Horarios**:
 - `HoraApertura` y `HoraCierre`: TimeSpan (ej: 08:00:00)
-- `DiasLaborales`: String con días separados por coma (ej: "1,2,3,4,5,6" = Lunes a Sábado)
+- `SistemaActivoManual`: Cierre manual de tienda
+- `UsarControlHorario`: Activar validación de horarios
 
-**Campos obsoletos** (marcados con `[Obsolete]` en código):
-- `HorarioActivo`, `HorarioApertura`, `HorarioCierre`: Usar en su lugar `UsarControlHorario`, `HoraApertura`, `HoraCierre`
-
-#### HorariosDia
+#### HorarioDia
 Horarios específicos por día de la semana.
 
 **Constraints**:
-- `PK_HorariosDia`: Clave primaria en `Id`
-- `FK_HorariosDia_ConfiguracionTienda`: Clave foránea a `ConfiguracionTienda.Id` (ON DELETE CASCADE)
-- `CHK_HorariosDia_DiaSemana`: CHECK que valida `DiaSemana BETWEEN 0 AND 6`
-- `UK_HorariosDia_ConfiguracionTiendaId_DiaSemana`: Índice único compuesto (un día solo puede tener un horario)
+- `PK_HorarioDia`: Clave primaria en `Id`
+- `UK_HorarioDia_DiaSemana`: Índice único en `DiaSemana`
 
 **Índices**:
-- `IX_HorariosDia_ConfiguracionTiendaId`: Búsquedas de horarios por tienda
+- `UK_HorarioDia_DiaSemana`: Un día solo puede tener un horario
 
 **DiaSemana**:
-- 0 = Domingo
-- 1 = Lunes
-- ...
-- 6 = Sábado
+- Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo
 
 ## Relaciones (Foreign Keys)
 
 ### 1:1 (One-to-One)
-- `Users` ↔ `CarritoCompras`: Un usuario tiene un solo carrito
+- `Users` ↔ `CarritoCompra`: Un usuario tiene un solo carrito
 
 ### 1:N (One-to-Many)
 - `Users` → `UserRoles`: Un usuario puede tener múltiples roles
@@ -614,21 +587,21 @@ Horarios específicos por día de la semana.
 - `Users` → `Pedidos` (RepartidorId): Un repartidor puede tener múltiples pedidos asignados
 - `Users` → `Reviews`: Un usuario puede escribir múltiples reviews
 - `Users` → `Notificaciones`: Un usuario puede recibir múltiples notificaciones
-- `Users` → `DireccionesEnvio`: Un usuario puede tener múltiples direcciones
-- `CategoriasProducto` → `Productos`: Una categoría contiene múltiples productos
+- `Users` → `DireccionEnvio`: Un usuario puede tener múltiples direcciones
+- `CategoriaProducto` → `Productos`: Una categoría contiene múltiples productos
 - `Productos` → `Reviews`: Un producto puede tener múltiples reviews
 - `Productos` → `PedidoItems`: Un producto puede estar en múltiples pedidos
 - `Productos` → `CarritoItems`: Un producto puede estar en múltiples carritos
 - `Productos` → `Promociones`: Un producto puede tener múltiples promociones
-- `CarritoCompras` → `CarritoItems`: Un carrito contiene múltiples items
+- `CarritoCompra` → `CarritoItems`: Un carrito contiene múltiples items
 - `Pedidos` → `PedidoItems`: Un pedido contiene múltiples items
 - `Pedidos` → `PedidoHistorial`: Un pedido registra múltiples cambios de estado
 - `Pedidos` → `Reclamaciones`: Un pedido puede generar múltiples reclamaciones
-- `Pedidos` → `RegistrosPagos`: Un pedido puede tener múltiples intentos de pago
-- `DireccionesEnvio` → `Pedidos`: Una dirección puede usarse en múltiples pedidos
+- `Pedidos` → `RegistroPago`: Un pedido puede tener múltiples intentos de pago
+- `DireccionEnvio` → `Pedidos`: Una dirección puede usarse en múltiples pedidos
 - `Promociones` → `CarritoItems`: Una promoción puede aplicarse a múltiples items de carrito
 - `Promociones` → `PedidoItems`: Una promoción puede aplicarse a múltiples items de pedido
-- `ConfiguracionTienda` → `HorariosDia`: Una tienda tiene múltiples horarios (uno por día)
+- `ConfiguracionTienda` → `HorarioDia`: Una tienda tiene múltiples horarios (uno por día)
 
 ### M:N (Many-to-Many)
 - `Users` ↔ `Roles` (a través de `UserRoles`): Muchos usuarios pueden tener muchos roles
@@ -638,11 +611,12 @@ Horarios específicos por día de la semana.
 ### Índices Únicos (UNIQUE)
 - `Users.Email`: Evita emails duplicados
 - `Roles.Nombre`: Evita roles duplicados
-- `UserRoles.UsuarioId + RolId`: Evita asignaciones duplicadas
-- `CarritoCompras.UsuarioId`: Un usuario solo puede tener un carrito
-- `CategoriasProducto.Nombre`: Evita categorías duplicadas
+- `UserRoles.UserId + RolId`: Evita asignaciones duplicadas
+- `CarritoCompra.UsuarioId`: Un usuario solo puede tener un carrito
+- `CategoriaProducto.Nombre`: Evita categorías duplicadas
 - `Reviews.UsuarioId + ProductoId`: Un usuario solo puede hacer una review por producto
-- `HorariosDia.ConfiguracionTiendaId + DiaSemana`: Un día solo puede tener un horario
+- `HorarioDia.DiaSemana`: Un día solo puede tener un horario
+- `Reclamaciones.NumeroTicket`: Cada ticket es único
 
 ### Índices de Búsqueda (Non-unique)
 - `Productos.Activo`: Filtrar productos activos (usado en catálogo público)
@@ -654,7 +628,7 @@ Horarios específicos por día de la semana.
 - `Reviews.ProductoId`: Búsquedas de reviews por producto
 - `Reviews.Aprobada`: Filtrar reviews aprobadas (público)
 - `Notificaciones.UsuarioId + Leida`: Búsquedas de notificaciones no leídas
-- `Promociones.Activo + FechaInicio`: Búsquedas de promociones vigentes
+- `Promociones.Activa + FechaInicio`: Búsquedas de promociones vigentes
 
 ### Estrategias de Optimización
 1. **Índices compuestos**: `(UsuarioId, Leida)` en Notificaciones para query común "notificaciones no leídas del usuario X"

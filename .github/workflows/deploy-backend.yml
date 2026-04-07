@@ -1,0 +1,60 @@
+name: Deploy Backend to Azure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'PastisserieAPI.API/**'
+      - 'PastisserieAPI.Core/**'
+      - 'PastisserieAPI.Infrastructure/**'
+      - 'PastisserieAPI.Services/**'
+      - 'PastisserieAPI.sln'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore PastisserieAPI.sln
+
+      - name: Build project
+        run: dotnet build PastisserieAPI.sln -c Release --no-restore
+
+      - name: Publish project
+        run: dotnet publish PastisserieAPI.sln -c Release -o ./publish --no-restore
+
+      - name: Clean publish folder
+        run: |
+          # Borrar carpetas de idiomas innecesarias (localization)
+          rm -rf publish/de publish/es publish/fr publish/it publish/ja publish/ko publish/pt-BR publish/ru publish/zh-Hans publish/zh-Hant publish/LatoFont
+          
+          # Borrar solo runtimes NO-Windows (Azure App Service usa Windows)
+          # IMPORTANTE: Mantener runtimes/win-* porque contienen DLLs nativas necesarias para JWT y SQL Server
+          rm -rf publish/runtimes/linux-* publish/runtimes/osx-* publish/runtimes/unix-* 2>/dev/null || true
+          
+          # Borrar archivos específicos (api.zip si existe, appsettings.json para usar Production)
+          rm -rf publish/api 2>/dev/null || true
+          rm -f publish/appsettings.json publish/api.zip
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: patisserie-api
+          slot-name: Production
+          package: ./publish
+          deployment-type: zip

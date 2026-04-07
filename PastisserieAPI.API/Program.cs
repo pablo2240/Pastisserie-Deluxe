@@ -9,9 +9,13 @@ using PastisserieAPI.API.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 // ============ CONFIGURACIÓN DE ZONA HORARIA (BOGOTÁ, COLOMBIA) ============
-var bogotaZone = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time");
+// Soporte para Windows (SA Pacific Standard Time) y Linux/Mac (America/Bogota)
+var timeZoneId = OperatingSystem.IsWindows() 
+    ? "SA Pacific Standard Time"  // Windows
+    : "America/Bogota";            // Linux/Mac
+var bogotaZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
 TimeZoneInfo.ClearCachedData();
-Console.WriteLine($"🌎 Zona horaria configurada: {bogotaZone.DisplayName}");
+Console.WriteLine($"🌎 Zona horaria configurada: {bogotaZone.DisplayName} (OS: {Environment.OSVersion.Platform})");
 
 // Configurar cultura para formato de fechas
 var culture = new System.Globalization.CultureInfo("es-CO");

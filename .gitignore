@@ -33,10 +33,12 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+appsettings.json
 appsettings.Development.json
 appsettings.Local.json
 appsettings.*.secrets.json
 appsettings.Production.json
+!appsettings.Example.json
 local.settings.json
 
 # ---- IDE / Editor ----
@@ -83,6 +85,11 @@ changes/
 Thumbs.db
 Desktop.ini
 scripts/
+
+# ---- Azure Logs / Deployment Artifacts ----
+azure-logs/
+azure-logs.zip
+publish.zip
 
 # ==== Fin PATCH =====
 
